@@ -29,7 +29,7 @@ DEPS_bluray = libxml2 $(DEPS_libxml2) freetype2 $(DEPS_freetype2)
 BLURAY_CONF = --disable-examples  \
               --with-libxml2      \
               --enable-udf        \
-              --enable-bdjava
+              --disable-bdjava
 
 ifneq ($(WITH_FONTCONFIG), 0)
 DEPS_bluray += fontconfig $(DEPS_fontconfig)
