@@ -374,21 +374,6 @@ distclean: clean
 	$(RM) config.mak
 	unlink Makefile
 
-PREBUILT_URL=ftp://ftp.videolan.org/pub/videolan/contrib/$(HOST)/vlc-contrib-$(HOST)-latest.tar.bz2
-
-vlc-contrib-$(HOST)-latest.tar.bz2:
-	$(call download,$(PREBUILT_URL))
-
-prebuilt: vlc-contrib-$(HOST)-latest.tar.bz2
-	-$(UNPACK)
-	$(RM) -r $(TOPDST)/$(HOST)
-	mv $(HOST) $(TOPDST)
-	cd $(TOPDST)/$(HOST) && $(SRC)/change_prefix.sh
-ifdef HAVE_WIN32
-ifndef HAVE_CROSS_COMPILE
-	$(RM) `find $(TOPDST)/$(HOST)/bin | file -f- | grep ELF | awk -F: '{print $$1}' | xargs`
-endif
-endif
 
 package: install
 	rm -Rf tmp/
