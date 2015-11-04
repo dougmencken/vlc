@@ -88,6 +88,13 @@ FFMPEGCONF += --cpu=armv6 --disable-neon
 endif
 endif
 
+# PowerPC stuff
+ifeq ($(ARCH),ppc)
+ifndef HAVE_DARWIN_OS
+FFMPEGCONF += --arch=ppc
+endif
+endif
+
 # ARM64 stuff
 ifeq ($(ARCH),aarch64)
 FFMPEGCONF += --arch=aarch64
