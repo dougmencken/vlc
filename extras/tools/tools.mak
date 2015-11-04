@@ -11,16 +11,11 @@ include packages.mak
 AUTOCONF=$(PREFIX)/bin/autoconf
 export AUTOCONF
 
-ifeq ($(shell curl --version >/dev/null 2>&1 || echo FAIL),)
-download = curl -f -L -- "$(1)" > "$@"
+ifneq ($(shell curl --version 2>/dev/null),)
+download = curl -k -f -L -- "$(1)" > "$@"
 else ifeq ($(shell wget --version >/dev/null 2>&1 || echo FAIL),)
 download = rm -f $@.tmp && \
 	wget --passive -c -p -O $@.tmp "$(1)" && \
-	touch $@.tmp && \
-	mv $@.tmp $@
-else ifeq ($(which fetch >/dev/null 2>&1 || echo FAIL),)
-download = rm -f $@.tmp && \
-	fetch -p -o $@.tmp "$(1)" && \
 	touch $@.tmp && \
 	mv $@.tmp $@
 else
