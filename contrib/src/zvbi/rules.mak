@@ -43,8 +43,6 @@ ZVBI_CFLAGS += -DPTW32_STATIC_LIB
 endif
 
 .zvbi: zvbi
-	$(UPDATE_AUTOCONFIG)
-	$(RECONF)
 	cd $< && $(HOSTVARS) CFLAGS="$(ZVBI_CFLAGS)" ./configure $(ZVBICONF)
 	cd $</src && $(MAKE) install
 	cd $< && $(MAKE) SUBDIRS=. install
