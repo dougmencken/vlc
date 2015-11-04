@@ -41,23 +41,6 @@ MOVE = mv $(UNPACK_DIR) $@ && touch $@
 # package rules
 #
 
-# yasm
-
-yasm-$(YASM_VERSION).tar.gz:
-	$(call download,$(YASM_URL))
-
-yasm: yasm-$(YASM_VERSION).tar.gz
-	$(UNPACK)
-	$(MOVE)
-
-.yasm: yasm
-	(cd $<; ./configure --prefix=$(PREFIX) && $(MAKE) && $(MAKE) install)
-	touch $@
-
-CLEAN_FILE += .yasm
-CLEAN_PKG += yasm
-DISTCLEAN_PKG += yasm-$(YASM_VERSION).tar.gz
-
 # cmake
 
 cmake-$(CMAKE_VERSION).tar.gz:

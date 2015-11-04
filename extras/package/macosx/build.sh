@@ -9,10 +9,11 @@ info()
     echo "[${green}build${normal}] $1"
 }
 
-ARCH="x86_64"
-MINIMAL_OSX_VERSION="10.7"
-OSX_VERSION=`xcrun --show-sdk-version`
-SDKROOT=`xcode-select -print-path`/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$OSX_VERSION.sdk
+ARCH="ppc"
+ARCHFULL="powerpc"
+MINIMAL_OSX_VERSION="10.5"
+OSX_VERSION="10.5"
+SDKROOT="/Developer/SDKs/MacOSX$OSX_VERSION.sdk"
 
 usage()
 {
@@ -89,11 +90,11 @@ builddir=`pwd`
 
 info "Building in \"$builddir\""
 
-TRIPLET=$ARCH-apple-darwin11
+TRIPLET=$ARCHFULL-apple-darwin9
 
-export CC="xcrun clang"
-export CXX="xcrun clang++"
-export OBJC="xcrun clang"
+export CC="ccache /usr/bin/gcc-4.2"
+export CXX="ccache /usr/bin/g++-4.2"
+export OBJC="${CC}"
 export OSX_VERSION
 export SDKROOT
 export PATH="${vlcroot}/extras/tools/build/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:${vlcroot}/contrib/${TRIPLET}/bin:${PATH}"

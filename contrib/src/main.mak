@@ -102,15 +102,16 @@ CXX := $(HOST)-g++ --sysroot=$(ANDROID_NDK)/platforms/$(ANDROID_API)/arch-$(PLAT
 endif
 
 ifdef HAVE_MACOSX
-MIN_OSX_VERSION=10.7
-CC=xcrun cc
-CXX=xcrun c++
-AR=xcrun ar
-LD=xcrun ld
-STRIP=xcrun strip
-RANLIB=xcrun ranlib
+MIN_OSX_VERSION=10.5
+
+CC ?= gcc
+CXX ?= g++
+AR = ar
+LD = ld
+STRIP = strip
+RANLIB = ranlib
+
 EXTRA_CFLAGS += -isysroot $(MACOSX_SDK) -mmacosx-version-min=$(MIN_OSX_VERSION) -DMACOSX_DEPLOYMENT_TARGET=$(MIN_OSX_VERSION)
-EXTRA_CXXFLAGS += -stdlib=libc++
 EXTRA_LDFLAGS += -Wl,-syslibroot,$(MACOSX_SDK) -mmacosx-version-min=$(MIN_OSX_VERSION) -isysroot $(MACOSX_SDK) -DMACOSX_DEPLOYMENT_TARGET=$(MIN_OSX_VERSION)
 ifeq ($(ARCH),x86_64)
 EXTRA_CFLAGS += -m64
@@ -123,7 +124,7 @@ endif
 XCODE_FLAGS = -sdk macosx$(OSX_VERSION)
 ifeq ($(shell xcodebuild -version 2>/dev/null | tee /dev/null|head -1|cut -d\  -f2|cut -d. -f1),3)
 XCODE_FLAGS += ARCHS=$(ARCH)
-# XCode 3 doesn't support -arch
+# don't set -arch for XCode 3
 else
 XCODE_FLAGS += -arch $(ARCH)
 endif
@@ -131,23 +132,6 @@ endif
 endif
 
 CCAS=$(CC) -c
-
-ifdef HAVE_IOS
-CC=xcrun clang
-CXX=xcrun clang++
-ifdef HAVE_NEON
-AS=perl $(abspath ../../extras/tools/build/bin/gas-preprocessor.pl) $(CC)
-CCAS=gas-preprocessor.pl $(CC) -c
-else
-CCAS=$(CC) -c
-endif
-AR=xcrun ar
-LD=xcrun ld
-STRIP=xcrun strip
-RANLIB=xcrun ranlib
-EXTRA_CFLAGS += $(CFLAGS)
-EXTRA_LDFLAGS += $(LDFLAGS)
-endif
 
 ifdef HAVE_WIN32
 ifneq ($(shell $(CC) $(CFLAGS) -E -dM -include _mingw.h - < /dev/null | grep -E __MINGW64_VERSION_MAJOR),)

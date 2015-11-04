@@ -4,6 +4,10 @@ CFLAGS=${CFLAGS}
 LDFLAGS=${LDFLAGS}
 
 case "${ARCH}" in
+    ppc*)
+        CFLAGS="${CFLAGS} -m32"
+        LDFLAGS="${LDFLAGS} -m32"
+        ;;
     x86_64*)
         CFLAGS="${CFLAGS} -m64 -march=core2 -mtune=core2"
         LDFLAGS="${LDFLAGS} -m64"
@@ -35,7 +39,7 @@ OPTIONS="
         --disable-caca
         --disable-sdl
         --disable-macosx-dialog-provider
-        --with-macosx-version-min=10.7
+        --with-macosx-version-min=10.5
 "
 
 export CFLAGS
