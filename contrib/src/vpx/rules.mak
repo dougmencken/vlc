@@ -13,7 +13,6 @@ libvpx: libvpx-$(VPX_VERSION).tar.bz2 .sum-vpx
 	$(APPLY) $(SRC)/vpx/libvpx-sysroot.patch
 	$(APPLY) $(SRC)/vpx/libvpx-no-cross.patch
 	$(APPLY) $(SRC)/vpx/libvpx-mac.patch
-	$(APPLY) $(SRC)/vpx/libvpx-ios.patch
 	$(MOVE)
 
 DEPS_vpx =
