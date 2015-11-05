@@ -1,0 +1,44 @@
+--- x265/source/common/common.cpp
++++ x265/source/common/common.cpp
+@@ -72,19 +72,34 @@
+ }
+ 
+ #else // if _WIN32
+-void *x265_malloc(size_t size)
++void * x265_aligned_alloc( size_t align, size_t size )
+ {
+-    void *ptr;
+-
+-    if (posix_memalign((void**)&ptr, X265_ALIGNBYTES, size) == 0)
+-        return ptr;
+-    else
++    if (size == 0)
+         return NULL;
++    else
++    {
++        void* ptr = malloc(size + (align - 1) + sizeof(void*));
++        if (!ptr) return NULL;
++        char* aptr = ((char*)ptr) + sizeof(void*);
++        aptr += (align - ((size_t)aptr & (align - 1))) & (align - 1);
++        ((void**)aptr)[-1] = ptr;
++        return aptr;
++    }
++}
++
++void x265_aligned_free( void* p )
++{
++    free(((void**)p)[-1]);
++}
++
++void *x265_malloc(size_t size)
++{
++    return x265_aligned_alloc(X265_ALIGNBYTES, size);
+ }
+ 
+ void x265_free(void *ptr)
+ {
+-    if (ptr) free(ptr);
++    if (ptr) x265_aligned_free(ptr);
+ }
+ 
+ #endif // if _WIN32
