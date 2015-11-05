@@ -16,6 +16,7 @@ sparkle: Sparkle-$(SPARKLE_VERSION).zip .sum-sparkle
 	$(UNPACK)
 	$(APPLY) $(SRC)/sparkle/sparkle-fix-compilation-on-snowleopard.patch
 	$(APPLY) $(SRC)/sparkle/sparkle-fix-runtime-exception-on-snowleopard.patch
+	$(APPLY) $(SRC)/sparkle/sparkle-fix-compilation-on-leopard.patch
 	$(MOVE)
 
 .sparkle: sparkle
