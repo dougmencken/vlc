@@ -19,7 +19,7 @@ sparkle: Sparkle-$(SPARKLE_VERSION).zip .sum-sparkle
 	$(MOVE)
 
 .sparkle: sparkle
-	cd $< && xcodebuild $(XCODE_FLAGS) WARNING_CFLAGS=-Wno-error
+	cd $< && xcodebuild $(XCODE_FLAGS) CC="$(word $(words $(CC)),$(CC))" CXX="$(word $(words $(CXX)),$(CXX))" GCC_VERSION=4.2 WARNING_CFLAGS=-Wno-error
 	cd $< && install_name_tool -id @executable_path/../Frameworks/Sparkle.framework/Versions/A/Sparkle build/Release/Sparkle.framework/Sparkle
 	install -d $(PREFIX)
 	cd $< && cp -R build/Release/Sparkle.framework "$(PREFIX)"

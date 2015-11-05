@@ -1,0 +1,44 @@
+--- growl/Growl.xcodeproj/project.pbxproj
++++ growl/Growl.xcodeproj/project.pbxproj
+@@ -2792,7 +2792,7 @@
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 			shellPath = /bin/sh;
+-			shellScript = "find \"$TARGET_BUILD_DIR/$FULL_PRODUCT_NAME\" '(' -name '.svn' -or -name '.DS_Store' ')' -prune -print0 | xargs -0 rm -rf\n";
++			shellScript = "";
+ 		};
+ 		95E17B8E085E216A00990AB3 /* ShellScript */ = {
+ 			isa = PBXShellScriptBuildPhase;
+@@ -2805,7 +2805,7 @@
+ 			);
+ 			runOnlyForDeploymentPostprocessing = 0;
+ 			shellPath = /bin/sh;
+-			shellScript = "source generateHgRevision.sh";
++			shellScript = "";
+ 		};
+ /* End PBXShellScriptBuildPhase section */
+ 
+--- growl/GrowlVersion.h
++++ growl/GrowlVersion.h
+@@ -7,7 +7,8 @@
+ #define GROWLMAIL_VERSION 1.2.4b1
+ #define GROWLMAIL_VERSION_STRING "1.2.4b1"
+ 
+-#include "hgRevision.h"
++#define HG_REVISION 0
++#define HG_REVISION_STRING "0"
+ 
+ #undef COMMENT_1
+ #undef COMMENT_2
+--- growl/GrowlVersion.h.tmpl
++++ growl/GrowlVersion.h.tmpl
+@@ -7,7 +7,8 @@
+ #define GROWLMAIL_VERSION INSERT_GROWLMAIL_VERSION_HERE
+ #define GROWLMAIL_VERSION_STRING "INSERT_GROWLMAIL_VERSION_HERE"
+ 
+-#include "hgRevision.h"
++#define HG_REVISION 0
++#define HG_REVISION_STRING "0"
+ 
+ #undef COMMENT_1
+ #undef COMMENT_2

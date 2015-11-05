@@ -121,7 +121,7 @@ EXTRA_CFLAGS += -m32
 EXTRA_LDFLAGS += -m32
 endif
 
-XCODE_FLAGS = -sdk macosx$(OSX_VERSION)
+XCODE_FLAGS = -sdk macosx$(OSX_VERSION) MACOSX_DEPLOYMENT_TARGET=$(MIN_OSX_VERSION)
 ifeq ($(shell xcodebuild -version 2>/dev/null | tee /dev/null|head -1|cut -d\  -f2|cut -d. -f1),3)
 XCODE_FLAGS += ARCHS=$(ARCH)
 # don't set -arch for XCode 3

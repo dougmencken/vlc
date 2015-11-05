@@ -21,7 +21,7 @@ bghudappkit: bghudappkit-git.tar.xz .sum-bghudappkit
 	$(MOVE)
 
 .bghudappkit: bghudappkit
-	cd $< && xcodebuild $(XCODE_FLAGS)
+	cd $< && xcodebuild $(XCODE_FLAGS) CC="$(word $(words $(CC)),$(CC))" CXX="$(word $(words $(CXX)),$(CXX))" GCC_VERSION=4.2
 	install -d $(PREFIX)
 	cd $< && cp -Rf build/Release/BGHUDAppKit.framework "$(PREFIX)"
 	touch $@
