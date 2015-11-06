@@ -234,7 +234,7 @@ static filter_t *SpuRenderCreateAndLoadScale(vlc_object_t *object,
     scale->fmt_out.video.i_height =
     scale->fmt_out.video.i_visible_height = require_resize ? 16 : 32;
 
-    scale->owner.video.buffer_new = spu_new_video_buffer;
+    scale->owner.u.video.buffer_new = spu_new_video_buffer;
 
     scale->p_module = module_need(scale, "video filter2", NULL, false);
 
@@ -1160,7 +1160,7 @@ static int SubSourceInit(filter_t *filter, void *data)
     int channel = spu_RegisterChannel(spu);
 
     filter->owner.sys = (void *)(intptr_t)channel;
-    filter->owner.sub.buffer_new = sub_new_buffer;
+    filter->owner.u.sub.buffer_new = sub_new_buffer;
     return VLC_SUCCESS;
 }
 

@@ -385,12 +385,9 @@ static sout_stream_id_sys_t * Add( sout_stream_t *p_stream, const es_format_t *p
     msg_Dbg( p_stream, "psz_chain: %s", psz_chain );
     if( psz_chain )
     {
-        filter_owner_t owner = {
-            .sys = p_sys->p_decoder->p_owner,
-            .video = {
-                .buffer_new = video_new_buffer_filter,
-            },
-        };
+        filter_owner_t owner;
+        owner.sys = p_sys->p_decoder->p_owner;
+        owner.u.video.buffer_new = video_new_buffer_filter;
 
         p_sys->p_vf2 = filter_chain_NewVideo( p_stream, false, &owner );
         es_format_t fmt;

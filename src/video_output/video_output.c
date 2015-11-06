@@ -1291,16 +1291,14 @@ static int ThreadStart(vout_thread_t *vout, const vout_display_state_t *state)
     vout->p->filter.configuration = NULL;
     video_format_Copy(&vout->p->filter.format, &vout->p->original);
 
-    filter_owner_t owner = {
-        .sys = vout,
-        .video = {
-            .buffer_new = VoutVideoFilterStaticNewPicture,
-        },
-    };
+    filter_owner_t owner;
+    owner.sys = vout;
+    owner.u.video.buffer_new = VoutVideoFilterStaticNewPicture;
+
     vout->p->filter.chain_static =
         filter_chain_NewVideo( vout, true, &owner );
 
-    owner.video.buffer_new = VoutVideoFilterInteractiveNewPicture;
+    owner.u.video.buffer_new = VoutVideoFilterInteractiveNewPicture;
     vout->p->filter.chain_interactive =
         filter_chain_NewVideo( vout, true, &owner );
 

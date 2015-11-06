@@ -247,12 +247,10 @@ int transcode_video_new( sout_stream_t *p_stream, sout_stream_id_sys_t *id )
 static void transcode_video_filter_init( sout_stream_t *p_stream,
                                          sout_stream_id_sys_t *id )
 {
-    filter_owner_t owner = {
-        .sys = p_stream->p_sys,
-        .video = {
-            .buffer_new = transcode_video_filter_buffer_new,
-        },
-    };
+    filter_owner_t owner;
+    owner.sys = p_stream->p_sys;
+    owner.u.video.buffer_new = transcode_video_filter_buffer_new;
+
     es_format_t *p_fmt_out = &id->p_decoder->fmt_out;
 
     id->p_encoder->fmt_in.video.i_chroma = id->p_encoder->fmt_in.i_codec;

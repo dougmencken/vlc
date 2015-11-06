@@ -121,7 +121,7 @@ static picture_t *filter_chain_VideoBufferNew( filter_t *filter )
 
         /* XXX ugly */
         filter->owner.sys = chain->owner.sys;
-        picture_t *pic = chain->owner.video.buffer_new( filter );
+        picture_t *pic = chain->owner.u.video.buffer_new( filter );
         filter->owner.sys = chain;
         return pic;
     }
@@ -131,12 +131,9 @@ static picture_t *filter_chain_VideoBufferNew( filter_t *filter )
 filter_chain_t *filter_chain_NewVideo( vlc_object_t *obj, bool allow_change,
                                        const filter_owner_t *restrict owner )
 {
-    filter_owner_t callbacks = {
-        .sys = obj,
-        .video = {
-            .buffer_new = filter_chain_VideoBufferNew,
-        },
-    };
+    filter_owner_t callbacks;
+    callbacks.sys = obj;
+    callbacks.u.video.buffer_new = filter_chain_VideoBufferNew;
 
     return filter_chain_NewInner( &callbacks, "video filter2", allow_change,
                                   owner );

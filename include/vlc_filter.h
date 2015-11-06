@@ -55,7 +55,7 @@ typedef struct filter_owner_t
         {
             subpicture_t * (*buffer_new)( filter_t * );
         } sub;
-    };
+    } u;
 } filter_owner_t;
 
 
@@ -154,7 +154,7 @@ struct filter_t
  */
 static inline picture_t *filter_NewPicture( filter_t *p_filter )
 {
-    picture_t *pic = p_filter->owner.video.buffer_new( p_filter );
+    picture_t *pic = p_filter->owner.u.video.buffer_new( p_filter );
     if( pic == NULL )
         msg_Warn( p_filter, "can't get output picture" );
     return pic;
@@ -193,7 +193,7 @@ static inline block_t *filter_DrainAudio( filter_t *p_filter )
  */
 static inline subpicture_t *filter_NewSubpicture( filter_t *p_filter )
 {
-    subpicture_t *subpic = p_filter->owner.sub.buffer_new( p_filter );
+    subpicture_t *subpic = p_filter->owner.u.sub.buffer_new( p_filter );
     if( subpic == NULL )
         msg_Warn( p_filter, "can't get output subpicture" );
     return subpic;

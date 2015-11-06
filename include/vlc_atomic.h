@@ -99,6 +99,8 @@ typedef         ptrdiff_t atomic_ptrdiff_t;
 typedef          intmax_t atomic_intmax_t;
 typedef         uintmax_t atomic_uintmax_t;
 
+#define typeof __typeof__
+
 #  define atomic_store(object,desired) \
     do { \
         *(object) = (desired); \

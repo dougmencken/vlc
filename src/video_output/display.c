@@ -439,12 +439,9 @@ static int VoutDisplayCreateRender(vout_display_t *vd)
 
     msg_Dbg(vd, "A filter to adapt decoder to display is needed");
 
-    filter_owner_t owner = {
-        .sys = vd,
-        .video = {
-            .buffer_new = VideoBufferNew,
-        },
-    };
+    filter_owner_t owner;
+    owner.sys = vd;
+    owner.u.video.buffer_new = VideoBufferNew;
 
     osys->filters = filter_chain_NewVideo(vd, false, &owner);
     if (unlikely(osys->filters == NULL))
