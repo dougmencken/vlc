@@ -178,7 +178,7 @@ block_t *screen_Capture(demux_t *p_demux)
     capture_rect.size.height = p_data->height;
 
     /* fetch image data */
-    image = CGDisplayCreateImageForRect(p_data->display_id, capture_rect);
+    image = NULL; ////CGDisplayCreateImageForRect(p_data->display_id, capture_rect);
     if (!image) {
         msg_Warn(p_demux, "no image!");
         return NULL;
