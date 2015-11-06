@@ -91,7 +91,7 @@ struct aout_sys_t
     TPCircularBuffer            circular_buffer;    /* circular buffer to swap the audio data */
 
     /* AUHAL specific */
-    AudioComponent              au_component;       /* The AudioComponent we use */
+    Component                   au_component;       /* The Audiocomponent we use */
     AudioUnit                   au_unit;            /* The AudioUnit we use */
 
     /* CoreAudio SPDIF mode specific */
@@ -488,7 +488,7 @@ static int StartAnalog(audio_output_t *p_aout, audio_sample_format_t *fmt)
     OSStatus                    err = noErr;
     UInt32                      i_param_size = 0;
     int                         i_original;
-    AudioComponentDescription   desc;
+    ComponentDescription        desc;
     AudioStreamBasicDescription DeviceFormat;
     AudioChannelLayout          *layout;
     AURenderCallbackStruct      input;
@@ -505,13 +505,13 @@ static int StartAnalog(audio_output_t *p_aout, audio_sample_format_t *fmt)
     desc.componentFlags = 0;
     desc.componentFlagsMask = 0;
 
-    p_sys->au_component = AudioComponentFindNext(NULL, &desc);
+    p_sys->au_component = FindNextComponent(NULL, &desc);
     if (p_sys->au_component == NULL) {
         msg_Err(p_aout, "cannot find any HAL component, PCM output failed");
         return false;
     }
 
-    err = AudioComponentInstanceNew(p_sys->au_component, &p_sys->au_unit);
+    err = OpenAComponent(p_sys->au_component, &p_sys->au_unit);
     if (err != noErr) {
         msg_Err(p_aout, "cannot open HAL component, PCM output failed [%4.4s]", (char *)&err);
         return false;
@@ -1112,7 +1112,7 @@ static void Stop(audio_output_t *p_aout)
     if (p_sys->au_unit) {
         verify_noerr(AudioOutputUnitStop(p_sys->au_unit));
         verify_noerr(AudioUnitUninitialize(p_sys->au_unit));
-        verify_noerr(AudioComponentInstanceDispose(p_sys->au_unit));
+        verify_noerr(CloseComponent(p_sys->au_unit));
     }
 
     if (p_sys->b_digital) {
