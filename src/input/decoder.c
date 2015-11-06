@@ -1425,7 +1425,7 @@ static void *DecoderThread( void *p_data )
         vlc_mutex_unlock( &p_owner->lock );
     }
     vlc_cleanup_pop();
-    vlc_assert_unreachable();
+    return NULL;
 }
 
 /**

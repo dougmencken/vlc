@@ -114,7 +114,11 @@
 #ifdef __GNUC__
 # define likely(p)     __builtin_expect(!!(p), 1)
 # define unlikely(p)   __builtin_expect(!!(p), 0)
-# define unreachable() __builtin_unreachable()
+# if __GNUC__*100+__GNUC_MINOR__ >= 405
+#  define unreachable() __builtin_unreachable()
+# else
+#  define unreachable() ((void)0)
+# endif
 #else
 # define likely(p)     (!!(p))
 # define unlikely(p)   (!!(p))
@@ -578,13 +582,10 @@ static inline int popcountll(unsigned long long x)
 VLC_USED
 static inline unsigned parity (unsigned x)
 {
-#if VLC_GCC_VERSION(3,4)
-    return __builtin_parity (x);
-#else
-    for (unsigned i = 4 * sizeof (x); i > 0; i /= 2)
+    unsigned int i;
+    for (i = 4 * sizeof (x); i > 0; i /= 2)
         x ^= x >> i;
     return x & 1;
-#endif
 }
 
 #ifdef __OS2__
