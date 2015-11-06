@@ -105,6 +105,7 @@ endif
 
 libqtsound_plugin_la_SOURCES = access/qtsound.m
 libqtsound_plugin_la_LDFLAGS = -Wl,-framework,QTKit -Wl,-framework,CoreAudio
+libqtsound_plugin_la_LIBTOOLFLAGS = --tag=CC
 if HAVE_QTKIT
 access_LTLIBRARIES += libqtsound_plugin.la
 endif
