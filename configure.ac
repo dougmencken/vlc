@@ -162,7 +162,7 @@ case "${host_os}" in
     OBJCFLAGS="${OBJCFLAGS} -D_INTL_REDIRECT_MACROS ${LANGSTD} ${ARCH_flag}"
     LDFLAGS="${LDFLAGS} -Wl,-headerpad_max_install_names ${ARCH_flag}"
     VLC_ADD_LIBS([libvlc vlc],[-Wl,-undefined,dynamic_lookup,-framework,AppKit])
-    VLC_ADD_LIBS([libvlccore],[-Wl,-framework,CoreFoundation,-framework,CoreServices])
+    VLC_ADD_LIBS([libvlccore],[-Wl,-framework,CoreFoundation,-framework,CoreServices,-framework,SystemConfiguration])
 
     AC_EGREP_CPP(yes,
             [#import <TargetConditionals.h>
