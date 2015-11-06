@@ -373,6 +373,7 @@ endif
 libaccess_eyetv_plugin_la_SOURCES = access/eyetv.m
 libaccess_eyetv_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(accessdir)' \
 	-Wl,-framework,Foundation
+libaccess_eyetv_plugin_la_LIBTOOLFLAGS = --tag=CC
 access_LTLIBRARIES += $(LTLIBaccess_eyetv)
 EXTRA_LTLIBRARIES += libaccess_eyetv_plugin.la
 

@@ -86,7 +86,8 @@ static int Control(access_t *, int, va_list);
 
 static void selectChannel(vlc_object_t *p_this, int theChannelNum)
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         NSAppleScript *script;
         switch(theChannelNum) {
             case -2: // Composite
@@ -137,6 +138,7 @@ static void selectChannel(vlc_object_t *p_this, int theChannelNum)
         }
         [script release];
     }
+    [pool drain];
 }
 
 /*****************************************************************************
