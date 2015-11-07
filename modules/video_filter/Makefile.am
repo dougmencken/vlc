@@ -145,7 +145,7 @@ EXTRA_LTLIBRARIES += libopencv_wrapper_plugin.la
 libpostproc_plugin_la_SOURCES = video_filter/postproc.c
 libpostproc_plugin_la_CPPFLAGS = $(AM_CPPFLAGS) $(POSTPROC_CFLAGS) $(AVUTIL_CFLAGS)
 libpostproc_plugin_la_LIBADD = $(LIBM) $(POSTPROC_LIBS) $(AVUTIL_LIBS)
-libpostproc_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(video_filterdir)'
+libpostproc_plugin_la_LDFLAGS = $(AM_LDFLAGS) -Wl,-read_only_relocs,suppress -rpath '$(video_filterdir)'
 video_filter_LTLIBRARIES += $(LTLIBpostproc)
 EXTRA_LTLIBRARIES += libpostproc_plugin.la
 

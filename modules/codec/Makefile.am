@@ -308,7 +308,7 @@ libavcodec_plugin_la_SOURCES += codec/avcodec/encoder.c
 endif
 libavcodec_plugin_la_CFLAGS = $(AVCODEC_CFLAGS) $(AM_CFLAGS)
 libavcodec_plugin_la_LIBADD = $(AVCODEC_LIBS) $(LIBM)
-libavcodec_plugin_la_LDFLAGS = $(AM_LDFLAGS) $(SYMBOLIC_LDFLAGS)
+libavcodec_plugin_la_LDFLAGS = $(AM_LDFLAGS) -Wl,-read_only_relocs,suppress $(SYMBOLIC_LDFLAGS)
 
 if MERGE_FFMPEG
 libavcodec_plugin_la_SOURCES += demux/avformat/demux.c access/avio.c packetizer/avparser.c
