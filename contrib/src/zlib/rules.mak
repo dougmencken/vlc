@@ -3,15 +3,6 @@ ZLIB_VERSION := 1.2.8
 ZLIB_URL := $(SF)/libpng/zlib-$(ZLIB_VERSION).tar.gz
 
 PKGS += zlib
-ifeq ($(call need_pkg,"zlib"),)
-PKGS_FOUND += zlib
-endif
-
-ifeq ($(shell uname),Darwin) # zlib tries to use libtool on Darwin
-ifdef HAVE_CROSS_COMPILE
-ZLIB_CONFIG_VARS=CHOST=$(HOST)
-endif
-endif
 
 ifdef HAVE_SOLARIS
 ZLIB_ECFLAGS = -fPIC -DPIC

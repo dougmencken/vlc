@@ -811,7 +811,7 @@ AS_IF([test -n "${PKG_CONFIG}" ],[
 dnl
 dnl Check for zlib.h and -lz along with system -lminizip if available
 dnl
-AC_CHECK_HEADERS(zlib.h, [ have_zlib=yes ], [ have_zlib=no ])
+PKG_CHECK_MODULES([ZLIB], [ zlib >= 1.2.8 ], [ have_zlib="yes" ], [ have_zlib="no" ])
 AM_CONDITIONAL(HAVE_ZLIB, [ test "${have_zlib}" = "yes" ])
 if test "${have_zlib}" = "yes"
 then

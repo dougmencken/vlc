@@ -17,6 +17,7 @@ png: libpng-$(PNG_VERSION).tar.xz .sum-png
 	$(APPLY) $(SRC)/png/winrt.patch
 	$(APPLY) $(SRC)/png/bins.patch
 	$(APPLY) $(SRC)/png/automake.patch
+	$(APPLY) $(SRC)/png/png-zlib-versions.patch
 	$(MOVE)
 
 DEPS_png = zlib $(DEPS_zlib)

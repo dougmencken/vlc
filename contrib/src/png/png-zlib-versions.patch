@@ -1,0 +1,67 @@
+diff --git a/contrib/tools/pngfix.c b/contrib/tools/pngfix.c
+index 65422f6..36fc962 100644
+--- a/contrib/tools/pngfix.c
++++ b/contrib/tools/pngfix.c
+@@ -73,13 +73,8 @@
+ /* zlib.h has mediocre z_const use before 1.2.6, this stuff is for compatibility
+  * with older builds.
+  */
+-#if ZLIB_VERNUM < 0x1260
+-#  define PNGZ_MSG_CAST(s) constcast(char*,s)
+-#  define PNGZ_INPUT_CAST(b) constcast(png_bytep,b)
+-#else
+-#  define PNGZ_MSG_CAST(s) (s)
+-#  define PNGZ_INPUT_CAST(b) (b)
+-#endif
++#define PNGZ_MSG_CAST(s) constcast(char*,s)
++#define PNGZ_INPUT_CAST(b) constcast(png_bytep,b)
+ 
+ #ifndef PNG_MAXIMUM_INFLATE_WINDOW
+ #  error "pngfix not supported in this libpng version"
+diff --git a/pngrutil.c b/pngrutil.c
+index 4c26be4..e2778bf 100644
+--- a/pngrutil.c
++++ b/pngrutil.c
+@@ -370,21 +370,6 @@ png_inflate_claim(png_structrp png_ptr, png_uint_32 owner)
+     */
+    {
+       int ret; /* zlib return code */
+-#if PNG_ZLIB_VERNUM >= 0x1240
+-
+-# if defined(PNG_SET_OPTION_SUPPORTED) && defined(PNG_MAXIMUM_INFLATE_WINDOW)
+-      int window_bits;
+-
+-      if (((png_ptr->options >> PNG_MAXIMUM_INFLATE_WINDOW) & 3) ==
+-          PNG_OPTION_ON)
+-         window_bits = 15;
+-
+-      else
+-         window_bits = 0;
+-# else
+-#   define window_bits 0
+-# endif
+-#endif
+ 
+       /* Set this for safety, just in case the previous owner left pointers to
+        * memory allocations.
+@@ -396,20 +381,12 @@ png_inflate_claim(png_structrp png_ptr, png_uint_32 owner)
+ 
+       if ((png_ptr->flags & PNG_FLAG_ZSTREAM_INITIALIZED) != 0)
+       {
+-#if PNG_ZLIB_VERNUM < 0x1240
+          ret = inflateReset(&png_ptr->zstream);
+-#else
+-         ret = inflateReset2(&png_ptr->zstream, window_bits);
+-#endif
+       }
+ 
+       else
+       {
+-#if PNG_ZLIB_VERNUM < 0x1240
+          ret = inflateInit(&png_ptr->zstream);
+-#else
+-         ret = inflateInit2(&png_ptr->zstream, window_bits);
+-#endif
+ 
+          if (ret == Z_OK)
+             png_ptr->flags |= PNG_FLAG_ZSTREAM_INITIALIZED;
