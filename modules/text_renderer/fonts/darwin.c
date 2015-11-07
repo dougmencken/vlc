@@ -38,6 +38,10 @@
 #include <vlc_filter.h>                                      /* filter_sys_t */
 
 #include <TargetConditionals.h>
+#ifndef TARGET_OS_IPHONE
+# define TARGET_OS_IPHONE  0
+#endif
+
 #if !TARGET_OS_IPHONE
 # include <Carbon/Carbon.h>
 #endif

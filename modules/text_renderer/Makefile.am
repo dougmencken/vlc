@@ -60,6 +60,7 @@ text_LTLIBRARIES += $(LTLIBquartztext)
 # OS X TTS
 libnsspeechsynthesizer_plugin_la_SOURCES = text_renderer/nsspeechsynthesizer.m
 libnsspeechsynthesizer_plugin_la_LDFLAGS = -Wl,-framework,Cocoa
+libnsspeechsynthesizer_plugin_la_LIBTOOLFLAGS = --tag=CC
 if HAVE_OSX
 text_LTLIBRARIES += libnsspeechsynthesizer_plugin.la
 endif

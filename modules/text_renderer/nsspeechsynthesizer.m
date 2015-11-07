@@ -102,58 +102,56 @@ static int RenderText(filter_t *p_filter,
                       subpicture_region_t *p_region_in,
                       const vlc_fourcc_t *p_chroma_list)
 {
-    @autoreleasepool {
-        filter_sys_t *p_sys = p_filter->p_sys;
-        text_segment_t *p_segment = p_region_in->p_text;
+    filter_sys_t *p_sys = p_filter->p_sys;
+    text_segment_t *p_segment = p_region_in->p_text;
 
-        if (!p_segment)
-            return VLC_EGENERIC;
+    if (!p_segment)
+        return VLC_EGENERIC;
 
-        for ( const text_segment_t *s = p_segment; s != NULL; s = s->p_next ) {
-            if ( !s->psz_text )
-                continue;
+    for ( const text_segment_t *s = p_segment; s != NULL; s = s->p_next ) {
+        if ( !s->psz_text )
+            continue;
 
-            if (strlen(s->psz_text) == 0)
-                continue;
+        if (strlen(s->psz_text) == 0)
+            continue;
 
-            NSString *stringToSpeech = [NSString stringWithUTF8String:s->psz_text];
+        NSString *stringToSpeech = [NSString stringWithUTF8String:s->psz_text];
 
-            if ([p_sys->lastString isEqualToString:stringToSpeech])
-                continue;
+        if ([p_sys->lastString isEqualToString:stringToSpeech])
+            continue;
 
-            if ([stringToSpeech isEqualToString:@"\n"])
-                continue;
+        if ([stringToSpeech isEqualToString:@"\n"])
+            continue;
 
-            p_sys->lastString = [stringToSpeech retain];
+        p_sys->lastString = [stringToSpeech retain];
 
-            msg_Dbg(p_filter, "Speaking '%s'", [stringToSpeech UTF8String]);
+        msg_Dbg(p_filter, "Speaking '%s'", [stringToSpeech UTF8String]);
 
-            NSString *detectedLocale = languageCodeForString(stringToSpeech);
-            if (detectedLocale != nil) {
-                if (![detectedLocale isEqualToString:p_sys->currentLocale]) {
-                    p_sys->currentLocale = [detectedLocale retain];
-                    msg_Dbg(p_filter, "switching speaker locale to '%s'", [p_sys->currentLocale UTF8String]);
-                    NSArray *voices = [NSSpeechSynthesizer availableVoices];
-                    NSUInteger count = voices.count;
-                    NSRange range = NSMakeRange(0, 2);
+        NSString *detectedLocale = languageCodeForString(stringToSpeech);
+        if (detectedLocale != nil) {
+            if (![detectedLocale isEqualToString:p_sys->currentLocale]) {
+                p_sys->currentLocale = [detectedLocale retain];
+                msg_Dbg(p_filter, "switching speaker locale to '%s'", [p_sys->currentLocale UTF8String]);
+                NSArray *voices = [NSSpeechSynthesizer availableVoices];
+                NSUInteger count = voices.count;
+                NSRange range = NSMakeRange(0, 2);
 
-                    for (NSUInteger i = 0; i < count; i++) {
-                        NSDictionary *voiceAttributes = [NSSpeechSynthesizer attributesForVoice:voices[i]];
-                        NSString *voiceLanguage = voiceAttributes[@"VoiceLanguage"];
-                        if ([p_sys->currentLocale isEqualToString:[voiceLanguage substringWithRange:range]]) {
-                            NSString *voiceName = voiceAttributes[@"VoiceName"];
-                            msg_Dbg(p_filter, "switched to voice '%s'", [voiceName UTF8String]);
-                            if ([voiceName isEqualToString:@"Agnes"] || [voiceName isEqualToString:@"Albert"])
-                                continue;
-                            [p_sys->speechSynthesizer setVoice:voices[i]];
-                            break;
-                        }
+                for (NSUInteger i = 0; i < count; i++) {
+                    NSDictionary *voiceAttributes = [NSSpeechSynthesizer attributesForVoice:[voices objectAtIndex:i]];
+                    NSString *voiceLanguage = [voiceAttributes objectForKey:@"VoiceLanguage"];
+                    if ([p_sys->currentLocale isEqualToString:[voiceLanguage substringWithRange:range]]) {
+                        NSString *voiceName = [voiceAttributes objectForKey:@"VoiceName"];
+                        msg_Dbg(p_filter, "switched to voice '%s'", [voiceName UTF8String]);
+                        if ([voiceName isEqualToString:@"Agnes"] || [voiceName isEqualToString:@"Albert"])
+                            continue;
+                        [p_sys->speechSynthesizer setVoice:[voices objectAtIndex:i]];
+                        break;
                     }
                 }
             }
-
-            [p_sys->speechSynthesizer startSpeakingString:stringToSpeech];
         }
+
+        [p_sys->speechSynthesizer startSpeakingString:stringToSpeech];
 
         return VLC_SUCCESS;
     }
