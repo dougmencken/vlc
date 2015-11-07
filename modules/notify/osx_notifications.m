@@ -285,18 +285,19 @@ static int ItemChange( vlc_object_t *p_this, const char *psz_var,
     if( !( self = [super init] ) )
         return nil;
 
-    @autoreleasepool {
-        // Subscribe to notifications to determine if VLC is in foreground or not
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationActiveChange:)
-                                                     name:NSApplicationDidBecomeActiveNotification
-                                                   object:nil];
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    // Subscribe to notifications to determine if VLC is in foreground or not
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(applicationActiveChange:)
+                                                 name:NSApplicationDidBecomeActiveNotification
+                                               object:nil];
 
-        [[NSNotificationCenter defaultCenter] addObserver:self
-                                                 selector:@selector(applicationActiveChange:)
-                                                     name:NSApplicationDidResignActiveNotification
-                                                   object:nil];
-    }
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(applicationActiveChange:)
+                                                 name:NSApplicationDidResignActiveNotification
+                                               object:nil];
+    [pool drain];
+
     // Start in background
     isInForeground = NO;
 
@@ -337,7 +338,8 @@ static int ItemChange( vlc_object_t *p_this, const char *psz_var,
 
 - (void)registerToGrowl
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         applicationName = [[NSString alloc] initWithUTF8String:_( "VLC media player" )];
         notificationType = [[NSString alloc] initWithUTF8String:_( "New input playing" )];
 
@@ -357,6 +359,7 @@ static int ItemChange( vlc_object_t *p_this, const char *psz_var,
         }
 #endif
     }
+    [pool drain];
 }
 
 - (void)notifyWithTitle:(const char *)title
@@ -364,7 +367,8 @@ static int ItemChange( vlc_object_t *p_this, const char *psz_var,
                   album:(const char *)album
               andArtUrl:(const char *)url
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         // Do not notify if in foreground
         if (isInForeground)
             return;
@@ -447,6 +451,7 @@ static int ItemChange( vlc_object_t *p_this, const char *psz_var,
         // Release stuff
         [coverImage release];
     }
+    [pool drain];
 }
 
 /*****************************************************************************
