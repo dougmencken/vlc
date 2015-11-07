@@ -74,10 +74,12 @@ static void OpenglSwap         (vlc_gl_t *gl);
 - (CGSize)currentOutputSize;
 @end
 
-@interface VLCCAOpenGLLayer : CAOpenGLLayer
+@interface VLCCAOpenGLLayer : CAOpenGLLayer {
+    vout_display_t * voutDisplay;
+}
 
-@property (nonatomic, readwrite) vout_display_t* voutDisplay;
-
+- (vout_display_t *)voutDisplay;
+- (void)setVoutDisplay:(vout_display_t *)aVd;
 @end
 
 
@@ -113,7 +115,8 @@ static int Open (vlc_object_t *p_this)
     if (sys == NULL)
         return VLC_EGENERIC;
 
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         id container = var_CreateGetAddress(vd, "drawable-nsobject");
         if (container)
             vout_display_DeleteWindow(vd, NULL);
@@ -203,6 +206,7 @@ static int Open (vlc_object_t *p_this)
         Close(p_this);
         return VLC_EGENERIC;
     }
+    [pool drain];
 }
 
 static void Close (vlc_object_t *p_this)
@@ -305,9 +309,9 @@ static int Control (vout_display_t *vd, int query, va_list ap)
 
             /* we always use our current frame here */
             vout_display_cfg_t cfg_tmp = *cfg;
-            [CATransaction lock];
+            //[CATransaction lock];
             CGRect bounds = [sys->cgLayer visibleRect];
-            [CATransaction unlock];
+            //[CATransaction unlock];
             cfg_tmp.display.width = bounds.size.width;
             cfg_tmp.display.height = bounds.size.height;
 
@@ -394,19 +398,24 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
 
     self = [super init];
     if (self) {
-        [CATransaction lock];
+        [CATransaction begin];
         self.needsDisplayOnBoundsChange = YES;
         self.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
         self.asynchronous = NO;
-        [CATransaction unlock];
+        [CATransaction commit];
     }
 
     return self;
 }
 
+- (vout_display_t *)voutDisplay
+{
+    return voutDisplay;
+}
+
 - (void)setVoutDisplay:(vout_display_t *)aVd
 {
-    _voutDisplay = aVd;
+    voutDisplay = aVd;
 }
 
 - (void)resizeWithOldSuperlayerSize:(CGSize)size
@@ -415,24 +424,24 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
 
     CGSize boundsSize = self.visibleRect.size;
 
-    if (_voutDisplay)
-        vout_display_SendEventDisplaySize(_voutDisplay, boundsSize.width, boundsSize.height);
+    if (voutDisplay)
+        vout_display_SendEventDisplaySize(voutDisplay, boundsSize.width, boundsSize.height);
 }
 
 - (BOOL)canDrawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
 {
     /* Only draw the frame if we have a frame that was previously rendered */
-    if (!_voutDisplay)
+    if (!voutDisplay)
         return false;
 
-    return _voutDisplay->sys->b_frame_available;
+    return voutDisplay->sys->b_frame_available;
 }
 
 - (void)drawInCGLContext:(CGLContextObj)glContext pixelFormat:(CGLPixelFormatObj)pixelFormat forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
 {
-    if (!_voutDisplay)
+    if (!voutDisplay)
         return;
-    vout_display_sys_t *sys = _voutDisplay->sys;
+    vout_display_sys_t *sys = voutDisplay->sys;
 
     if (!sys->vgl)
         return;
@@ -443,16 +452,16 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
     glViewport (sys->place.x, bounds.size.height - (sys->place.y + sys->place.height), sys->place.width, sys->place.height);
 
     // flush is also done by this method, no need to call super
-    vout_display_opengl_Display (sys->vgl, &_voutDisplay->source);
+    vout_display_opengl_Display (sys->vgl, &voutDisplay->source);
     sys->b_frame_available = NO;
 }
 
 - (CGLContextObj)copyCGLContextForPixelFormat:(CGLPixelFormatObj)pixelFormat
 {
     // Only one opengl context is allowed for the module lifetime
-    if(_voutDisplay->sys->glContext) {
-        msg_Dbg(_voutDisplay, "Return existing context: %p", _voutDisplay->sys->glContext);
-        return _voutDisplay->sys->glContext;
+    if(voutDisplay->sys->glContext) {
+        msg_Dbg(voutDisplay, "Return existing context: %p", voutDisplay->sys->glContext);
+        return voutDisplay->sys->glContext;
     }
 
     CGLContextObj context = [super copyCGLContextForPixelFormat:pixelFormat];
@@ -466,7 +475,7 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
                      &params );
 
     @synchronized (self) {
-        _voutDisplay->sys->glContext = context;
+        voutDisplay->sys->glContext = context;
     }
 
     return context;
@@ -480,13 +489,13 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
 - (void)mouseButtonDown:(int)buttonNumber
 {
     @synchronized (self) {
-        if (_voutDisplay) {
+        if (voutDisplay) {
             if (buttonNumber == 0)
-                vout_display_SendEventMousePressed (_voutDisplay, MOUSE_BUTTON_LEFT);
+                vout_display_SendEventMousePressed (voutDisplay, MOUSE_BUTTON_LEFT);
             else if (buttonNumber == 1)
-                vout_display_SendEventMousePressed (_voutDisplay, MOUSE_BUTTON_RIGHT);
+                vout_display_SendEventMousePressed (voutDisplay, MOUSE_BUTTON_RIGHT);
             else
-                vout_display_SendEventMousePressed (_voutDisplay, MOUSE_BUTTON_CENTER);
+                vout_display_SendEventMousePressed (voutDisplay, MOUSE_BUTTON_CENTER);
         }
     }
 }
@@ -494,13 +503,13 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
 - (void)mouseButtonUp:(int)buttonNumber
 {
     @synchronized (self) {
-        if (_voutDisplay) {
+        if (voutDisplay) {
             if (buttonNumber == 0)
-                vout_display_SendEventMouseReleased (_voutDisplay, MOUSE_BUTTON_LEFT);
+                vout_display_SendEventMouseReleased (voutDisplay, MOUSE_BUTTON_LEFT);
             else if (buttonNumber == 1)
-                vout_display_SendEventMouseReleased (_voutDisplay, MOUSE_BUTTON_RIGHT);
+                vout_display_SendEventMouseReleased (voutDisplay, MOUSE_BUTTON_RIGHT);
             else
-                vout_display_SendEventMouseReleased (_voutDisplay, MOUSE_BUTTON_CENTER);
+                vout_display_SendEventMouseReleased (voutDisplay, MOUSE_BUTTON_CENTER);
         }
     }
 }
@@ -508,12 +517,12 @@ static void *OurGetProcAddress (vlc_gl_t *gl, const char *name)
 - (void)mouseMovedToX:(double)xValue Y:(double)yValue
 {
     @synchronized (self) {
-        if (_voutDisplay) {
-            vout_display_SendMouseMovedDisplayCoordinates (_voutDisplay,
+        if (voutDisplay) {
+            vout_display_SendMouseMovedDisplayCoordinates (voutDisplay,
                                                            ORIENT_NORMAL,
                                                            xValue,
                                                            yValue,
-                                                           &_voutDisplay->sys->place);
+                                                           &voutDisplay->sys->place);
         }
     }
 }

@@ -50,7 +50,8 @@
 #include "opengl.h"
 
 /* compilation support for 10.5 and 10.6 */
-#define OSX_LION NSAppKitVersionNumber >= 1115.2
+#undef OSX_LION
+
 #ifndef MAC_OS_X_VERSION_10_7
 
 @interface NSView (IntroducedInLion)
@@ -142,7 +143,8 @@ static int Open (vlc_object_t *this)
     if (!sys)
         return VLC_ENOMEM;
 
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         if (!CGDisplayUsesOpenGLAcceleration (kCGDirectMainDisplay))
             msg_Err (this, "no OpenGL hardware acceleration found. this can lead to slow output and unexpected results");
 
@@ -240,6 +242,7 @@ static int Open (vlc_object_t *this)
         Close(this);
         return VLC_EGENERIC;
     }
+    [pool drain];
 }
 
 void Close (vlc_object_t *this)
@@ -247,7 +250,8 @@ void Close (vlc_object_t *this)
     vout_display_t *vd = (vout_display_t *)this;
     vout_display_sys_t *sys = vd->sys;
 
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         [sys->glView setVoutDisplay:nil];
 
         var_Destroy (vd, "drawable-nsobject");
@@ -274,6 +278,7 @@ void Close (vlc_object_t *this)
             vout_display_DeleteWindow (vd, sys->embed);
         free (sys);
     }
+    [pool drain];
 }
 
 /*****************************************************************************
@@ -321,7 +326,8 @@ static int Control (vout_display_t *vd, int query, va_list ap)
     if (!sys->embed)
         return VLC_EGENERIC;
 
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         switch (query)
         {
             case VOUT_DISPLAY_CHANGE_DISPLAY_FILLED:
@@ -354,10 +360,11 @@ static int Control (vout_display_t *vd, int query, va_list ap)
                 vout_display_cfg_t cfg_tmp = *cfg;
                 NSRect bounds;
                 /* on HiDPI displays, the point bounds don't equal the actual pixel based bounds */
-                if (OSX_LION)
+                #ifdef OSX_LION
                     bounds = [sys->glView convertRectToBacking:[sys->glView bounds]];
-                else
+                #else
                     bounds = [sys->glView bounds];
+                #endif
                 cfg_tmp.display.width = bounds.size.width;
                 cfg_tmp.display.height = bounds.size.height;
 
@@ -389,6 +396,7 @@ static int Control (vout_display_t *vd, int query, va_list ap)
                 return VLC_EGENERIC;
         }
     }
+    [pool drain];
 }
 
 /*****************************************************************************
@@ -469,8 +477,9 @@ static void OpenglSwap (vlc_gl_t *gl)
         return nil;
 
     /* enable HiDPI support on OS X 10.7 and later */
-    if (OSX_LION)
+    #ifdef OSX_LION
         [self setWantsBestResolutionOpenGLSurface:YES];
+    #endif
 
     /* Swap buffers only during the vertical retrace of the monitor.
      http://developer.apple.com/documentation/GraphicsImaging/
@@ -478,14 +487,10 @@ static void OpenglSwap (vlc_gl_t *gl)
     GLint params[] = { 1 };
     CGLSetParameter ([[self openGLContext] CGLContextObj], kCGLCPSwapInterval, params);
 
-    [[NSNotificationCenter defaultCenter] addObserverForName:NSApplicationDidChangeScreenParametersNotification
-                                                      object:[NSApplication sharedApplication]
-                                                       queue:nil
-                                                  usingBlock:^(NSNotification *notification) {
-                                                      [self performSelectorOnMainThread:@selector(reshape)
-                                                                             withObject:nil
-                                                                          waitUntilDone:NO];
-                                                  }];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(reshapeNotification:)
+                                                 name:NSApplicationDidChangeScreenParametersNotification
+                                               object:[NSApplication sharedApplication] ];
 
     [self setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
     return self;
@@ -591,6 +596,17 @@ static void OpenglSwap (vlc_gl_t *gl)
         glClear (GL_COLOR_BUFFER_BIT);
 }
 
+- (void)reshapeNotification:(NSNotification*) notification
+{
+    if ( [[notification name] isEqualToString:NSApplicationDidChangeScreenParametersNotification] )
+    {
+        /*[self reshape];*/
+        [self performSelectorOnMainThread:@selector(reshape)
+                               withObject:nil
+                            waitUntilDone:NO];
+    }
+}
+
 /**
  * Method called by Cocoa when the view is resized.
  */
@@ -600,10 +616,11 @@ static void OpenglSwap (vlc_gl_t *gl)
 
     NSRect bounds;
     /* on HiDPI displays, the point bounds don't equal the actual pixel based bounds */
-    if (OSX_LION)
+    #ifdef OSX_LION
         bounds = [self convertRectToBacking:[self bounds]];
-    else
+    #else
         bounds = [self bounds];
+    #endif
     vout_display_place_t place;
 
     @synchronized(self) {
@@ -743,10 +760,10 @@ static void OpenglSwap (vlc_gl_t *gl)
     NSRect videoRect = [self bounds];
     BOOL b_inside = [self mouse: ml inRect: videoRect];
 
-    if (OSX_LION) {
+    #ifdef OSX_LION
         ml = [self convertPointToBacking: ml];
         videoRect = [self convertRectToBacking: videoRect];
-    }
+    #endif
 
     if (b_inside) {
         @synchronized (self) {

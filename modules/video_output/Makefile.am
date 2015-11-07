@@ -14,10 +14,12 @@ if HAVE_OSX
 libvout_macosx_plugin_la_SOURCES = video_output/macosx.m video_output/opengl.c video_output/opengl.h
 libvout_macosx_plugin_la_CFLAGS = $(AM_CFLAGS)
 libvout_macosx_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(voutdir)' -Wl,-framework,OpenGL,-framework,Cocoa
+libvout_macosx_plugin_la_LIBTOOLFLAGS = --tag=CC
 
 libcaopengllayer_plugin_la_SOURCES = video_output/caopengllayer.m video_output/opengl.c video_output/opengl.h
 libcaopengllayer_plugin_la_CFLAGS = $(AM_CFLAGS)
 libcaopengllayer_plugin_la_LDFLAGS = $(AM_LDFLAGS) -rpath '$(voutdir)' -Wl,-framework,OpenGL,-framework,Cocoa,-framework,QuartzCore
+libcaopengllayer_plugin_la_LIBTOOLFLAGS = --tag=CC
 vout_LTLIBRARIES += libvout_macosx_plugin.la libcaopengllayer_plugin.la
 endif
 
