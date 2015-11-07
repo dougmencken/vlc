@@ -27,11 +27,10 @@
 using namespace adaptative::playlist;
 
 SegmentBase::SegmentBase(ICanonicalUrl *parent) :
-             Segment(parent),
-             Initializable(),
-             Indexable()
+        Segment(parent)
 {
 }
+
 SegmentBase::~SegmentBase   ()
 {
 }

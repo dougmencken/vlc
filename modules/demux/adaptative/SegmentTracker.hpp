@@ -63,7 +63,8 @@ namespace adaptative
                 DISCONTINUITY,
                 SWITCHING,
                 FORMATCHANGE,
-            } type;
+            };
+            int type;
             union
             {
                struct
@@ -106,6 +107,7 @@ namespace adaptative
 
         private:
             void notify(const SegmentTrackerEvent &);
+
             bool initializing;
             bool index_sent;
             bool init_sent;
