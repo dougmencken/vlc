@@ -31,8 +31,10 @@
 #include <vlc_tls.h>
 #include <vlc_dialog.h>
 
+// copy of header from SDK 10.6
+#include "SecureTransport.h"
+
 #include <Security/Security.h>
-#include <Security/SecureTransport.h>
 #include <TargetConditionals.h>
 
 /* From MacErrors.h (cannot be included because it isn't present in iOS: */
@@ -40,13 +42,20 @@
 # define ioErr -36
 #endif
 
+#ifndef TARGET_OS_IPHONE
+#define TARGET_OS_IPHONE  0
+#endif
+#define I_WANT_SERVER     0
+#define I_WANT_LEOPARD    1
+
+
 /*****************************************************************************
  * Module descriptor
  *****************************************************************************/
 static int  OpenClient  (vlc_tls_creds_t *);
 static void CloseClient (vlc_tls_creds_t *);
 
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE && I_WANT_SERVER
     static int  OpenServer  (vlc_tls_creds_t *crd, const char *cert, const char *key);
     static void CloseServer (vlc_tls_creds_t *);
 #endif
@@ -63,14 +72,14 @@ vlc_module_begin ()
      * If the module is needed on iOS, then the "modern" keychain lookup API need to be
      * implemented.
      */
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE && I_WANT_SERVER
     add_submodule()
         set_description(N_("TLS server support for OS X"))
         set_capability("tls server", 2)
         set_callbacks(OpenServer, CloseServer)
         set_category(CAT_ADVANCED)
         set_subcategory(SUBCAT_ADVANCED_NETWORK)
-#endif /* !TARGET_OS_IPHONE */
+#endif
 
 vlc_module_end ()
 
@@ -269,7 +278,7 @@ static int st_validateServerCertificate (vlc_tls_t *session, const char *hostnam
 
     /* get leaf certificate */
     /* SSLCopyPeerCertificates is only available on OSX 10.5 or later */
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE || I_WANT_LEOPARD
     CFArrayRef cert_chain = NULL;
     ret = SSLCopyPeerCertificates(sys->p_context, &cert_chain);
     if (ret != noErr || !cert_chain) {
@@ -512,7 +521,7 @@ static void st_SessionClose (vlc_tls_t *session) {
             }
         }
 
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || !I_WANT_LEOPARD
         CFRelease(sys->p_context);
 #else
         if (SSLDisposeContext(sys->p_context) != noErr) {
@@ -548,7 +557,7 @@ static int st_SessionOpenCommon (vlc_tls_creds_t *crd, vlc_tls_t *session,
     crd->handshake = st_Handshake;
 
     SSLContextRef p_context = NULL;
-#if TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE || !I_WANT_LEOPARD
     p_context = SSLCreateContext(NULL, b_server ? kSSLServerSide : kSSLClientSide, kSSLStreamType);
     if (p_context == NULL) {
         msg_Err(session, "cannot create ssl context");
@@ -606,7 +615,7 @@ static int st_ClientSessionOpen (vlc_tls_creds_t *crd, vlc_tls_t *session,
         msg_Err (session, "cannot set session option");
         goto error;
     }
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE || I_WANT_LEOPARD
     /* ... thus calling this for earlier osx versions, which is not available on iOS in turn */
     ret = SSLSetEnableCertVerify(sys->p_context, false);
     if (ret != noErr) {
@@ -655,7 +664,7 @@ static void CloseClient (vlc_tls_creds_t *crd) {
 }
 
 /* Begin of server-side methods */
-#if !TARGET_OS_IPHONE
+#if !TARGET_OS_IPHONE && I_WANT_SERVER
 
 /**
  * Initializes a server-side TLS session.
@@ -822,4 +831,4 @@ static void CloseServer (vlc_tls_creds_t *crd) {
     free(sys);
 }
 
-#endif /* !TARGET_OS_IPHONE */
+#endif /* !TARGET_OS_IPHONE && I_WANT_SERVER */
