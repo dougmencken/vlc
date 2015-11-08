@@ -27,22 +27,51 @@
 #import "PLModel.h"
 #import "VLCPlaylistView.h"
 
-@interface VLCPlaylist : NSObject<NSOutlineViewDelegate>
+@interface VLCPlaylist : NSObject<NSOutlineViewDelegate> {
 
-@property (readwrite, weak) IBOutlet NSMenu *playlistMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *playPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *deletePlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *infoPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *preparsePlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *revealInFinderPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *downloadCoverArtPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *selectAllPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *sortNamePlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *sortAuthorPlaylistMenuItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *recursiveExpandPlaylistMenuItem;
+    NSImage *_descendingSortingImage;
+    NSImage *_ascendingSortingImage;
 
-@property (nonatomic, readwrite, weak) VLCPlaylistView *outlineView;
-@property (nonatomic, readwrite, weak) NSTableHeaderView *playlistHeaderView;
+    BOOL b_selected_item_met;
+    BOOL b_isSortDescending;
+    NSTableColumn *_sortTableColumn;
+
+    BOOL b_playlistmenu_nib_loaded;
+    BOOL b_view_setup;
+
+    PLModel *_model;
+
+    // ivars for properties
+    IBOutlet NSMenu * _playlistMenu;
+    IBOutlet NSMenuItem * _playPlaylistMenuItem;
+    IBOutlet NSMenuItem * _deletePlaylistMenuItem;
+    IBOutlet NSMenuItem * _infoPlaylistMenuItem;
+    IBOutlet NSMenuItem * _preparsePlaylistMenuItem;
+    IBOutlet NSMenuItem * _revealInFinderPlaylistMenuItem;
+    IBOutlet NSMenuItem * _downloadCoverArtPlaylistMenuItem;
+    IBOutlet NSMenuItem * _selectAllPlaylistMenuItem;
+    IBOutlet NSMenuItem * _sortNamePlaylistMenuItem;
+    IBOutlet NSMenuItem * _sortAuthorPlaylistMenuItem;
+    IBOutlet NSMenuItem * _recursiveExpandPlaylistMenuItem;
+    VLCPlaylistView * _outlineView;
+    NSTableHeaderView * _playlistHeaderView;
+
+}
+
+@property (readwrite, assign) IBOutlet NSMenu *playlistMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *playPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *deletePlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *infoPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *preparsePlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *revealInFinderPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *downloadCoverArtPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *selectAllPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *sortNamePlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *sortAuthorPlaylistMenuItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *recursiveExpandPlaylistMenuItem;
+
+@property (nonatomic, readwrite, assign) VLCPlaylistView *outlineView;
+@property (nonatomic, readwrite, assign) NSTableHeaderView *playlistHeaderView;
 
 - (PLModel *)model;
 
@@ -91,5 +120,9 @@
 - (void)setColumn: (NSString *)o_column state: (NSInteger)i_state translationDict:(NSDictionary *)o_dict;
 - (void)continuePlaybackWhereYouLeftOff:(input_thread_t *)p_input_thread;
 - (void)storePlaybackPositionForItem:(input_thread_t *)p_input_thread;
+
+- (void)saveTableColumns;
+
+- (void)initStrings;
 
 @end

@@ -34,12 +34,6 @@
 #define SDK_NAME @"Quincy"
 #define SDK_VERSION @"2.1.6"
 
-@interface BWQuincyManager ()
-{
-    NSString *_customAppVersion;
-}
-
-@end
 
 @interface BWQuincyManager(private)
 
@@ -53,6 +47,13 @@
 
 
 @implementation BWQuincyManager
+
+@synthesize delegate = _delegate;
+
+@synthesize submissionURL = _submissionURL;
+@synthesize companyName = _companyName;
+@synthesize appIdentifier = _appIdentifier;
+@synthesize autoSubmitCrashReport = _autoSubmitCrashReport;
 
 + (BWQuincyManager *)sharedQuincyManager {
   static BWQuincyManager *quincyManager = nil;
@@ -85,6 +86,8 @@
   _delegate = nil;
   _submissionURL = nil;
   _appIdentifier = nil;
+
+  [super dealloc];
 }
 
 - (void) searchCrashLogFile:(NSString *)path {

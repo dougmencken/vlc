@@ -37,26 +37,21 @@
  *  and in main window.
  *****************************************************************************/
 
-@interface VLCControlsBarCommon ()
-{
-    NSImage * o_pause_img;
-    NSImage * o_pause_pressed_img;
-    NSImage * o_play_img;
-    NSImage * o_play_pressed_img;
-
-    NSTimeInterval last_fwd_event;
-    NSTimeInterval last_bwd_event;
-    BOOL just_triggered_next;
-    BOOL just_triggered_previous;
-}
-@end
-
 @implementation VLCControlsBarCommon
+
+@synthesize bottomBarView = _bottomBarView;
+@synthesize darkInterface = _darkInterface;
+@synthesize nativeFullscreenMode = _nativeFullscreenMode;
 
 - (void)awakeFromNib
 {
     _darkInterface = config_GetInt(VLCIntf, "macosx-interfacestyle");
     _nativeFullscreenMode = NO;
+
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD)
+        _nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
+#endif
 
     [o_drop_view setDrawBorder: NO];
 
@@ -145,7 +140,8 @@
     [o_time_sld_fancygradient_view setFrame: frame];
 
     // hide resize view if necessary
-    [o_resize_view setImage: NULL];
+    if (!OSX_SNOW_LEOPARD)
+        [o_resize_view setImage: NULL];
 
     if ([[self.bottomBarView window] styleMask] & NSResizableWindowMask)
         [o_resize_view removeFromSuperviewWithoutNeedingDisplay];
@@ -460,33 +456,6 @@
  *
  *  Holds all specific outlets, actions and code for the main window controls bar.
  *****************************************************************************/
-
-@interface VLCMainWindowControlsBar()
-{
-    NSImage * o_repeat_img;
-    NSImage * o_repeat_pressed_img;
-    NSImage * o_repeat_all_img;
-    NSImage * o_repeat_all_pressed_img;
-    NSImage * o_repeat_one_img;
-    NSImage * o_repeat_one_pressed_img;
-    NSImage * o_shuffle_img;
-    NSImage * o_shuffle_pressed_img;
-    NSImage * o_shuffle_on_img;
-    NSImage * o_shuffle_on_pressed_img;
-
-    NSButton * o_prev_btn;
-    NSButton * o_next_btn;
-
-    BOOL b_show_jump_buttons;
-    BOOL b_show_playmode_buttons;
-}
-
-- (void)addJumpButtons:(BOOL)b_fast;
-- (void)removeJumpButtons:(BOOL)b_fast;
-- (void)addPlaymodeButtons:(BOOL)b_fast;
-- (void)removePlaymodeButtons:(BOOL)b_fast;
-
-@end
 
 @implementation VLCMainWindowControlsBar
 

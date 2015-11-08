@@ -48,46 +48,112 @@ typedef enum {
     psPlaylistItemChangedEvent
 } VLCPlaylistStateEvent;
 
-@interface VLCMainWindow : VLCVideoWindowCommon
+@interface VLCMainWindow : VLCVideoWindowCommon <PXSourceListDataSource, PXSourceListDelegate, NSWindowDelegate, NSAnimationDelegate, NSSplitViewDelegate> {
+
+    BOOL videoPlaybackEnabled;
+    BOOL dropzoneActive;
+    BOOL splitViewRemoved;
+    BOOL minimizedView;
+
+    BOOL b_video_playback_enabled;
+    BOOL b_dropzone_active;
+    BOOL b_splitview_removed;
+    BOOL b_minimized_view;
+
+    CGFloat f_lastSplitViewHeight;
+    CGFloat f_lastLeftSplitViewWidth;
+
+    NSMutableArray *o_sidebaritems;
+
+    /* this is only true, when we have NO video playing inside the main window */
+
+    BOOL b_podcastView_displayed;
+
+    VLCColorView * o_color_backdrop;
+
+    NSRect frameBeforePlayback;
+
+    // ivars for properties
+
+    IBOutlet NSTextField        * _searchField;
+    IBOutlet NSScrollView       * _playlistScrollView;
+    IBOutlet NSOutlineView      * _outlineView;
+    IBOutlet NSSplitView        * _splitView;
+    IBOutlet NSView             * _splitViewLeft;
+    IBOutlet NSView             * _splitViewRight;
+    IBOutlet PXSourceList       * _sidebarView;
+    IBOutlet NSScrollView       * _sidebarScrollView;
+    IBOutlet NSTextField        * _categoryLabel;
+
+    IBOutlet NSView             * _dropzoneView;
+    IBOutlet NSButton           * _dropzoneButton;
+    IBOutlet NSTextField        * _dropzoneLabel;
+    IBOutlet NSBox              * _dropzoneBox;
+    IBOutlet NSImageView        * _dropzoneImageView;
+
+    IBOutlet NSView             * _podcastView;
+    IBOutlet NSButton           * _podcastAddButton;
+    IBOutlet NSButton           * _podcastRemoveButton;
+
+    IBOutlet NSWindow           * _podcastSubscribeWindow;
+    IBOutlet NSTextField        * _podcastSubscribeTitle;
+    IBOutlet NSTextField        * _podcastSubscribeSubtitle;
+    IBOutlet NSTextField        * _podcastSubscribeUrlField;
+    IBOutlet NSButton           * _podcastSubscribeOkButton;
+    IBOutlet NSButton           * _podcastSubscribeCancelButton;
+
+    IBOutlet NSWindow           * _podcastUnsubscribeWindow;
+    IBOutlet NSTextField        * _podcastUnsubscirbeTitle;
+    IBOutlet NSTextField        * _podcastUnsubscribeSubtitle;
+    IBOutlet NSPopUpButton      * _podcastUnsubscribePopUpButton;
+    IBOutlet NSButton           * _podcastUnsubscribeOkButton;
+    IBOutlet NSButton           * _podcastUnsubscribeCancelButton;
+
+    BOOL _nativeFullscreenMode;
+    BOOL _nonembedded;
+
+    VLCFSPanel* _fspanel;
+
+}
 
 // General MainWindow outlets
-@property (readwrite, weak) IBOutlet NSTextField        *searchField;
-@property (readwrite, weak) IBOutlet NSScrollView       *playlistScrollView;
-@property (readwrite, weak) IBOutlet NSOutlineView      *outlineView;
-@property (readwrite, weak) IBOutlet NSSplitView        *splitView;
-@property (readwrite, weak) IBOutlet NSView             *splitViewLeft;
-@property (readwrite, weak) IBOutlet NSView             *splitViewRight;
-@property (readwrite, weak) IBOutlet PXSourceList       *sidebarView;
-@property (readwrite, weak) IBOutlet NSScrollView       *sidebarScrollView;
-@property (readwrite, weak) IBOutlet NSTextField        *categoryLabel;
+@property (readwrite, assign) IBOutlet NSTextField        *searchField;
+@property (readwrite, assign) IBOutlet NSScrollView       *playlistScrollView;
+@property (readwrite, assign) IBOutlet NSOutlineView      *outlineView;
+@property (readwrite, assign) IBOutlet NSSplitView        *splitView;
+@property (readwrite, assign) IBOutlet NSView             *splitViewLeft;
+@property (readwrite, assign) IBOutlet NSView             *splitViewRight;
+@property (readwrite, assign) IBOutlet PXSourceList       *sidebarView;
+@property (readwrite, assign) IBOutlet NSScrollView       *sidebarScrollView;
+@property (readwrite, assign) IBOutlet NSTextField        *categoryLabel;
 
 // Dropzone outlets
-@property (readwrite, weak) IBOutlet NSView             *dropzoneView;
-@property (readwrite, weak) IBOutlet NSButton           *dropzoneButton;
-@property (readwrite, weak) IBOutlet NSTextField        *dropzoneLabel;
-@property (readwrite, weak) IBOutlet NSBox              *dropzoneBox;
-@property (readwrite, weak) IBOutlet NSImageView        *dropzoneImageView;
+@property (readwrite, assign) IBOutlet NSView             *dropzoneView;
+@property (readwrite, assign) IBOutlet NSButton           *dropzoneButton;
+@property (readwrite, assign) IBOutlet NSTextField        *dropzoneLabel;
+@property (readwrite, assign) IBOutlet NSBox              *dropzoneBox;
+@property (readwrite, assign) IBOutlet NSImageView        *dropzoneImageView;
 
 // Podcast View outlets
-@property (readwrite, weak) IBOutlet NSView             *podcastView;
-@property (readwrite, weak) IBOutlet NSButton           *podcastAddButton;
-@property (readwrite, weak) IBOutlet NSButton           *podcastRemoveButton;
+@property (readwrite, assign) IBOutlet NSView             *podcastView;
+@property (readwrite, assign) IBOutlet NSButton           *podcastAddButton;
+@property (readwrite, assign) IBOutlet NSButton           *podcastRemoveButton;
 
 // Podcast Subscribe Window outlets
-@property (readwrite, weak) IBOutlet NSWindow           *podcastSubscribeWindow;
-@property (readwrite, weak) IBOutlet NSTextField        *podcastSubscribeTitle;
-@property (readwrite, weak) IBOutlet NSTextField        *podcastSubscribeSubtitle;
-@property (readwrite, weak) IBOutlet NSTextField        *podcastSubscribeUrlField;
-@property (readwrite, weak) IBOutlet NSButton           *podcastSubscribeOkButton;
-@property (readwrite, weak) IBOutlet NSButton           *podcastSubscribeCancelButton;
+@property (readwrite, assign) IBOutlet NSWindow           *podcastSubscribeWindow;
+@property (readwrite, assign) IBOutlet NSTextField        *podcastSubscribeTitle;
+@property (readwrite, assign) IBOutlet NSTextField        *podcastSubscribeSubtitle;
+@property (readwrite, assign) IBOutlet NSTextField        *podcastSubscribeUrlField;
+@property (readwrite, assign) IBOutlet NSButton           *podcastSubscribeOkButton;
+@property (readwrite, assign) IBOutlet NSButton           *podcastSubscribeCancelButton;
 
 // Podcast Unsubscribe Window outlets
-@property (readwrite, weak) IBOutlet NSWindow           *podcastUnsubscribeWindow;
-@property (readwrite, weak) IBOutlet NSTextField        *podcastUnsubscirbeTitle;
-@property (readwrite, weak) IBOutlet NSTextField        *podcastUnsubscribeSubtitle;
-@property (readwrite, weak) IBOutlet NSPopUpButton      *podcastUnsubscribePopUpButton;
-@property (readwrite, weak) IBOutlet NSButton           *podcastUnsubscribeOkButton;
-@property (readwrite, weak) IBOutlet NSButton           *podcastUnsubscribeCancelButton;
+@property (readwrite, assign) IBOutlet NSWindow           *podcastUnsubscribeWindow;
+@property (readwrite, assign) IBOutlet NSTextField        *podcastUnsubscirbeTitle;
+@property (readwrite, assign) IBOutlet NSTextField        *podcastUnsubscribeSubtitle;
+@property (readwrite, assign) IBOutlet NSPopUpButton      *podcastUnsubscribePopUpButton;
+@property (readwrite, assign) IBOutlet NSButton           *podcastUnsubscribeOkButton;
+@property (readwrite, assign) IBOutlet NSButton           *podcastUnsubscribeCancelButton;
 
 @property (readonly) BOOL nativeFullscreenMode;
 @property (readwrite) BOOL nonembedded;
@@ -124,8 +190,25 @@ typedef enum {
 - (void)videoplayWillBeStarted;
 - (void)setVideoplayEnabled;
 
+- (void)resizePlaylistAfterCollapse;
+- (void)makeSplitViewVisible;
+- (void)makeSplitViewHidden;
+- (void)showPodcastControls;
+- (void)hidePodcastControls;
+
+- (void)showSplitView:(BOOL)resize;
+- (void)hideSplitView:(BOOL)resize;
+
+- (void)_updatePlaylistTitle;
+
+- (NSString *)_playbackDurationOfNode:(playlist_item_t*)node;
+
 @end
 
-@interface VLCDetachedVideoWindow : VLCVideoWindowCommon
+@interface VLCDetachedVideoWindow : VLCVideoWindowCommon {
+
+    VLCColorView * o_color_backdrop;
+
+}
 
 @end

@@ -25,186 +25,381 @@
 #import <vlc_common.h>
 #import <vlc_interface.h>
 
-@interface VLCMainMenu : NSObject
+@class AboutWindowController;
+@class AddonsWindowController;
+@class HelpWindowController;
+@class VLCTimeSelectionPanelController;
+
+@interface VLCMainMenu : NSObject {
+
+    IBOutlet NSMenuItem * _about;
+    IBOutlet NSMenuItem * _prefs;
+    IBOutlet NSMenuItem * _checkForUpdate;
+    IBOutlet NSMenuItem * _extensions;
+    IBOutlet NSMenu * _extensionsMenu;
+    IBOutlet NSMenuItem * _addonManager;
+    IBOutlet NSMenuItem * _add_intf;
+    IBOutlet NSMenu * _add_intfMenu;
+    IBOutlet NSMenuItem * _services;
+    IBOutlet NSMenuItem * _hide;
+    IBOutlet NSMenuItem * _hide_others;
+    IBOutlet NSMenuItem * _show_all;
+    IBOutlet NSMenuItem * _quit;
+
+    IBOutlet NSMenu * _fileMenu;
+    IBOutlet NSMenuItem * _open_file;
+    IBOutlet NSMenuItem * _open_generic;
+    IBOutlet NSMenuItem * _open_disc;
+    IBOutlet NSMenuItem * _open_net;
+    IBOutlet NSMenuItem * _open_capture;
+    IBOutlet NSMenuItem * _open_recent;
+    IBOutlet NSMenuItem * _close_window;
+    IBOutlet NSMenuItem * _convertandsave;
+    IBOutlet NSMenuItem * _save_playlist;
+    IBOutlet NSMenuItem * _revealInFinder;
+
+    IBOutlet NSMenu * _editMenu;
+    IBOutlet NSMenuItem * _cutItem;
+    IBOutlet NSMenuItem * _mcopyItem;
+    IBOutlet NSMenuItem * _pasteItem;
+    IBOutlet NSMenuItem * _clearItem;
+    IBOutlet NSMenuItem * _select_all;
+
+    IBOutlet NSMenu * _viewMenu;
+    IBOutlet NSMenuItem * _toggleJumpButtons;
+    IBOutlet NSMenuItem * _togglePlaymodeButtons;
+    IBOutlet NSMenuItem * _toggleEffectsButton;
+    IBOutlet NSMenuItem * _toggleSidebar;
+    IBOutlet NSMenu * _playlistTableColumnsMenu;
+    IBOutlet NSMenuItem * _playlistTableColumns;
+
+    IBOutlet NSMenu * _controlsMenu;
+    IBOutlet NSMenuItem * _play;
+    IBOutlet NSMenuItem * _stop;
+    IBOutlet NSMenuItem * _record;
+    IBOutlet NSMenuItem * _rate;
+    IBOutlet NSView * _rate_view;
+    IBOutlet NSTextField * _rateLabel;
+    IBOutlet NSTextField * _rate_slowerLabel;
+    IBOutlet NSTextField * _rate_normalLabel;
+    IBOutlet NSTextField * _rate_fasterLabel;
+    IBOutlet NSSlider * _rate_sld;
+    IBOutlet NSTextField * _rateTextField;
+    IBOutlet NSMenuItem * _trackSynchronization;
+    IBOutlet NSMenuItem * _previous;
+    IBOutlet NSMenuItem * _next;
+    IBOutlet NSMenuItem * _random;
+    IBOutlet NSMenuItem * _repeat;
+    IBOutlet NSMenuItem * _loop;
+    IBOutlet NSMenuItem * _AtoBloop;
+    IBOutlet NSMenuItem * _quitAfterPB;
+    IBOutlet NSMenuItem * _fwd;
+    IBOutlet NSMenuItem * _bwd;
+    IBOutlet NSMenuItem * _jumpToTime;
+    IBOutlet NSMenuItem * _program;
+    IBOutlet NSMenu * _programMenu;
+    IBOutlet NSMenuItem * _title;
+    IBOutlet NSMenu * _titleMenu;
+    IBOutlet NSMenuItem * _chapter;
+    IBOutlet NSMenu * _chapterMenu;
+
+    IBOutlet NSMenu * _audioMenu;
+    IBOutlet NSMenuItem * _vol_up;
+    IBOutlet NSMenuItem * _vol_down;
+    IBOutlet NSMenuItem * _mute;
+    IBOutlet NSMenuItem * _audiotrack;
+    IBOutlet NSMenu * _audiotrackMenu;
+    IBOutlet NSMenuItem * _channels;
+    IBOutlet NSMenu * _channelsMenu;
+    IBOutlet NSMenuItem * _audioDevice;
+    IBOutlet NSMenu * _audioDeviceMenu;
+    IBOutlet NSMenuItem * _visual;
+    IBOutlet NSMenu * _visualMenu;
+
+    IBOutlet NSMenu * _videoMenu;
+    IBOutlet NSMenuItem * _half_window;
+    IBOutlet NSMenuItem * _normal_window;
+    IBOutlet NSMenuItem * _double_window;
+    IBOutlet NSMenuItem * _fittoscreen;
+    IBOutlet NSMenuItem * _fullscreenItem;
+    IBOutlet NSMenuItem * _floatontop;
+    IBOutlet NSMenuItem * _snapshot;
+    IBOutlet NSMenuItem * _videotrack;
+    IBOutlet NSMenu * _videotrackMenu;
+    IBOutlet NSMenuItem * _screen;
+    IBOutlet NSMenu * _screenMenu;
+    IBOutlet NSMenuItem * _aspect_ratio;
+    IBOutlet NSMenu * _aspect_ratioMenu;
+    IBOutlet NSMenuItem * _crop;
+    IBOutlet NSMenu * _cropMenu;
+    IBOutlet NSMenuItem * _deinterlace;
+    IBOutlet NSMenu * _deinterlaceMenu;
+    IBOutlet NSMenuItem * _deinterlace_mode;
+    IBOutlet NSMenu * _deinterlace_modeMenu;
+    IBOutlet NSMenuItem * _postprocessing;
+    IBOutlet NSMenu * _postprocessingMenu;
+
+    IBOutlet NSMenu * _subtitlesMenu;
+    IBOutlet NSMenuItem * _subtitle_track;
+    IBOutlet NSMenu * _subtitle_tracksMenu;
+    IBOutlet NSMenuItem * _openSubtitleFile;
+    IBOutlet NSMenu * _subtitle_sizeMenu;
+    IBOutlet NSMenuItem * _subtitle_size;
+    IBOutlet NSMenu * _subtitle_textcolorMenu;
+    IBOutlet NSMenuItem * _subtitle_textcolor;
+    IBOutlet NSMenu * _subtitle_bgcolorMenu;
+    IBOutlet NSMenuItem * _subtitle_bgcolor;
+    IBOutlet NSMenuItem * _subtitle_bgopacity;
+    IBOutlet NSView * _subtitle_bgopacity_view;
+    IBOutlet NSTextField * _subtitle_bgopacityLabel;
+    IBOutlet NSTextField * _subtitle_bgopacityLabel_gray;
+    IBOutlet NSSlider * _subtitle_bgopacity_sld;
+    IBOutlet NSMenu * _subtitle_outlinethicknessMenu;
+    IBOutlet NSMenuItem * _subtitle_outlinethickness;
+    IBOutlet NSMenuItem * _teletext;
+    IBOutlet NSMenuItem * _teletext_transparent;
+    IBOutlet NSMenuItem * _teletext_index;
+    IBOutlet NSMenuItem * _teletext_red;
+    IBOutlet NSMenuItem * _teletext_green;
+    IBOutlet NSMenuItem * _teletext_yellow;
+    IBOutlet NSMenuItem * _teletext_blue;
+
+    IBOutlet NSMenu * _windowMenu;
+    IBOutlet NSMenuItem * _minimize;
+    IBOutlet NSMenuItem * _zoom_window;
+    IBOutlet NSMenuItem * _player;
+    IBOutlet NSMenuItem * _controller;
+    IBOutlet NSMenuItem * _audioeffects;
+    IBOutlet NSMenuItem * _videoeffects;
+    IBOutlet NSMenuItem * _bookmarks;
+    IBOutlet NSMenuItem * _playlist;
+    IBOutlet NSMenuItem * _info;
+    IBOutlet NSMenuItem * _messages;
+    IBOutlet NSMenuItem * _bring_atf;
+
+    IBOutlet NSMenu * _helpMenu;
+    IBOutlet NSMenuItem * _help;
+    IBOutlet NSMenuItem * _readme;
+    IBOutlet NSMenuItem * _documentation;
+    IBOutlet NSMenuItem * _license;
+    IBOutlet NSMenuItem * _website;
+    IBOutlet NSMenuItem * _donation;
+    IBOutlet NSMenuItem * _forum;
+    IBOutlet NSMenuItem * _errorsAndWarnings;
+
+    IBOutlet NSMenuItem * _dockMenuplay;
+    IBOutlet NSMenuItem * _dockMenustop;
+    IBOutlet NSMenuItem * _dockMenunext;
+    IBOutlet NSMenuItem * _dockMenuprevious;
+    IBOutlet NSMenuItem * _dockMenumute;
+
+    IBOutlet NSMenu * _voutMenu;
+    IBOutlet NSMenuItem * _voutMenuplay;
+    IBOutlet NSMenuItem * _voutMenustop;
+    IBOutlet NSMenuItem * _voutMenuprev;
+    IBOutlet NSMenuItem * _voutMenunext;
+    IBOutlet NSMenuItem * _voutMenuvolup;
+    IBOutlet NSMenuItem * _voutMenuvoldown;
+    IBOutlet NSMenuItem * _voutMenumute;
+    IBOutlet NSMenuItem * _voutMenufullscreen;
+    IBOutlet NSMenuItem * _voutMenusnapshot;
+
+    IBOutlet NSView * _playlistSaveAccessoryView;
+    IBOutlet NSPopUpButton * _playlistSaveAccessoryPopup;
+    IBOutlet NSTextField * _playlistSaveAccessoryText;
+
+    AboutWindowController *_aboutWindowController;
+    HelpWindowController  *_helpWindowController;
+    AddonsWindowController *_addonsController;
+
+    // information for playlist table columns menu
+    NSDictionary *_translationsForPlaylistTableColumns;
+    NSArray *_menuOrderOfPlaylistTableColumns;
+
+    NSMenu *_playlistTableColumnsContextMenu;
+
+    VLCTimeSelectionPanelController *_timeSelectionPanel;
+
+}
 
 /* main menu */
-@property (readwrite, weak) IBOutlet NSMenuItem *about;
-@property (readwrite, weak) IBOutlet NSMenuItem *prefs;
-@property (readwrite, weak) IBOutlet NSMenuItem *checkForUpdate;
-@property (readwrite, weak) IBOutlet NSMenuItem *extensions;
-@property (readwrite, weak) IBOutlet NSMenu *extensionsMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *addonManager;
-@property (readwrite, weak) IBOutlet NSMenuItem *add_intf;
-@property (readwrite, weak) IBOutlet NSMenu *add_intfMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *services;
-@property (readwrite, weak) IBOutlet NSMenuItem *hide;
-@property (readwrite, weak) IBOutlet NSMenuItem *hide_others;
-@property (readwrite, weak) IBOutlet NSMenuItem *show_all;
-@property (readwrite, weak) IBOutlet NSMenuItem *quit;
+@property (readwrite, assign) IBOutlet NSMenuItem *about;
+@property (readwrite, assign) IBOutlet NSMenuItem *prefs;
+@property (readwrite, assign) IBOutlet NSMenuItem *checkForUpdate;
+@property (readwrite, assign) IBOutlet NSMenuItem *extensions;
+@property (readwrite, assign) IBOutlet NSMenu *extensionsMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *addonManager;
+@property (readwrite, assign) IBOutlet NSMenuItem *add_intf;
+@property (readwrite, assign) IBOutlet NSMenu *add_intfMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *services;
+@property (readwrite, assign) IBOutlet NSMenuItem *hide;
+@property (readwrite, assign) IBOutlet NSMenuItem *hide_others;
+@property (readwrite, assign) IBOutlet NSMenuItem *show_all;
+@property (readwrite, assign) IBOutlet NSMenuItem *quit;
 
-@property (readwrite, weak) IBOutlet NSMenu *fileMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_file;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_generic;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_disc;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_net;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_capture;
-@property (readwrite, weak) IBOutlet NSMenuItem *open_recent;
-@property (readwrite, weak) IBOutlet NSMenuItem *close_window;
-@property (readwrite, weak) IBOutlet NSMenuItem *convertandsave;
-@property (readwrite, weak) IBOutlet NSMenuItem *save_playlist;
-@property (readwrite, weak) IBOutlet NSMenuItem *revealInFinder;
+@property (readwrite, assign) IBOutlet NSMenu *fileMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_file;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_generic;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_disc;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_net;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_capture;
+@property (readwrite, assign) IBOutlet NSMenuItem *open_recent;
+@property (readwrite, assign) IBOutlet NSMenuItem *close_window;
+@property (readwrite, assign) IBOutlet NSMenuItem *convertandsave;
+@property (readwrite, assign) IBOutlet NSMenuItem *save_playlist;
+@property (readwrite, assign) IBOutlet NSMenuItem *revealInFinder;
 
-@property (readwrite, weak) IBOutlet NSMenu *editMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *cutItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *mcopyItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *pasteItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *clearItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *select_all;
+@property (readwrite, assign) IBOutlet NSMenu *editMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *cutItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *mcopyItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *pasteItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *clearItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *select_all;
 
-@property (readwrite, weak) IBOutlet NSMenu *viewMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *toggleJumpButtons;
-@property (readwrite, weak) IBOutlet NSMenuItem *togglePlaymodeButtons;
-@property (readwrite, weak) IBOutlet NSMenuItem *toggleEffectsButton;
-@property (readwrite, weak) IBOutlet NSMenuItem *toggleSidebar;
-@property (readwrite, weak) IBOutlet NSMenu *playlistTableColumnsMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *playlistTableColumns;
+@property (readwrite, assign) IBOutlet NSMenu *viewMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *toggleJumpButtons;
+@property (readwrite, assign) IBOutlet NSMenuItem *togglePlaymodeButtons;
+@property (readwrite, assign) IBOutlet NSMenuItem *toggleEffectsButton;
+@property (readwrite, assign) IBOutlet NSMenuItem *toggleSidebar;
+@property (readwrite, assign) IBOutlet NSMenu *playlistTableColumnsMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *playlistTableColumns;
 
-@property (readwrite, weak) IBOutlet NSMenu *controlsMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *play;
-@property (readwrite, weak) IBOutlet NSMenuItem *stop;
-@property (readwrite, weak) IBOutlet NSMenuItem *record;
-@property (readwrite, weak) IBOutlet NSMenuItem *rate;
-@property (readwrite, weak) IBOutlet NSView *rate_view;
-@property (readwrite, weak) IBOutlet NSTextField *rateLabel;
-@property (readwrite, weak) IBOutlet NSTextField *rate_slowerLabel;
-@property (readwrite, weak) IBOutlet NSTextField *rate_normalLabel;
-@property (readwrite, weak) IBOutlet NSTextField *rate_fasterLabel;
-@property (readwrite, weak) IBOutlet NSSlider *rate_sld;
-@property (readwrite, weak) IBOutlet NSTextField *rateTextField;
-@property (readwrite, weak) IBOutlet NSMenuItem *trackSynchronization;
-@property (readwrite, weak) IBOutlet NSMenuItem *previous;
-@property (readwrite, weak) IBOutlet NSMenuItem *next;
-@property (readwrite, weak) IBOutlet NSMenuItem *random;
-@property (readwrite, weak) IBOutlet NSMenuItem *repeat;
-@property (readwrite, weak) IBOutlet NSMenuItem *loop;
-@property (readwrite, weak) IBOutlet NSMenuItem *AtoBloop;
-@property (readwrite, weak) IBOutlet NSMenuItem *quitAfterPB;
-@property (readwrite, weak) IBOutlet NSMenuItem *fwd;
-@property (readwrite, weak) IBOutlet NSMenuItem *bwd;
-@property (readwrite, weak) IBOutlet NSMenuItem *jumpToTime;
-@property (readwrite, weak) IBOutlet NSMenuItem *program;
-@property (readwrite, weak) IBOutlet NSMenu *programMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *title;
-@property (readwrite, weak) IBOutlet NSMenu *titleMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *chapter;
-@property (readwrite, weak) IBOutlet NSMenu *chapterMenu;
+@property (readwrite, assign) IBOutlet NSMenu *controlsMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *play;
+@property (readwrite, assign) IBOutlet NSMenuItem *stop;
+@property (readwrite, assign) IBOutlet NSMenuItem *record;
+@property (readwrite, assign) IBOutlet NSMenuItem *rate;
+@property (readwrite, assign) IBOutlet NSView *rate_view;
+@property (readwrite, assign) IBOutlet NSTextField *rateLabel;
+@property (readwrite, assign) IBOutlet NSTextField *rate_slowerLabel;
+@property (readwrite, assign) IBOutlet NSTextField *rate_normalLabel;
+@property (readwrite, assign) IBOutlet NSTextField *rate_fasterLabel;
+@property (readwrite, assign) IBOutlet NSSlider *rate_sld;
+@property (readwrite, assign) IBOutlet NSTextField *rateTextField;
+@property (readwrite, assign) IBOutlet NSMenuItem *trackSynchronization;
+@property (readwrite, assign) IBOutlet NSMenuItem *previous;
+@property (readwrite, assign) IBOutlet NSMenuItem *next;
+@property (readwrite, assign) IBOutlet NSMenuItem *random;
+@property (readwrite, assign) IBOutlet NSMenuItem *repeat;
+@property (readwrite, assign) IBOutlet NSMenuItem *loop;
+@property (readwrite, assign) IBOutlet NSMenuItem *AtoBloop;
+@property (readwrite, assign) IBOutlet NSMenuItem *quitAfterPB;
+@property (readwrite, assign) IBOutlet NSMenuItem *fwd;
+@property (readwrite, assign) IBOutlet NSMenuItem *bwd;
+@property (readwrite, assign) IBOutlet NSMenuItem *jumpToTime;
+@property (readwrite, assign) IBOutlet NSMenuItem *program;
+@property (readwrite, assign) IBOutlet NSMenu *programMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *title;
+@property (readwrite, assign) IBOutlet NSMenu *titleMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *chapter;
+@property (readwrite, assign) IBOutlet NSMenu *chapterMenu;
 
-@property (readwrite, weak) IBOutlet NSMenu *audioMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *vol_up;
-@property (readwrite, weak) IBOutlet NSMenuItem *vol_down;
-@property (readwrite, weak) IBOutlet NSMenuItem *mute;
-@property (readwrite, weak) IBOutlet NSMenuItem *audiotrack;
-@property (readwrite, weak) IBOutlet NSMenu *audiotrackMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *channels;
-@property (readwrite, weak) IBOutlet NSMenu *channelsMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *audioDevice;
-@property (readwrite, weak) IBOutlet NSMenu *audioDeviceMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *visual;
-@property (readwrite, weak) IBOutlet NSMenu *visualMenu;
+@property (readwrite, assign) IBOutlet NSMenu *audioMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *vol_up;
+@property (readwrite, assign) IBOutlet NSMenuItem *vol_down;
+@property (readwrite, assign) IBOutlet NSMenuItem *mute;
+@property (readwrite, assign) IBOutlet NSMenuItem *audiotrack;
+@property (readwrite, assign) IBOutlet NSMenu *audiotrackMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *channels;
+@property (readwrite, assign) IBOutlet NSMenu *channelsMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *audioDevice;
+@property (readwrite, assign) IBOutlet NSMenu *audioDeviceMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *visual;
+@property (readwrite, assign) IBOutlet NSMenu *visualMenu;
 
-@property (readwrite, weak) IBOutlet NSMenu *videoMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *half_window;
-@property (readwrite, weak) IBOutlet NSMenuItem *normal_window;
-@property (readwrite, weak) IBOutlet NSMenuItem *double_window;
-@property (readwrite, weak) IBOutlet NSMenuItem *fittoscreen;
-@property (readwrite, weak) IBOutlet NSMenuItem *fullscreenItem;
-@property (readwrite, weak) IBOutlet NSMenuItem *floatontop;
-@property (readwrite, weak) IBOutlet NSMenuItem *snapshot;
-@property (readwrite, weak) IBOutlet NSMenuItem *videotrack;
-@property (readwrite, weak) IBOutlet NSMenu *videotrackMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *screen;
-@property (readwrite, weak) IBOutlet NSMenu *screenMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *aspect_ratio;
-@property (readwrite, weak) IBOutlet NSMenu *aspect_ratioMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *crop;
-@property (readwrite, weak) IBOutlet NSMenu *cropMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *deinterlace;
-@property (readwrite, weak) IBOutlet NSMenu *deinterlaceMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *deinterlace_mode;
-@property (readwrite, weak) IBOutlet NSMenu *deinterlace_modeMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *postprocessing;
-@property (readwrite, weak) IBOutlet NSMenu *postprocessingMenu;
+@property (readwrite, assign) IBOutlet NSMenu *videoMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *half_window;
+@property (readwrite, assign) IBOutlet NSMenuItem *normal_window;
+@property (readwrite, assign) IBOutlet NSMenuItem *double_window;
+@property (readwrite, assign) IBOutlet NSMenuItem *fittoscreen;
+@property (readwrite, assign) IBOutlet NSMenuItem *fullscreenItem;
+@property (readwrite, assign) IBOutlet NSMenuItem *floatontop;
+@property (readwrite, assign) IBOutlet NSMenuItem *snapshot;
+@property (readwrite, assign) IBOutlet NSMenuItem *videotrack;
+@property (readwrite, assign) IBOutlet NSMenu *videotrackMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *screen;
+@property (readwrite, assign) IBOutlet NSMenu *screenMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *aspect_ratio;
+@property (readwrite, assign) IBOutlet NSMenu *aspect_ratioMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *crop;
+@property (readwrite, assign) IBOutlet NSMenu *cropMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *deinterlace;
+@property (readwrite, assign) IBOutlet NSMenu *deinterlaceMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *deinterlace_mode;
+@property (readwrite, assign) IBOutlet NSMenu *deinterlace_modeMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *postprocessing;
+@property (readwrite, assign) IBOutlet NSMenu *postprocessingMenu;
 
-@property (readwrite, weak) IBOutlet NSMenu *subtitlesMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_track;
-@property (readwrite, weak) IBOutlet NSMenu *subtitle_tracksMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *openSubtitleFile;
-@property (readwrite, weak) IBOutlet NSMenu *subtitle_sizeMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_size;
-@property (readwrite, weak) IBOutlet NSMenu *subtitle_textcolorMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_textcolor;
-@property (readwrite, weak) IBOutlet NSMenu *subtitle_bgcolorMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_bgcolor;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_bgopacity;
-@property (readwrite, weak) IBOutlet NSView *subtitle_bgopacity_view;
-@property (readwrite, weak) IBOutlet NSTextField *subtitle_bgopacityLabel;
-@property (readwrite, weak) IBOutlet NSTextField *subtitle_bgopacityLabel_gray;
-@property (readwrite, weak) IBOutlet NSSlider *subtitle_bgopacity_sld;
-@property (readwrite, weak) IBOutlet NSMenu *subtitle_outlinethicknessMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *subtitle_outlinethickness;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_transparent;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_index;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_red;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_green;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_yellow;
-@property (readwrite, weak) IBOutlet NSMenuItem *teletext_blue;
+@property (readwrite, assign) IBOutlet NSMenu *subtitlesMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_track;
+@property (readwrite, assign) IBOutlet NSMenu *subtitle_tracksMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *openSubtitleFile;
+@property (readwrite, assign) IBOutlet NSMenu *subtitle_sizeMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_size;
+@property (readwrite, assign) IBOutlet NSMenu *subtitle_textcolorMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_textcolor;
+@property (readwrite, assign) IBOutlet NSMenu *subtitle_bgcolorMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_bgcolor;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_bgopacity;
+@property (readwrite, assign) IBOutlet NSView *subtitle_bgopacity_view;
+@property (readwrite, assign) IBOutlet NSTextField *subtitle_bgopacityLabel;
+@property (readwrite, assign) IBOutlet NSTextField *subtitle_bgopacityLabel_gray;
+@property (readwrite, assign) IBOutlet NSSlider *subtitle_bgopacity_sld;
+@property (readwrite, assign) IBOutlet NSMenu *subtitle_outlinethicknessMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *subtitle_outlinethickness;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_transparent;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_index;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_red;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_green;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_yellow;
+@property (readwrite, assign) IBOutlet NSMenuItem *teletext_blue;
 
-@property (readwrite, weak) IBOutlet NSMenu *windowMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *minimize;
-@property (readwrite, weak) IBOutlet NSMenuItem *zoom_window;
-@property (readwrite, weak) IBOutlet NSMenuItem *player;
-@property (readwrite, weak) IBOutlet NSMenuItem *controller;
-@property (readwrite, weak) IBOutlet NSMenuItem *audioeffects;
-@property (readwrite, weak) IBOutlet NSMenuItem *videoeffects;
-@property (readwrite, weak) IBOutlet NSMenuItem *bookmarks;
-@property (readwrite, weak) IBOutlet NSMenuItem *playlist;
-@property (readwrite, weak) IBOutlet NSMenuItem *info;
-@property (readwrite, weak) IBOutlet NSMenuItem *messages;
-@property (readwrite, weak) IBOutlet NSMenuItem *bring_atf;
+@property (readwrite, assign) IBOutlet NSMenu *windowMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *minimize;
+@property (readwrite, assign) IBOutlet NSMenuItem *zoom_window;
+@property (readwrite, assign) IBOutlet NSMenuItem *player;
+@property (readwrite, assign) IBOutlet NSMenuItem *controller;
+@property (readwrite, assign) IBOutlet NSMenuItem *audioeffects;
+@property (readwrite, assign) IBOutlet NSMenuItem *videoeffects;
+@property (readwrite, assign) IBOutlet NSMenuItem *bookmarks;
+@property (readwrite, assign) IBOutlet NSMenuItem *playlist;
+@property (readwrite, assign) IBOutlet NSMenuItem *info;
+@property (readwrite, assign) IBOutlet NSMenuItem *messages;
+@property (readwrite, assign) IBOutlet NSMenuItem *bring_atf;
 
-@property (readwrite, weak) IBOutlet NSMenu *helpMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *help;
-@property (readwrite, weak) IBOutlet NSMenuItem *readme;
-@property (readwrite, weak) IBOutlet NSMenuItem *documentation;
-@property (readwrite, weak) IBOutlet NSMenuItem *license;
-@property (readwrite, weak) IBOutlet NSMenuItem *website;
-@property (readwrite, weak) IBOutlet NSMenuItem *donation;
-@property (readwrite, weak) IBOutlet NSMenuItem *forum;
-@property (readwrite, weak) IBOutlet NSMenuItem *errorsAndWarnings;
+@property (readwrite, assign) IBOutlet NSMenu *helpMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *help;
+@property (readwrite, assign) IBOutlet NSMenuItem *readme;
+@property (readwrite, assign) IBOutlet NSMenuItem *documentation;
+@property (readwrite, assign) IBOutlet NSMenuItem *license;
+@property (readwrite, assign) IBOutlet NSMenuItem *website;
+@property (readwrite, assign) IBOutlet NSMenuItem *donation;
+@property (readwrite, assign) IBOutlet NSMenuItem *forum;
+@property (readwrite, assign) IBOutlet NSMenuItem *errorsAndWarnings;
 
 /* dock menu */
-@property (readwrite, weak) IBOutlet NSMenuItem *dockMenuplay;
-@property (readwrite, weak) IBOutlet NSMenuItem *dockMenustop;
-@property (readwrite, weak) IBOutlet NSMenuItem *dockMenunext;
-@property (readwrite, weak) IBOutlet NSMenuItem *dockMenuprevious;
-@property (readwrite, weak) IBOutlet NSMenuItem *dockMenumute;
+@property (readwrite, assign) IBOutlet NSMenuItem *dockMenuplay;
+@property (readwrite, assign) IBOutlet NSMenuItem *dockMenustop;
+@property (readwrite, assign) IBOutlet NSMenuItem *dockMenunext;
+@property (readwrite, assign) IBOutlet NSMenuItem *dockMenuprevious;
+@property (readwrite, assign) IBOutlet NSMenuItem *dockMenumute;
 
 /* vout menu */
-@property (readwrite, weak) IBOutlet NSMenu *voutMenu;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenuplay;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenustop;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenuprev;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenunext;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenuvolup;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenuvoldown;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenumute;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenufullscreen;
-@property (readwrite, weak) IBOutlet NSMenuItem *voutMenusnapshot;
+@property (readwrite, assign) IBOutlet NSMenu *voutMenu;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenuplay;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenustop;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenuprev;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenunext;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenuvolup;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenuvoldown;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenumute;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenufullscreen;
+@property (readwrite, assign) IBOutlet NSMenuItem *voutMenusnapshot;
 
-@property (readwrite, weak) IBOutlet NSView *playlistSaveAccessoryView;
-@property (readwrite, weak) IBOutlet NSPopUpButton *playlistSaveAccessoryPopup;
-@property (readwrite, weak) IBOutlet NSTextField *playlistSaveAccessoryText;
+@property (readwrite, assign) IBOutlet NSView *playlistSaveAccessoryView;
+@property (readwrite, assign) IBOutlet NSPopUpButton *playlistSaveAccessoryPopup;
+@property (readwrite, assign) IBOutlet NSTextField *playlistSaveAccessoryText;
 
 - (void)releaseRepresentedObjects:(NSMenu *)the_menu;
 
@@ -292,6 +487,28 @@
 - (void)setRepeatAll;
 - (void)setRepeatOff;
 - (void)setShuffle;
+
+- (void)initStrings;
+
+- (void)refreshAudioDeviceList;
+
+- (void)setupPlaylistTableColumnsForMenu:(NSMenu *)menu;
+
+- (void)setupMenu:(NSMenu*)menu withIntList:(char *)psz_name andSelector:(SEL)selector;
+
+- (void)setupVarMenu:(NSMenu *)menu
+         forMenuItem: (NSMenuItem *)parent
+              target:(vlc_object_t *)p_object
+                 var:(const char *)psz_variable
+            selector:(SEL)pf_callback;
+
+- (void)setupVarMenuItem:(NSMenuItem *)mi
+                  target:(vlc_object_t *)p_object
+                     var:(const char *)psz_variable
+                selector:(SEL)pf_callback;
+
+- (void)refreshVoutDeviceMenu:(NSNotification *)notification;
+
 @end
 
 /*****************************************************************************
@@ -299,7 +516,12 @@
  *****************************************************************************
  *This holds our data for autogenerated menus
  *****************************************************************************/
-@interface VLCAutoGeneratedMenuContent : NSObject
+@interface VLCAutoGeneratedMenuContent : NSObject {
+    char *psz_name;
+    vlc_object_t *vlc_object;
+    vlc_value_t value;
+    int i_type;
+}
 
 - (id)initWithVariableName: (const char *)name
                   ofObject: (vlc_object_t *)object

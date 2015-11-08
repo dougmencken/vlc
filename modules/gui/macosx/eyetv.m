@@ -30,6 +30,10 @@
 
 @implementation VLCEyeTVController
 
+@synthesize eyeTVRunning = _eyeTVRunning;
+@synthesize deviceConnected = _deviceConnected;
+@synthesize channel = _channel;
+
 - (id)init
 {
     self = [super init];
@@ -46,6 +50,7 @@
 - (void)dealloc
 {
     [[NSDistributedNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
 }
 
 - (void)globalNotificationReceived: (NSNotification *)theNotification

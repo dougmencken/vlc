@@ -53,10 +53,8 @@
 #import "bookmarks.h"
 #import "coredialogs.h"
 #import "simple_prefs.h"
-#import "CoreInteraction.h"
 #import "TrackSynchronization.h"
 #import "ExtensionsManager.h"
-#import "BWQuincyManager.h"
 #import "ResumeDialogController.h"
 #import "DebugMessageVisualizer.h"
 #import "ConvertAndSave.h"
@@ -85,7 +83,6 @@ intf_thread_t *getIntf()
 
 int OpenIntf (vlc_object_t *p_this)
 {
-    @autoreleasepool {
         intf_thread_t *p_intf = (intf_thread_t*) p_this;
         p_interface_thread = p_intf;
         msg_Dbg(p_intf, "Starting macosx interface");
@@ -97,18 +94,15 @@ int OpenIntf (vlc_object_t *p_this)
         [[[VLCMain sharedInstance] mainWindow] makeKeyAndOrderFront:nil];
 
         return VLC_SUCCESS;
-    }
 }
 
 void CloseIntf (vlc_object_t *p_this)
 {
-    @autoreleasepool {
         msg_Dbg(p_this, "Closing macosx interface");
         [[VLCMain sharedInstance] applicationWillTerminate:nil];
         [VLCMain killInstance];
 
         p_interface_thread = nil;
-    }
 }
 
 #pragma mark -
@@ -122,64 +116,28 @@ void CloseIntf (vlc_object_t *p_this)
 static int ShowController(vlc_object_t *p_this, const char *psz_variable,
                      vlc_value_t old_val, vlc_value_t new_val, void *param)
 {
-    @autoreleasepool {
-        dispatch_async(dispatch_get_main_queue(), ^{
+        intf_thread_t * p_intf = VLCIntf;
+        if (p_intf) {
+            playlist_t * p_playlist = pl_Get(p_intf);
+            BOOL b_fullscreen = var_GetBool(p_playlist, "fullscreen");
+            if (b_fullscreen)
+                [[VLCMain sharedInstance] showFullscreenController];
 
-            intf_thread_t * p_intf = VLCIntf;
-            if (p_intf) {
-                playlist_t * p_playlist = pl_Get(p_intf);
-                BOOL b_fullscreen = var_GetBool(p_playlist, "fullscreen");
-                if (b_fullscreen)
-                    [[VLCMain sharedInstance] showFullscreenController];
-
-                else if (!strcmp(psz_variable, "intf-show"))
-                    [[[VLCMain sharedInstance] mainWindow] makeKeyAndOrderFront:nil];
-            }
-
-        });
+            else if (!strcmp(psz_variable, "intf-show"))
+                [[[VLCMain sharedInstance] mainWindow] makeKeyAndOrderFront:nil];
+        }
 
         return VLC_SUCCESS;
-    }
 }
-
-#pragma mark -
-#pragma mark Private
-
-@interface VLCMain () <BWQuincyManagerDelegate>
-{
-    intf_thread_t *p_intf;
-    BOOL launched;
-    int items_at_launch;
-
-    BOOL b_active_videoplayback;
-
-    NSWindowController *_mainWindowController;
-    VLCMainMenu *_mainmenu;
-    VLCPrefs *_prefs;
-    VLCSimplePrefs *_sprefs;
-    VLCOpen *_open;
-    VLCCoreDialogProvider *_coredialogs;
-    VLCBookmarks *_bookmarks;
-    VLCCoreInteraction *_coreinteraction;
-    ResumeDialogController *_resume_dialog;
-    VLCInputManager *_input_manager;
-    VLCPlaylist *_playlist;
-    VLCDebugMessageVisualizer *_messagePanelController;
-    VLCTrackSynchronization *_trackSyncPanel;
-    VLCAudioEffects *_audioEffectsPanel;
-    VLCVideoEffects *_videoEffectsPanel;
-    VLCConvertAndSave *_convertAndSaveWindow;
-    ExtensionsManager *_extensionsManager;
-
-    bool b_intf_terminating; /* Makes sure applicationWillTerminate will be called only once */
-}
-
-@end
 
 /*****************************************************************************
  * VLCMain implementation
  *****************************************************************************/
 @implementation VLCMain
+
+@synthesize voutController = _voutController;
+@synthesize nativeFullscreenMode = _nativeFullscreenMode;
+@synthesize playlistUpdatedSelectorInQueue = _playlistUpdatedSelectorInQueue;
 
 #pragma mark -
 #pragma mark Initialization
@@ -188,11 +146,11 @@ static VLCMain *sharedInstance = nil;
 
 + (VLCMain *)sharedInstance;
 {
-    static dispatch_once_t pred;
-    dispatch_once(&pred, ^{
-        sharedInstance = [[VLCMain alloc] init];
-    });
-
+    @synchronized(self) {
+        if (sharedInstance == nil) {
+            sharedInstance = [[VLCMain alloc] init];
+        }
+    }
     return sharedInstance;
 }
 
@@ -207,7 +165,7 @@ static VLCMain *sharedInstance = nil;
     if (self) {
         p_intf = getIntf();
 
-        [VLCApplication sharedApplication].delegate = self;
+        [[VLCApplication sharedApplication] setDelegate: self];
 
         _input_manager = [[VLCInputManager alloc] initWithMain:self];
 
@@ -224,14 +182,31 @@ static VLCMain *sharedInstance = nil;
 
         var_Create(p_intf, "intf-change", VLC_VAR_BOOL);
 
-        var_AddCallback(p_intf->p_libvlc, "intf-toggle-fscontrol", ShowController, (__bridge void *)self);
-        var_AddCallback(p_intf->p_libvlc, "intf-show", ShowController, (__bridge void *)self);
+        var_AddCallback(p_intf->p_libvlc, "intf-toggle-fscontrol", ShowController, (void *)self);
+        var_AddCallback(p_intf->p_libvlc, "intf-show", ShowController, (void *)self);
+        ///var_AddCallback(p_intf->p_libvlc, "intf-boss", BossCallback, (void *)self);
+        ///var_AddCallback(p_playlist, "item-change", PLItemUpdated, (void *)self);
+        ///var_AddCallback(p_playlist, "playlist-item-append", PLItemAppended, (void *)self);
+        ///var_AddCallback(p_playlist, "playlist-item-deleted", PLItemRemoved, (void *)self);
+        ///var_AddCallback(p_playlist, "random", PlaybackModeUpdated, (void *)self);
+        ///var_AddCallback(p_playlist, "repeat", PlaybackModeUpdated, (void *)self);
+        ///var_AddCallback(p_playlist, "loop", PlaybackModeUpdated, (void *)self);
+        ///var_AddCallback(p_playlist, "volume", VolumeUpdated, (void *)self);
+        ///var_AddCallback(p_playlist, "mute", VolumeUpdated, (void *)self);
 
-        playlist_t *p_playlist = pl_Get(p_intf);
-        if ([NSApp currentSystemPresentationOptions] & NSApplicationPresentationFullScreen)
-            var_SetBool(p_playlist, "fullscreen", YES);
+#ifdef MAC_OS_X_VERSION_10_7
+        if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD) {
+            playlist_t *p_playlist = pl_Get(p_intf);
+            if ([NSApp currentSystemPresentationOptions] & NSApplicationPresentationFullScreen)
+                var_SetBool(p_playlist, "fullscreen", YES);
+        }
+#endif
 
-        _nativeFullscreenMode = var_InheritBool(p_intf, "macosx-nativefullscreenmode");
+        _nativeFullscreenMode = NO;
+#ifdef MAC_OS_X_VERSION_10_7
+        if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+            _nativeFullscreenMode = var_InheritBool(p_intf, "macosx-nativefullscreenmode");
+#endif
 
         if (var_InheritInteger(p_intf, "macosx-icon-change")) {
             /* After day 354 of the year, the usual VLC cone is replaced by another cone
@@ -252,6 +227,26 @@ static VLCMain *sharedInstance = nil;
                                                                      userInfo: NULL
                                                            deliverImmediately: YES];
 
+        /* load our Shared Dialogs nib */
+        ///[NSBundle loadNibNamed:@"SharedDialogs" owner: NSApp];
+
+        /* subscribe to various interactive dialogues */
+        ///var_Create(p_intf, "dialog-error", VLC_VAR_ADDRESS);
+        ///var_AddCallback(p_intf, "dialog-error", DialogCallback, (void *)self);
+        ///var_Create(p_intf, "dialog-critical", VLC_VAR_ADDRESS);
+        ///var_AddCallback(p_intf, "dialog-critical", DialogCallback, (void *)self);
+        ///var_Create(p_intf, "dialog-login", VLC_VAR_ADDRESS);
+        ///var_AddCallback(p_intf, "dialog-login", DialogCallback, (void *)self);
+        ///var_Create(p_intf, "dialog-question", VLC_VAR_ADDRESS);
+        ///var_AddCallback(p_intf, "dialog-question", DialogCallback, (void *)self);
+        ///var_Create(p_intf, "dialog-progress-bar", VLC_VAR_ADDRESS);
+        ///var_AddCallback(p_intf, "dialog-progress-bar", DialogCallback, (void *)self);
+        ///dialog_Register(p_intf);
+
+        /* init Apple Remote support */
+        ///o_remote = [[AppleRemote alloc] init];
+        ///[o_remote setClickCountEnabledButtons: kRemoteButtonPlay];
+        ///[o_remote setDelegate: self];
     }
 
     return self;
@@ -260,6 +255,7 @@ static VLCMain *sharedInstance = nil;
 - (void)dealloc
 {
     msg_Dbg(VLCIntf, "Deinitializing VLCMain object");
+    [super dealloc];
 }
 
 - (void)applicationWillFinishLaunching:(NSNotification *)aNotification
@@ -356,8 +352,8 @@ static VLCMain *sharedInstance = nil;
 
     msg_Dbg(p_intf, "Terminating");
 
-    var_DelCallback(p_intf->p_libvlc, "intf-toggle-fscontrol", ShowController, (__bridge void *)self);
-    var_DelCallback(p_intf->p_libvlc, "intf-show", ShowController, (__bridge void *)self);
+    var_DelCallback(p_intf->p_libvlc, "intf-toggle-fscontrol", ShowController, (void *)self);
+    var_DelCallback(p_intf->p_libvlc, "intf-show", ShowController, (void *)self);
 
     [[NSNotificationCenter defaultCenter] removeObserver: self];
 
@@ -437,13 +433,13 @@ static VLCMain *sharedInstance = nil;
         }
     }
 
-    char *psz_uri = vlc_path2uri([[o_names firstObject] UTF8String], NULL);
+    char *psz_uri = vlc_path2uri([[o_names objectAtIndex:0] UTF8String], NULL);
 
     // try to add file as subtitle
     if ([o_names count] == 1 && psz_uri) {
         input_thread_t * p_input = pl_CurrentInput(VLCIntf);
         if (p_input) {
-            int i_result = input_AddSubtitleOSD(p_input, [[o_names firstObject] UTF8String], true, true);
+            int i_result = input_AddSubtitleOSD(p_input, [[o_names objectAtIndex:0] UTF8String], true, true);
             vlc_object_release(p_input);
             if (i_result == VLC_SUCCESS) {
                 free(psz_uri);

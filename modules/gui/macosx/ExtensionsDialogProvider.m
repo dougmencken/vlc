@@ -44,7 +44,8 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
 
 static NSView *createControlFromWidget(extension_widget_t *widget, id self)
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         assert(!widget->p_sys_intf);
         switch (widget->type) {
             case EXTENSION_WIDGET_HTML:
@@ -144,11 +145,13 @@ static NSView *createControlFromWidget(extension_widget_t *widget, id self)
                 return nil;
         }
     }
+    [pool drain];
 }
 
 static void updateControlFromWidget(NSView *control, extension_widget_t *widget, id self)
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         switch (widget->type) {
             case EXTENSION_WIDGET_HTML:
             {
@@ -240,6 +243,7 @@ static void updateControlFromWidget(NSView *control, extension_widget_t *widget,
             }
         }
     }
+    [pool drain];
 }
 
 /**
@@ -249,19 +253,17 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
                                    vlc_value_t old_val, vlc_value_t new_val,
                                    void *param)
 {
-    @autoreleasepool {
         (void) p_this;
         (void) psz_variable;
         (void) old_val;
 
-        ExtensionsDialogProvider *provider = (__bridge ExtensionsDialogProvider *)param;
+        ExtensionsDialogProvider *provider = (ExtensionsDialogProvider *)param;
         if (!new_val.p_address)
             return VLC_EGENERIC;
 
         extension_dialog_t *p_dialog = (extension_dialog_t*) new_val.p_address;
         [provider manageDialog:p_dialog];
         return VLC_SUCCESS;
-    }
 }
 
 @implementation ExtensionsDialogProvider
@@ -272,7 +274,7 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
     if (self) {
         intf_thread_t *p_intf = VLCIntf;
         var_Create(p_intf, "dialog-extension", VLC_VAR_ADDRESS);
-        var_AddCallback(p_intf, "dialog-extension", extensionDialogCallback, (__bridge void *)self);
+        var_AddCallback(p_intf, "dialog-extension", extensionDialogCallback, (void *)self);
         // dialog_Register(p_intf) is called by coredialog provider
     }
     return self;
@@ -280,7 +282,8 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
 
 - (void)dealloc
 {
-    var_DelCallback(VLCIntf, "dialog-extension", extensionDialogCallback, (__bridge void *)self);
+    var_DelCallback(VLCIntf, "dialog-extension", extensionDialogCallback, (void *)self);
+    [super dealloc];
 }
 
 - (void)performEventWithObject:(NSValue *)objectValue ofType:(const char*)type
@@ -375,20 +378,20 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
 - (void)updateWidgets:(extension_dialog_t *)dialog
 {
     extension_widget_t *widget;
-    VLCDialogWindow *dialogWindow = (__bridge VLCDialogWindow *)(dialog->p_sys_intf);
+    VLCDialogWindow *dialogWindow = (VLCDialogWindow *)(dialog->p_sys_intf);
 
     FOREACH_ARRAY(widget, dialog->widgets) {
         if (!widget)
             continue; /* Some widgets may be NULL@this point */
 
         BOOL shouldDestroy = widget->b_kill;
-        NSView *control = (__bridge NSView *)widget->p_sys_intf;
+        NSView *control = (NSView *)widget->p_sys_intf;
         BOOL update = widget->b_update;
 
         if (!control && !shouldDestroy) {
             control = createControlFromWidget(widget, self);
             updateControlFromWidget(control, widget, self);
-            widget->p_sys_intf = (__bridge void *)control;
+            widget->p_sys_intf = (void *)control;
             update = YES; // Force update and repositionning
             [control setHidden:widget->b_hide];
         }
@@ -442,7 +445,7 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
         [gridView setAutoresizingMask:NSViewHeightSizable | NSViewWidthSizable];
         [dialogWindow setContentView:gridView];
 
-        p_dialog->p_sys_intf = (void *)CFBridgingRetain(dialogWindow);
+        p_dialog->p_sys_intf = (void *)dialogWindow;
     }
 
     [self updateWidgets:p_dialog];
@@ -463,7 +466,7 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
 {
     assert(p_dialog);
 
-    VLCDialogWindow *dialogWindow = CFBridgingRelease(p_dialog->p_sys_intf);
+    VLCDialogWindow *dialogWindow = (VLCDialogWindow *)p_dialog->p_sys_intf;
     if (!dialogWindow) {
         msg_Warn(VLCIntf, "dialog window not found");
         return VLC_EGENERIC;
@@ -484,7 +487,7 @@ static int extensionDialogCallback(vlc_object_t *p_this, const char *psz_variabl
 {
     extension_dialog_t *p_dialog = [o_value pointerValue];
 
-    VLCDialogWindow *dialogWindow = (__bridge VLCDialogWindow*) p_dialog->p_sys_intf;
+    VLCDialogWindow *dialogWindow = (VLCDialogWindow*) p_dialog->p_sys_intf;
     if (p_dialog->b_kill && !dialogWindow) {
         /* This extension could not be activated properly but tried
            to create a dialog. We must ignore it. */

@@ -26,126 +26,260 @@
 @class VLCPopupPanelController;
 @class VLCTextfieldPanelController;
 
-@interface VLCVideoEffects : NSWindowController
+@interface VLCVideoEffects : NSWindowController {
+
+    NSInteger i_old_profile_index;
+
+    IBOutlet NSTabView * _tabView;
+    IBOutlet NSPopUpButton * _profilePopup;
+
+    IBOutlet NSButton * _adjustCheckbox;
+    IBOutlet NSTextField * _adjustHueLabel;
+    IBOutlet NSSlider * _adjustHueSlider;
+    IBOutlet NSTextField * _adjustContrastLabel;
+    IBOutlet NSSlider * _adjustContrastSlider;
+    IBOutlet NSTextField * _adjustBrightnessLabel;
+    IBOutlet NSSlider * _adjustBrightnessSlider;
+    IBOutlet NSButton * _adjustBrightnessCheckbox;
+    IBOutlet NSTextField * _adjustSaturationLabel;
+    IBOutlet NSSlider * _adjustSaturationSlider;
+    IBOutlet NSTextField * _adjustGammaLabel;
+    IBOutlet NSSlider * _adjustGammaSlider;
+    IBOutlet NSButton * _adjustResetButton;
+    IBOutlet NSButton * _sharpenCheckbox;
+    IBOutlet NSTextField * _sharpenLabel;
+    IBOutlet NSSlider * _sharpenSlider;
+    IBOutlet NSButton * _bandingCheckbox;
+    IBOutlet NSTextField * _bandingLabel;
+    IBOutlet NSSlider * _bandingSlider;
+    IBOutlet NSButton * _grainCheckbox;
+    IBOutlet NSSlider * _grainSlider;
+    IBOutlet NSTextField * _grainLabel;
+
+    IBOutlet NSTextField * _cropTopLabel;
+    IBOutlet NSTextField * _cropTopTextField;
+    IBOutlet NSStepper * _cropTopStepper;
+    IBOutlet NSTextField * _cropLeftLabel;
+    IBOutlet NSTextField * _cropLeftTextField;
+    IBOutlet NSStepper * _cropLeftStepper;
+    IBOutlet NSTextField * _cropRightLabel;
+    IBOutlet NSTextField * _cropRightTextField;
+    IBOutlet NSStepper * _cropRightStepper;
+    IBOutlet NSTextField * _cropBottomLabel;
+    IBOutlet NSTextField * _cropBottomTextField;
+    IBOutlet NSStepper * _cropBottomStepper;
+    IBOutlet NSButton * _cropSyncTopBottomCheckbox;
+    IBOutlet NSButton * _cropSyncLeftRightCheckbox;
+
+    IBOutlet NSButton * _transformCheckbox;
+    IBOutlet NSPopUpButton * _transformPopup;
+    IBOutlet NSButton * _zoomCheckbox;
+    IBOutlet NSButton * _puzzleCheckbox;
+    IBOutlet NSTextField * _puzzleRowsLabel;
+    IBOutlet NSTextField * _puzzleRowsTextField;
+    IBOutlet NSStepper * _puzzleRowsStepper;
+    IBOutlet NSTextField * _puzzleColumnsLabel;
+    IBOutlet NSTextField * _puzzleColumnsTextField;
+    IBOutlet NSStepper * _puzzleColumnsStepper;
+    IBOutlet NSButton * _cloneCheckbox;
+    IBOutlet NSTextField * _cloneNumberTextField;
+    IBOutlet NSStepper * _cloneNumberStepper;
+    IBOutlet NSTextField * _cloneNumberLabel;
+    IBOutlet NSButton * _wallCheckbox;
+    IBOutlet NSTextField * _wallNumbersOfRowsTextField;
+    IBOutlet NSStepper * _wallNumbersOfRowsStepper;
+    IBOutlet NSTextField * _wallNumbersOfRowsLabel;
+    IBOutlet NSTextField * _wallNumberOfColumnsTextField;
+    IBOutlet NSStepper * _wallNumberOfColumnsStepper;
+    IBOutlet NSTextField * _wallNumberOfColumnsLabel;
+
+    IBOutlet NSButton * _thresholdCheckbox;
+    IBOutlet NSTextField * _thresholdColorLabel;
+    IBOutlet NSTextField * _thresholdColorTextField;
+    IBOutlet NSTextField * _thresholdSaturationLabel;
+    IBOutlet NSSlider * _thresholdSaturationSlider;
+    IBOutlet NSTextField * _thresholdSimilarityLabel;
+    IBOutlet NSSlider * _thresholdSimilaritySlider;
+    IBOutlet NSButton * _sepiaCheckbox;
+    IBOutlet NSTextField * _sepiaLabel;
+    IBOutlet NSTextField * _sepiaTextField;
+    IBOutlet NSStepper * _sepiaStepper;
+    IBOutlet NSButton * _noiseCheckbox;
+    IBOutlet NSButton * _gradientCheckbox;
+    IBOutlet NSTextField * _gradientModeLabel;
+    IBOutlet NSPopUpButton * _gradientModePopup;
+    IBOutlet NSButton * _gradientColorCheckbox;
+    IBOutlet NSButton * _gradientCartoonCheckbox;
+    IBOutlet NSButton * _extractCheckbox;
+    IBOutlet NSTextField * _extractLabel;
+    IBOutlet NSTextField * _extractTextField;
+    IBOutlet NSButton * _invertCheckbox;
+    IBOutlet NSButton * _posterizeCheckbox;
+    IBOutlet NSTextField * _posterizeLabel;
+    IBOutlet NSTextField * _posterizeTextField;
+    IBOutlet NSStepper * _posterizeStepper;
+    IBOutlet NSButton * _blurCheckbox;
+    IBOutlet NSSlider * _blurSlider;
+    IBOutlet NSTextField * _blurLabel;
+    IBOutlet NSButton * _motiondetectCheckbox;
+    IBOutlet NSButton * _watereffectCheckbox;
+    IBOutlet NSButton * _wavesCheckbox;
+    IBOutlet NSButton * _psychedelicCheckbox;
+
+    IBOutlet NSButton * _addTextCheckbox;
+    IBOutlet NSTextField * _addTextTextTextField;
+    IBOutlet NSTextField * _addTextTextLabel;
+    IBOutlet NSTextField * _addTextPositionLabel;
+    IBOutlet NSPopUpButton * _addTextPositionPopup;
+    IBOutlet NSButton * _addLogoCheckbox;
+    IBOutlet NSTextField * _addLogoLogoLabel;
+    IBOutlet NSTextField * _addLogoLogoTextField;
+    IBOutlet NSTextField * _addLogoPositionLabel;
+    IBOutlet NSPopUpButton * _addLogoPositionPopup;
+    IBOutlet NSTextField * _addLogoTransparencyLabel;
+    IBOutlet NSSlider * _addLogoTransparencySlider;
+    IBOutlet NSButton * _anaglyphCheckbox;
+
+    VLCPopupPanelController * _popupPanel;
+    VLCTextfieldPanelController * _textfieldPanel;
+
+    int _cropLeftValue;
+    int _cropTopValue;
+    int _cropRightValue;
+    int _cropBottomValue;
+
+    int _puzzleRowsValue;
+    int _puzzleColumnsValue;
+
+    int _wallRowsValue;
+    int _wallColumnsValue;
+
+    int _cloneValue;
+
+    int _sepiaValue;
+
+    int _posterizeValue;
+
+}
 
 /* generic */
-@property (readwrite, weak) IBOutlet NSTabView *tabView;
-@property (readwrite, weak) IBOutlet NSPopUpButton *profilePopup;
+@property (readwrite, assign) IBOutlet NSTabView *tabView;
+@property (readwrite, assign) IBOutlet NSPopUpButton *profilePopup;
 
 /* basic */
-@property (readwrite, weak) IBOutlet NSButton *adjustCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *adjustHueLabel;
-@property (readwrite, weak) IBOutlet NSSlider *adjustHueSlider;
-@property (readwrite, weak) IBOutlet NSTextField *adjustContrastLabel;
-@property (readwrite, weak) IBOutlet NSSlider *adjustContrastSlider;
-@property (readwrite, weak) IBOutlet NSTextField *adjustBrightnessLabel;
-@property (readwrite, weak) IBOutlet NSSlider *adjustBrightnessSlider;
-@property (readwrite, weak) IBOutlet NSButton *adjustBrightnessCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *adjustSaturationLabel;
-@property (readwrite, weak) IBOutlet NSSlider *adjustSaturationSlider;
-@property (readwrite, weak) IBOutlet NSTextField *adjustGammaLabel;
-@property (readwrite, weak) IBOutlet NSSlider *adjustGammaSlider;
-@property (readwrite, weak) IBOutlet NSButton *adjustResetButton;
-@property (readwrite, weak) IBOutlet NSButton *sharpenCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *sharpenLabel;
-@property (readwrite, weak) IBOutlet NSSlider *sharpenSlider;
-@property (readwrite, weak) IBOutlet NSButton *bandingCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *bandingLabel;
-@property (readwrite, weak) IBOutlet NSSlider *bandingSlider;
-@property (readwrite, weak) IBOutlet NSButton *grainCheckbox;
-@property (readwrite, weak) IBOutlet NSSlider *grainSlider;
-@property (readwrite, weak) IBOutlet NSTextField *grainLabel;
+@property (readwrite, assign) IBOutlet NSButton *adjustCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *adjustHueLabel;
+@property (readwrite, assign) IBOutlet NSSlider *adjustHueSlider;
+@property (readwrite, assign) IBOutlet NSTextField *adjustContrastLabel;
+@property (readwrite, assign) IBOutlet NSSlider *adjustContrastSlider;
+@property (readwrite, assign) IBOutlet NSTextField *adjustBrightnessLabel;
+@property (readwrite, assign) IBOutlet NSSlider *adjustBrightnessSlider;
+@property (readwrite, assign) IBOutlet NSButton *adjustBrightnessCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *adjustSaturationLabel;
+@property (readwrite, assign) IBOutlet NSSlider *adjustSaturationSlider;
+@property (readwrite, assign) IBOutlet NSTextField *adjustGammaLabel;
+@property (readwrite, assign) IBOutlet NSSlider *adjustGammaSlider;
+@property (readwrite, assign) IBOutlet NSButton *adjustResetButton;
+@property (readwrite, assign) IBOutlet NSButton *sharpenCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *sharpenLabel;
+@property (readwrite, assign) IBOutlet NSSlider *sharpenSlider;
+@property (readwrite, assign) IBOutlet NSButton *bandingCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *bandingLabel;
+@property (readwrite, assign) IBOutlet NSSlider *bandingSlider;
+@property (readwrite, assign) IBOutlet NSButton *grainCheckbox;
+@property (readwrite, assign) IBOutlet NSSlider *grainSlider;
+@property (readwrite, assign) IBOutlet NSTextField *grainLabel;
 
 /* crop */
-@property (readwrite, weak) IBOutlet NSTextField *cropTopLabel;
-@property (readwrite, weak) IBOutlet NSTextField *cropTopTextField;
-@property (readwrite, weak) IBOutlet NSStepper *cropTopStepper;
-@property (readwrite, weak) IBOutlet NSTextField *cropLeftLabel;
-@property (readwrite, weak) IBOutlet NSTextField *cropLeftTextField;
-@property (readwrite, weak) IBOutlet NSStepper *cropLeftStepper;
-@property (readwrite, weak) IBOutlet NSTextField *cropRightLabel;
-@property (readwrite, weak) IBOutlet NSTextField *cropRightTextField;
-@property (readwrite, weak) IBOutlet NSStepper *cropRightStepper;
-@property (readwrite, weak) IBOutlet NSTextField *cropBottomLabel;
-@property (readwrite, weak) IBOutlet NSTextField *cropBottomTextField;
-@property (readwrite, weak) IBOutlet NSStepper *cropBottomStepper;
-@property (readwrite, weak) IBOutlet NSButton *cropSyncTopBottomCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *cropSyncLeftRightCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *cropTopLabel;
+@property (readwrite, assign) IBOutlet NSTextField *cropTopTextField;
+@property (readwrite, assign) IBOutlet NSStepper *cropTopStepper;
+@property (readwrite, assign) IBOutlet NSTextField *cropLeftLabel;
+@property (readwrite, assign) IBOutlet NSTextField *cropLeftTextField;
+@property (readwrite, assign) IBOutlet NSStepper *cropLeftStepper;
+@property (readwrite, assign) IBOutlet NSTextField *cropRightLabel;
+@property (readwrite, assign) IBOutlet NSTextField *cropRightTextField;
+@property (readwrite, assign) IBOutlet NSStepper *cropRightStepper;
+@property (readwrite, assign) IBOutlet NSTextField *cropBottomLabel;
+@property (readwrite, assign) IBOutlet NSTextField *cropBottomTextField;
+@property (readwrite, assign) IBOutlet NSStepper *cropBottomStepper;
+@property (readwrite, assign) IBOutlet NSButton *cropSyncTopBottomCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *cropSyncLeftRightCheckbox;
 
 /* geometry */
-@property (readwrite, weak) IBOutlet NSButton *transformCheckbox;
-@property (readwrite, weak) IBOutlet NSPopUpButton *transformPopup;
-@property (readwrite, weak) IBOutlet NSButton *zoomCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *puzzleCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *puzzleRowsLabel;
-@property (readwrite, weak) IBOutlet NSTextField *puzzleRowsTextField;
-@property (readwrite, weak) IBOutlet NSStepper *puzzleRowsStepper;
-@property (readwrite, weak) IBOutlet NSTextField *puzzleColumnsLabel;
-@property (readwrite, weak) IBOutlet NSTextField *puzzleColumnsTextField;
-@property (readwrite, weak) IBOutlet NSStepper *puzzleColumnsStepper;
-@property (readwrite, weak) IBOutlet NSButton *cloneCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *cloneNumberTextField;
-@property (readwrite, weak) IBOutlet NSStepper *cloneNumberStepper;
-@property (readwrite, weak) IBOutlet NSTextField *cloneNumberLabel;
-@property (readwrite, weak) IBOutlet NSButton *wallCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *wallNumbersOfRowsTextField;
-@property (readwrite, weak) IBOutlet NSStepper *wallNumbersOfRowsStepper;
-@property (readwrite, weak) IBOutlet NSTextField *wallNumbersOfRowsLabel;
-@property (readwrite, weak) IBOutlet NSTextField *wallNumberOfColumnsTextField;
-@property (readwrite, weak) IBOutlet NSStepper *wallNumberOfColumnsStepper;
-@property (readwrite, weak) IBOutlet NSTextField *wallNumberOfColumnsLabel;
+@property (readwrite, assign) IBOutlet NSButton *transformCheckbox;
+@property (readwrite, assign) IBOutlet NSPopUpButton *transformPopup;
+@property (readwrite, assign) IBOutlet NSButton *zoomCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *puzzleCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *puzzleRowsLabel;
+@property (readwrite, assign) IBOutlet NSTextField *puzzleRowsTextField;
+@property (readwrite, assign) IBOutlet NSStepper *puzzleRowsStepper;
+@property (readwrite, assign) IBOutlet NSTextField *puzzleColumnsLabel;
+@property (readwrite, assign) IBOutlet NSTextField *puzzleColumnsTextField;
+@property (readwrite, assign) IBOutlet NSStepper *puzzleColumnsStepper;
+@property (readwrite, assign) IBOutlet NSButton *cloneCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *cloneNumberTextField;
+@property (readwrite, assign) IBOutlet NSStepper *cloneNumberStepper;
+@property (readwrite, assign) IBOutlet NSTextField *cloneNumberLabel;
+@property (readwrite, assign) IBOutlet NSButton *wallCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *wallNumbersOfRowsTextField;
+@property (readwrite, assign) IBOutlet NSStepper *wallNumbersOfRowsStepper;
+@property (readwrite, assign) IBOutlet NSTextField *wallNumbersOfRowsLabel;
+@property (readwrite, assign) IBOutlet NSTextField *wallNumberOfColumnsTextField;
+@property (readwrite, assign) IBOutlet NSStepper *wallNumberOfColumnsStepper;
+@property (readwrite, assign) IBOutlet NSTextField *wallNumberOfColumnsLabel;
 
 /* color */
-@property (readwrite, weak) IBOutlet NSButton *thresholdCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *thresholdColorLabel;
-@property (readwrite, weak) IBOutlet NSTextField *thresholdColorTextField;
-@property (readwrite, weak) IBOutlet NSTextField *thresholdSaturationLabel;
-@property (readwrite, weak) IBOutlet NSSlider *thresholdSaturationSlider;
-@property (readwrite, weak) IBOutlet NSTextField *thresholdSimilarityLabel;
-@property (readwrite, weak) IBOutlet NSSlider *thresholdSimilaritySlider;
-@property (readwrite, weak) IBOutlet NSButton *sepiaCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *sepiaLabel;
-@property (readwrite, weak) IBOutlet NSTextField *sepiaTextField;
-@property (readwrite, weak) IBOutlet NSStepper *sepiaStepper;
-@property (readwrite, weak) IBOutlet NSButton *noiseCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *gradientCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *gradientModeLabel;
-@property (readwrite, weak) IBOutlet NSPopUpButton *gradientModePopup;
-@property (readwrite, weak) IBOutlet NSButton *gradientColorCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *gradientCartoonCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *extractCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *extractLabel;
-@property (readwrite, weak) IBOutlet NSTextField *extractTextField;
-@property (readwrite, weak) IBOutlet NSButton *invertCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *posterizeCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *posterizeLabel;
-@property (readwrite, weak) IBOutlet NSTextField *posterizeTextField;
-@property (readwrite, weak) IBOutlet NSStepper *posterizeStepper;
-@property (readwrite, weak) IBOutlet NSButton *blurCheckbox;
-@property (readwrite, weak) IBOutlet NSSlider *blurSlider;
-@property (readwrite, weak) IBOutlet NSTextField *blurLabel;
-@property (readwrite, weak) IBOutlet NSButton *motiondetectCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *watereffectCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *wavesCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *psychedelicCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *thresholdCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *thresholdColorLabel;
+@property (readwrite, assign) IBOutlet NSTextField *thresholdColorTextField;
+@property (readwrite, assign) IBOutlet NSTextField *thresholdSaturationLabel;
+@property (readwrite, assign) IBOutlet NSSlider *thresholdSaturationSlider;
+@property (readwrite, assign) IBOutlet NSTextField *thresholdSimilarityLabel;
+@property (readwrite, assign) IBOutlet NSSlider *thresholdSimilaritySlider;
+@property (readwrite, assign) IBOutlet NSButton *sepiaCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *sepiaLabel;
+@property (readwrite, assign) IBOutlet NSTextField *sepiaTextField;
+@property (readwrite, assign) IBOutlet NSStepper *sepiaStepper;
+@property (readwrite, assign) IBOutlet NSButton *noiseCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *gradientCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *gradientModeLabel;
+@property (readwrite, assign) IBOutlet NSPopUpButton *gradientModePopup;
+@property (readwrite, assign) IBOutlet NSButton *gradientColorCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *gradientCartoonCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *extractCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *extractLabel;
+@property (readwrite, assign) IBOutlet NSTextField *extractTextField;
+@property (readwrite, assign) IBOutlet NSButton *invertCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *posterizeCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *posterizeLabel;
+@property (readwrite, assign) IBOutlet NSTextField *posterizeTextField;
+@property (readwrite, assign) IBOutlet NSStepper *posterizeStepper;
+@property (readwrite, assign) IBOutlet NSButton *blurCheckbox;
+@property (readwrite, assign) IBOutlet NSSlider *blurSlider;
+@property (readwrite, assign) IBOutlet NSTextField *blurLabel;
+@property (readwrite, assign) IBOutlet NSButton *motiondetectCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *watereffectCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *wavesCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *psychedelicCheckbox;
 
 /* misc */
-@property (readwrite, weak) IBOutlet NSButton *addTextCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *addTextTextTextField;
-@property (readwrite, weak) IBOutlet NSTextField *addTextTextLabel;
-@property (readwrite, weak) IBOutlet NSTextField *addTextPositionLabel;
-@property (readwrite, weak) IBOutlet NSPopUpButton *addTextPositionPopup;
-@property (readwrite, weak) IBOutlet NSButton *addLogoCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *addLogoLogoLabel;
-@property (readwrite, weak) IBOutlet NSTextField *addLogoLogoTextField;
-@property (readwrite, weak) IBOutlet NSTextField *addLogoPositionLabel;
-@property (readwrite, weak) IBOutlet NSPopUpButton *addLogoPositionPopup;
-@property (readwrite, weak) IBOutlet NSTextField *addLogoTransparencyLabel;
-@property (readwrite, weak) IBOutlet NSSlider *addLogoTransparencySlider;
-@property (readwrite, weak) IBOutlet NSButton *anaglyphCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *addTextCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *addTextTextTextField;
+@property (readwrite, assign) IBOutlet NSTextField *addTextTextLabel;
+@property (readwrite, assign) IBOutlet NSTextField *addTextPositionLabel;
+@property (readwrite, assign) IBOutlet NSPopUpButton *addTextPositionPopup;
+@property (readwrite, assign) IBOutlet NSButton *addLogoCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *addLogoLogoLabel;
+@property (readwrite, assign) IBOutlet NSTextField *addLogoLogoTextField;
+@property (readwrite, assign) IBOutlet NSTextField *addLogoPositionLabel;
+@property (readwrite, assign) IBOutlet NSPopUpButton *addLogoPositionPopup;
+@property (readwrite, assign) IBOutlet NSTextField *addLogoTransparencyLabel;
+@property (readwrite, assign) IBOutlet NSSlider *addLogoTransparencySlider;
+@property (readwrite, assign) IBOutlet NSButton *anaglyphCheckbox;
 
-@property (strong) VLCPopupPanelController *popupPanel;
-@property (strong) VLCTextfieldPanelController *textfieldPanel;
+@property (retain) VLCPopupPanelController *popupPanel;
+@property (retain) VLCTextfieldPanelController *textfieldPanel;
 
 /* text field / stepper binding values */
 /* use setter to modify gui elements */
@@ -165,6 +299,9 @@
 @property (nonatomic) int sepiaValue;
 
 @property (nonatomic) int posterizeValue;
+
+- (void)resetValues;
+- (void)resetProfileSelector;
 
 /* generic */
 - (void)updateCocoaWindowLevel:(NSInteger)i_level;

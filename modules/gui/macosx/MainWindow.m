@@ -46,41 +46,42 @@
 #import "VLCVoutWindowController.h"
 
 
-@interface VLCMainWindow() <PXSourceListDataSource, PXSourceListDelegate, NSWindowDelegate, NSAnimationDelegate, NSSplitViewDelegate>
-{
-    BOOL videoPlaybackEnabled;
-    BOOL dropzoneActive;
-    BOOL splitViewRemoved;
-    BOOL minimizedView;
-
-    BOOL b_video_playback_enabled;
-    BOOL b_dropzone_active;
-    BOOL b_splitview_removed;
-    BOOL b_minimized_view;
-
-    CGFloat f_lastSplitViewHeight;
-    CGFloat f_lastLeftSplitViewWidth;
-
-    NSMutableArray *o_sidebaritems;
-
-    /* this is only true, when we have NO video playing inside the main window */
-
-    BOOL b_podcastView_displayed;
-
-    VLCColorView * o_color_backdrop;
-
-    NSRect frameBeforePlayback;
-}
-- (void)resizePlaylistAfterCollapse;
-- (void)makeSplitViewVisible;
-- (void)makeSplitViewHidden;
-- (void)showPodcastControls;
-- (void)hidePodcastControls;
-@end
-
 static const float f_min_window_height = 307.;
 
 @implementation VLCMainWindow
+
+@synthesize searchField = _searchField;
+@synthesize playlistScrollView = _playlistScrollView;
+@synthesize outlineView = _outlineView;
+@synthesize splitView = _splitView;
+@synthesize splitViewLeft = _splitViewLeft;
+@synthesize splitViewRight = _splitViewRight;
+@synthesize sidebarView = _sidebarView;
+@synthesize sidebarScrollView = _sidebarScrollView;
+@synthesize categoryLabel = _categoryLabel;
+@synthesize dropzoneView = _dropzoneView;
+@synthesize dropzoneButton = _dropzoneButton;
+@synthesize dropzoneLabel = _dropzoneLabel;
+@synthesize dropzoneBox = _dropzoneBox;
+@synthesize dropzoneImageView = _dropzoneImageView;
+@synthesize podcastView = _podcastView;
+@synthesize podcastAddButton = _podcastAddButton;
+@synthesize podcastRemoveButton = _podcastRemoveButton;
+@synthesize podcastSubscribeWindow = _podcastSubscribeWindow;
+@synthesize podcastSubscribeTitle = _podcastSubscribeTitle;
+@synthesize podcastSubscribeSubtitle = _podcastSubscribeSubtitle;
+@synthesize podcastSubscribeUrlField = _podcastSubscribeUrlField;
+@synthesize podcastSubscribeOkButton = _podcastSubscribeOkButton;
+@synthesize podcastSubscribeCancelButton = _podcastSubscribeCancelButton;
+@synthesize podcastUnsubscribeWindow = _podcastUnsubscribeWindow;
+@synthesize podcastUnsubscirbeTitle = _podcastUnsubscirbeTitle;
+@synthesize podcastUnsubscribeSubtitle = _podcastUnsubscribeSubtitle;
+@synthesize podcastUnsubscribePopUpButton = _podcastUnsubscribePopUpButton;
+@synthesize podcastUnsubscribeOkButton = _podcastUnsubscribeOkButton;
+@synthesize podcastUnsubscribeCancelButton = _podcastUnsubscribeCancelButton;
+@synthesize nativeFullscreenMode = _nativeFullscreenMode;
+@synthesize nonembedded = _nonembedded;
+@synthesize fspanel = _fspanel;
 
 #pragma mark -
 #pragma mark Initialization
@@ -134,6 +135,7 @@ static const float f_min_window_height = 307.;
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [super dealloc];
 }
 
 - (void)awakeFromNib
@@ -149,87 +151,93 @@ static const float f_min_window_height = 307.;
 
     BOOL splitViewShouldBeHidden = NO;
 
-    [self setDelegate:self];
-    [self setRestorable:NO];
-    // TODO: useOptimizedDrawing deprecated since 10.10, but no
-    // documentation provided what do use instead.
-    // see radar://23047516
-    [self useOptimizedDrawing:YES];
-    [self setExcludedFromWindowsMenu:YES];
-    [self setAcceptsMouseMovedEvents:YES];
-    [self setFrameAutosaveName:@"mainwindow"];
-
-    _nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
-    b_dropzone_active = YES;
-
     // Playlist setup
     VLCPlaylist *playlist = [[VLCMain sharedInstance] playlist];
     [playlist setOutlineView:(VLCPlaylistView *)_outlineView];
     [playlist setPlaylistHeaderView:_outlineView.headerView];
 
-    // (Re)load sidebar for the first time and select first item
-    [self reloadSidebar];
-    [_sidebarView selectRowIndexes:[NSIndexSet indexSetWithIndex:1] byExtendingSelection:NO];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        [self setRestorable: NO];
+#endif
+    [self setFrameAutosaveName:@"mainwindow"];
 
-    // Setup view frame sizes
-    [_dropzoneView setFrame:_playlistScrollView.frame];
-    [_splitViewLeft setFrame:_sidebarView.frame];
+    /* setup the styled interface */
+    _nativeFullscreenMode = NO;
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        _nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
+#endif
+    [self useOptimizedDrawing: YES];
+
+    [self setExcludedFromWindowsMenu:YES];
+    [self setAcceptsMouseMovedEvents:YES];
 
     /*
      * Set up translatable strings for the UI elements
      */
 
-    // Window title
-    [self setTitle:_NS("VLC media player")];
-
     // Search Field
     [_searchField setToolTip:_NS("Search in Playlist")];
-    [_searchField.cell setPlaceholderString:_NS("Search")];
-    [_searchField.cell accessibilitySetOverrideValue:_NS("Enter a term to search the playlist. Results will be selected in the table.")
-                                        forAttribute:NSAccessibilityDescriptionAttribute];
+    [[_searchField cell] setPlaceholderString: _NS("Search")];
+    [[_searchField cell] accessibilitySetOverrideValue:_NS("Enter a term to search the playlist. Results will be selected in the table.")
+                                          forAttribute:NSAccessibilityDescriptionAttribute];
 
     // Dropzone
-    [_dropzoneLabel setStringValue:_NS("Drop media here")];
-    [_dropzoneImageView setImage:imageFromRes(@"dropzone")];
-    [_dropzoneButton setTitle:_NS("Open media...")];
-    [_dropzoneButton.cell accessibilitySetOverrideValue:_NS("Click to open an advanced dialog to select the media to play. You can also drop files here to play.")
-                                           forAttribute:NSAccessibilityDescriptionAttribute];
+    [_dropzoneLabel setStringValue: _NS("Drop media here")];
+    [_dropzoneImageView setImage: imageFromRes(@"dropzone")];
+    [_dropzoneButton setTitle: _NS("Open media...")];
+    [[_dropzoneButton cell] accessibilitySetOverrideValue:_NS("Click to open an advanced dialog to select the media to play. You can also drop files here to play.")
+                                             forAttribute:NSAccessibilityDescriptionAttribute];
+    b_dropzone_active = YES;
+    // Setup view frame sizes
+    [_dropzoneView setFrame: [_playlistScrollView frame]];
+    [_splitViewLeft setFrame: [_sidebarView frame]];
 
     // Podcast view
-    [_podcastAddButton setTitle:_NS("Subscribe")];
-    [_podcastRemoveButton setTitle:_NS("Unsubscribe")];
+    [_podcastAddButton setTitle: _NS("Subscribe")];
+    [_podcastRemoveButton setTitle: _NS("Unsubscribe")];
 
     // Podcast subscribe window
-    [_podcastSubscribeTitle setStringValue:_NS("Subscribe to a podcast")];
-    [_podcastSubscribeSubtitle setStringValue:_NS("Enter URL of the podcast to subscribe to:")];
-    [_podcastSubscribeOkButton setTitle:_NS("Subscribe")];
-    [_podcastSubscribeCancelButton setTitle:_NS("Cancel")];
+    [_podcastSubscribeTitle setStringValue: _NS("Subscribe to a podcast")];
+    [_podcastSubscribeSubtitle setStringValue: _NS("Enter URL of the podcast to subscribe to:")];
+    [_podcastSubscribeOkButton setTitle: _NS("Subscribe")];
+    [_podcastSubscribeCancelButton setTitle: _NS("Cancel")];
 
     // Podcast unsubscribe window
-    [_podcastUnsubscirbeTitle setStringValue:_NS("Unsubscribe from a podcast")];
-    [_podcastUnsubscribeSubtitle setStringValue:_NS("Select the podcast you would like to unsubscribe from:")];
-    [_podcastUnsubscribeOkButton setTitle:_NS("Unsubscribe")];
-    [_podcastUnsubscribeCancelButton setTitle:_NS("Cancel")];
+    [_podcastUnsubscirbeTitle setStringValue: _NS("Unsubscribe from a podcast")];
+    [_podcastUnsubscribeSubtitle setStringValue: _NS("Select the podcast you would like to unsubscribe from:")];
+    [_podcastUnsubscribeOkButton setTitle: _NS("Unsubscribe")];
+    [_podcastUnsubscribeCancelButton setTitle: _NS("Cancel")];
 
     /* interface builder action */
     CGFloat f_threshold_height = f_min_video_height + [self.controlsBar height];
-    if (self.darkInterface)
+    if ([self darkInterface])
         f_threshold_height += [self.titlebarView frame].size.height;
     if ([[self contentView] frame].size.height < f_threshold_height)
         splitViewShouldBeHidden = YES;
 
     // Set that here as IB seems to be buggy
-    if (self.darkInterface)
+    if ([self darkInterface])
         [self setContentMinSize:NSMakeSize(604., f_min_window_height + [self.titlebarView frame].size.height)];
     else
         [self setContentMinSize:NSMakeSize(604., f_min_window_height)];
 
-    /* the default small size of the search field is slightly different on Lion, let's work-around that */
-    NSRect frame;
-    frame = [_searchField frame];
-    frame.origin.y = frame.origin.y + 2.0;
-    frame.size.height = frame.size.height - 1.0;
-    [_searchField setFrame:frame];
+    // Window title
+    [self setTitle: _NS("VLC media player")];
+
+    if (!OSX_SNOW_LEOPARD) {
+        /* the default small size of the search field is slightly different on Lion, let's work-around that */
+        NSRect frame;
+        frame = [_searchField frame];
+        frame.origin.y = frame.origin.y + 2.0;
+        frame.size.height = frame.size.height - 1.0;
+        [_searchField setFrame: frame];
+    }
+
+    // (re)load sidebar for the first time and select first item
+    [self reloadSidebar];
+    [_sidebarView selectRowIndexes:[NSIndexSet indexSetWithIndex:1] byExtendingSelection:NO];
 
     _fspanel = [[VLCFSPanel alloc] initWithContentRect:NSMakeRect(110.,267.,549.,87.)
                                              styleMask:NSTexturedBackgroundWindowMask
@@ -248,7 +256,7 @@ static const float f_min_window_height = 307.;
         config_PutInt(VLCIntf, "metadata-network-access", returnValue == NSAlertDefaultReturn);
     }
 
-    if (self.darkInterface) {
+    if ([self darkInterface]) {
         [defaultCenter addObserver: self selector: @selector(windowResizedOrMoved:) name: NSWindowDidResizeNotification object: nil];
         [defaultCenter addObserver: self selector: @selector(windowResizedOrMoved:) name: NSWindowDidMoveNotification object: nil];
 
@@ -295,10 +303,10 @@ static const float f_min_window_height = 307.;
     }
 
     /* sanity check for the window size */
-    frame = [self frame];
+    NSSize frameSize = [self frame].size;
     NSSize screenSize = [[self screen] frame].size;
-    if (screenSize.width <= frame.size.width || screenSize.height <= frame.size.height) {
-        self.nativeVideoSize = screenSize;
+    if (screenSize.width <= frameSize.width || screenSize.height <= frameSize.height) {
+        [self setNativeVideoSize: screenSize];
         [self resizeWindow];
     }
 
@@ -452,7 +460,7 @@ static const float f_min_window_height = 307.;
 
 - (void)makeSplitViewVisible
 {
-    if (self.darkInterface)
+    if ([self darkInterface])
         [self setContentMinSize: NSMakeSize(604., f_min_window_height + [self.titlebarView frame].size.height)];
     else
         [self setContentMinSize: NSMakeSize(604., f_min_window_height)];
@@ -479,7 +487,7 @@ static const float f_min_window_height = 307.;
 
 - (void)makeSplitViewHidden
 {
-    if (self.darkInterface)
+    if ([self darkInterface])
         [self setContentMinSize: NSMakeSize(604., f_min_video_height + [self.titlebarView frame].size.height)];
     else
         [self setContentMinSize: NSMakeSize(604., f_min_video_height)];
@@ -492,7 +500,7 @@ static const float f_min_window_height = 307.;
     }
 
     if ([[self.videoView subviews] count] > 0)
-        [self makeFirstResponder: [[self.videoView subviews] firstObject]];
+        [self makeFirstResponder: [[self.videoView subviews] objectAtIndex:0]];
 }
 
 
@@ -633,7 +641,7 @@ static const float f_min_window_height = 307.;
         [self setFrame:winrect display:YES animate:YES];
     }
 
-    if (self.darkInterface) {
+    if ([self darkInterface]) {
         [self setContentMinSize: NSMakeSize(604., [self.controlsBar height] + [self.titlebarView frame].size.height)];
         [self setContentMaxSize: NSMakeSize(FLT_MAX, [self.controlsBar height] + [self.titlebarView frame].size.height)];
     } else {
@@ -647,7 +655,7 @@ static const float f_min_window_height = 307.;
 - (void)showSplitView:(BOOL)resize
 {
     [self updateWindow];
-    if (self.darkInterface)
+    if ([self darkInterface])
         [self setContentMinSize:NSMakeSize(604., f_min_window_height + [self.titlebarView frame].size.height)];
     else
         [self setContentMinSize:NSMakeSize(604., f_min_window_height)];
@@ -673,9 +681,7 @@ static const float f_min_window_height = 307.;
     [self.controlsBar updateTimeSlider];
     [self.fspanel updatePositionAndTime];
 
-    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingBlock:^(VLCControlsBarCommon *controlsBar) {
-        [controlsBar updateTimeSlider];
-    }];
+    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingSelector:@selector(updateTimeSlider)];
 
     [[VLCCoreInteraction sharedInstance] updateAtoB];
 }
@@ -703,14 +709,10 @@ static const float f_min_window_height = 307.;
         NSURL * o_url = [NSURL URLWithString:toNSStr(uri)];
         if ([o_url isFileURL]) {
             [self setRepresentedURL: o_url];
-            [[[VLCMain sharedInstance] voutController] updateWindowsUsingBlock:^(VLCVideoWindowCommon *o_window) {
-                [o_window setRepresentedURL:o_url];
-            }];
+            [[[VLCMain sharedInstance] voutController] updateWindowsUsingSelector:@selector(setRepresentedURL) withObject:o_url];
         } else {
             [self setRepresentedURL: nil];
-            [[[VLCMain sharedInstance] voutController] updateWindowsUsingBlock:^(VLCVideoWindowCommon *o_window) {
-                [o_window setRepresentedURL:nil];
-            }];
+            [[[VLCMain sharedInstance] voutController] updateWindowsUsingSelector:@selector(setRepresentedURL) withObject:nil];
         }
         free(uri);
 
@@ -723,10 +725,7 @@ static const float f_min_window_height = 307.;
 
         if ([aString length] > 0) {
             [self setTitle: aString];
-            [[[VLCMain sharedInstance] voutController] updateWindowsUsingBlock:^(VLCVideoWindowCommon *o_window) {
-                [o_window setTitle:aString];
-            }];
-
+            [[[VLCMain sharedInstance] voutController] updateWindowsUsingSelector:@selector(setTitle) withObject:aString];
             [self.fspanel setStreamTitle: aString];
         } else {
             [self setTitle: _NS("VLC media player")];
@@ -743,9 +742,7 @@ static const float f_min_window_height = 307.;
 - (void)updateWindow
 {
     [self.controlsBar updateControls];
-    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingBlock:^(VLCControlsBarCommon *controlsBar) {
-        [controlsBar updateControls];
-    }];
+    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingSelector:@selector(updateControls)];
 
     bool b_seekable = false;
 
@@ -778,10 +775,7 @@ static const float f_min_window_height = 307.;
 {
     [self.controlsBar setPause];
     [self.fspanel setPause];
-
-    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingBlock:^(VLCControlsBarCommon *controlsBar) {
-        [controlsBar setPause];
-    }];
+    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingSelector:@selector(setPause)];
 }
 
 - (void)setPlay
@@ -789,9 +783,7 @@ static const float f_min_window_height = 307.;
     [self.controlsBar setPlay];
     [self.fspanel setPlay];
 
-    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingBlock:^(VLCControlsBarCommon *controlsBar) {
-        [controlsBar setPlay];
-    }];
+    [[[VLCMain sharedInstance] voutController] updateControlsBarsUsingSelector:@selector(setPlay)];
 }
 
 - (void)updateVolumeSlider
@@ -814,7 +806,8 @@ static const float f_min_window_height = 307.;
     BOOL b_videoPlayback = [[VLCMain sharedInstance] activeVideoPlayback];
         
     if (!b_videoPlayback) {
-        if (!self.nonembedded && (!self.nativeFullscreenMode || (self.nativeFullscreenMode && !self.fullscreen)) && frameBeforePlayback.size.width > 0 && frameBeforePlayback.size.height > 0) {
+        if (!self.nonembedded && (!self.nativeFullscreenMode || (self.nativeFullscreenMode && !self.fullscreen)) &&
+                frameBeforePlayback.size.width > 0 && frameBeforePlayback.size.height > 0) {
 
             // only resize back to minimum view of this is still desired final state
             CGFloat f_threshold_height = f_min_video_height + [self.controlsBar height];
@@ -860,7 +853,7 @@ static const float f_min_window_height = 307.;
     [super windowWillEnterFullScreen:notification];
 
     // update split view frame after removing title bar
-    if (self.darkInterface) {
+    if ([self darkInterface]) {
         NSRect frame = [[self contentView] frame];
         frame.origin.y += [self.controlsBar height];
         frame.size.height -= [self.controlsBar height];
@@ -873,7 +866,7 @@ static const float f_min_window_height = 307.;
     [super windowWillExitFullScreen: notification];
 
     // update split view frame after readding title bar
-    if (self.darkInterface) {
+    if ([self darkInterface]) {
         NSRect frame = [_splitView frame];
         frame.size.height -= [self.titlebarView frame].size.height;
         [_splitView setFrame:frame];
@@ -1355,11 +1348,6 @@ static const float f_min_window_height = 307.;
 
 @end
 
-@interface VLCDetachedVideoWindow ()
-{
-    VLCColorView * o_color_backdrop;
-}
-@end
 
 @implementation VLCDetachedVideoWindow
 

@@ -52,24 +52,185 @@
 #import <Sparkle/Sparkle.h>
 #endif
 
-@interface VLCMainMenu()
-{
-    AboutWindowController *_aboutWindowController;
-    HelpWindowController  *_helpWindowController;
-    AddonsWindowController *_addonsController;
-
-    // information for playlist table columns menu
-    NSDictionary *_translationsForPlaylistTableColumns;
-    NSArray *_menuOrderOfPlaylistTableColumns;
-
-    NSMenu *_playlistTableColumnsContextMenu;
-
-    __strong VLCTimeSelectionPanelController *_timeSelectionPanel;
-
-}
-@end
-
 @implementation VLCMainMenu
+
+@synthesize about = _about;
+@synthesize prefs = _prefs;
+@synthesize checkForUpdate = _checkForUpdate;
+@synthesize extensions = _extensions;
+@synthesize extensionsMenu = _extensionsMenu;
+@synthesize addonManager = _addonManager;
+@synthesize add_intf = _add_intf;
+@synthesize add_intfMenu = _add_intfMenu;
+@synthesize services = _services;
+@synthesize hide = _hide;
+@synthesize hide_others = _hide_others;
+@synthesize show_all = _show_all;
+@synthesize quit = _quit;
+
+@synthesize fileMenu = _fileMenu;
+@synthesize open_file = _open_file;
+@synthesize open_generic = _open_generic;
+@synthesize open_disc = _open_disc;
+@synthesize open_net = _open_net;
+@synthesize open_capture = _open_capture;
+@synthesize open_recent = _open_recent;
+@synthesize close_window = _close_window;
+@synthesize convertandsave = _convertandsave;
+@synthesize save_playlist = _save_playlist;
+@synthesize revealInFinder = _revealInFinder;
+
+@synthesize editMenu = _editMenu;
+@synthesize cutItem = _cutItem;
+@synthesize mcopyItem = _mcopyItem;
+@synthesize pasteItem = _pasteItem;
+@synthesize clearItem = _clearItem;
+@synthesize select_all = _select_all;
+
+@synthesize viewMenu = _viewMenu;
+@synthesize toggleJumpButtons = _toggleJumpButtons;
+@synthesize togglePlaymodeButtons = _togglePlaymodeButtons;
+@synthesize toggleEffectsButton = _toggleEffectsButton;
+@synthesize toggleSidebar = _toggleSidebar;
+@synthesize playlistTableColumnsMenu = _playlistTableColumnsMenu;
+@synthesize playlistTableColumns = _playlistTableColumns;
+
+@synthesize controlsMenu = _controlsMenu;
+@synthesize play = _play;
+@synthesize stop = _stop;
+@synthesize record = _record;
+@synthesize rate = _rate;
+@synthesize rate_view = _rate_view;
+@synthesize rateLabel = _rateLabel;
+@synthesize rate_slowerLabel = _rate_slowerLabel;
+@synthesize rate_normalLabel = _rate_normalLabel;
+@synthesize rate_fasterLabel = _rate_fasterLabel;
+@synthesize rate_sld = _rate_sld;
+@synthesize rateTextField = _rateTextField;
+@synthesize trackSynchronization = _trackSynchronization;
+@synthesize previous = _previous;
+@synthesize next = _next;
+@synthesize random = _random;
+@synthesize repeat = _repeat;
+@synthesize loop = _loop;
+@synthesize AtoBloop = _AtoBloop;
+@synthesize quitAfterPB = _quitAfterPB;
+@synthesize fwd = _fwd;
+@synthesize bwd = _bwd;
+@synthesize jumpToTime = _jumpToTime;
+@synthesize program = _program;
+@synthesize programMenu = _programMenu;
+@synthesize title = _title;
+@synthesize titleMenu = _titleMenu;
+@synthesize chapter = _chapter;
+@synthesize chapterMenu = _chapterMenu;
+
+@synthesize audioMenu = _audioMenu;
+@synthesize vol_up = _vol_up;
+@synthesize vol_down = _vol_down;
+@synthesize mute = _mute;
+@synthesize audiotrack = _audiotrack;
+@synthesize audiotrackMenu = _audiotrackMenu;
+@synthesize channels = _channels;
+@synthesize channelsMenu = _channelsMenu;
+@synthesize audioDevice = _audioDevice;
+@synthesize audioDeviceMenu = _audioDeviceMenu;
+@synthesize visual = _visual;
+@synthesize visualMenu = _visualMenu;
+
+@synthesize videoMenu = _videoMenu;
+@synthesize half_window = _half_window;
+@synthesize normal_window = _normal_window;
+@synthesize double_window = _double_window;
+@synthesize fittoscreen = _fittoscreen;
+@synthesize fullscreenItem = _fullscreenItem;
+@synthesize floatontop = _floatontop;
+@synthesize snapshot = _snapshot;
+@synthesize videotrack = _videotrack;
+@synthesize videotrackMenu = _videotrackMenu;
+@synthesize screen = _screen;
+@synthesize screenMenu = _screenMenu;
+@synthesize aspect_ratio = _aspect_ratio;
+@synthesize aspect_ratioMenu = _aspect_ratioMenu;
+@synthesize crop = _crop;
+@synthesize cropMenu = _cropMenu;
+@synthesize deinterlace = _deinterlace;
+@synthesize deinterlaceMenu = _deinterlaceMenu;
+@synthesize deinterlace_mode = _deinterlace_mode;
+@synthesize deinterlace_modeMenu = _deinterlace_modeMenu;
+@synthesize postprocessing = _postprocessing;
+@synthesize postprocessingMenu = _postprocessingMenu;
+
+@synthesize subtitlesMenu = _subtitlesMenu;
+@synthesize subtitle_track = _subtitle_track;
+@synthesize subtitle_tracksMenu = _subtitle_tracksMenu;
+@synthesize openSubtitleFile = _openSubtitleFile;
+@synthesize subtitle_sizeMenu = _subtitle_sizeMenu;
+@synthesize subtitle_size = _subtitle_size;
+@synthesize subtitle_textcolorMenu = _subtitle_textcolorMenu;
+@synthesize subtitle_textcolor = _subtitle_textcolor;
+@synthesize subtitle_bgcolorMenu = _subtitle_bgcolorMenu;
+@synthesize subtitle_bgcolor = _subtitle_bgcolor;
+@synthesize subtitle_bgopacity = _subtitle_bgopacity;
+@synthesize subtitle_bgopacity_view = _subtitle_bgopacity_view;
+@synthesize subtitle_bgopacityLabel = _subtitle_bgopacityLabel;
+@synthesize subtitle_bgopacityLabel_gray = _subtitle_bgopacityLabel_gray;
+@synthesize subtitle_bgopacity_sld = _subtitle_bgopacity_sld;
+@synthesize subtitle_outlinethicknessMenu = _subtitle_outlinethicknessMenu;
+@synthesize subtitle_outlinethickness = _subtitle_outlinethickness;
+@synthesize teletext = _teletext;
+@synthesize teletext_transparent = _teletext_transparent;
+@synthesize teletext_index = _teletext_index;
+@synthesize teletext_red = _teletext_red;
+@synthesize teletext_green = _teletext_green;
+@synthesize teletext_yellow = _teletext_yellow;
+@synthesize teletext_blue = _teletext_blue;
+
+@synthesize windowMenu = _windowMenu;
+@synthesize minimize = _minimize;
+@synthesize zoom_window = _zoom_window;
+@synthesize player = _player;
+@synthesize controller = _controller;
+@synthesize audioeffects = _audioeffects;
+@synthesize videoeffects = _videoeffects;
+@synthesize bookmarks = _bookmarks;
+@synthesize playlist = _playlist;
+@synthesize info = _info;
+@synthesize messages = _messages;
+@synthesize bring_atf = _bring_atf;
+
+@synthesize helpMenu = _helpMenu;
+@synthesize help = _help;
+@synthesize readme = _readme;
+@synthesize documentation = _documentation;
+@synthesize license = _license;
+@synthesize website = _website;
+@synthesize donation = _donation;
+@synthesize forum = _forum;
+@synthesize errorsAndWarnings = _errorsAndWarnings;
+
+/* dock menu */
+@synthesize dockMenuplay = _dockMenuplay;
+@synthesize dockMenustop = _dockMenustop;
+@synthesize dockMenunext = _dockMenunext;
+@synthesize dockMenuprevious = _dockMenuprevious;
+@synthesize dockMenumute = _dockMenumute;
+
+/* vout menu */
+@synthesize voutMenu = _voutMenu;
+@synthesize voutMenuplay = _voutMenuplay;
+@synthesize voutMenustop = _voutMenustop;
+@synthesize voutMenuprev = _voutMenuprev;
+@synthesize voutMenunext = _voutMenunext;
+@synthesize voutMenuvolup = _voutMenuvolup;
+@synthesize voutMenuvoldown = _voutMenuvoldown;
+@synthesize voutMenumute = _voutMenumute;
+@synthesize voutMenufullscreen = _voutMenufullscreen;
+@synthesize voutMenusnapshot = _voutMenusnapshot;
+
+@synthesize playlistSaveAccessoryView = _playlistSaveAccessoryView;
+@synthesize playlistSaveAccessoryPopup = _playlistSaveAccessoryPopup;
+@synthesize playlistSaveAccessoryText = _playlistSaveAccessoryText;
 
 #pragma mark - Initialization
 
@@ -79,6 +240,8 @@
     [[NSNotificationCenter defaultCenter] removeObserver: self];
 
     [self releaseRepresentedObjects:[NSApp mainMenu]];
+    
+    [super dealloc];
 }
 
 - (void)awakeFromNib
@@ -87,12 +250,14 @@
 
     /* check whether the user runs OSX with a RTL language */
     NSArray* languages = [NSLocale preferredLanguages];
-    NSString* preferredLanguage = [languages firstObject];
+    NSString* preferredLanguage = [languages objectAtIndex:0];
 
+#ifdef MAC_OS_X_VERSION_10_6
     if ([NSLocale characterDirectionForLanguage:preferredLanguage] == NSLocaleLanguageDirectionRightToLeft) {
         msg_Dbg(VLCIntf, "adapting interface since '%s' is a RTL language", [preferredLanguage UTF8String]);
         [_rateTextField setAlignment: NSLeftTextAlignment];
     }
+#endif
 
     [self setRateControlsEnabled:NO];
 
@@ -248,7 +413,17 @@
     /* setup post-proc menu */
     NSUInteger count = (NSUInteger) [_postprocessingMenu numberOfItems];
     if (count > 0)
-        [_postprocessingMenu removeAllItems];
+    {
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [_postprocessingMenu removeAllItems];
+        else
+#else
+        for (int i = count-1; i >= 0; i--) {
+            [_postprocessingMenu removeItemAtIndex:i];
+        }
+#endif
+    }
 
     NSMenuItem *mitem;
     [_postprocessingMenu setAutoenablesItems: YES];
@@ -289,10 +464,21 @@
 
 - (void)setupMenu: (NSMenu*)menu withIntList: (char *)psz_name andSelector:(SEL)selector
 {
-    module_config_t *p_item;
+    NSUInteger count = (NSUInteger)[menu numberOfItems];
+    if (count > 0)
+    {
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [menu removeAllItems];
+        else
+#else
+        for (int i = count-1; i >= 0; i--) {
+            [menu removeItemAtIndex:i];
+        }
+#endif
+    }
 
-    [menu removeAllItems];
-    p_item = config_FindConfig(VLC_OBJECT(VLCIntf), psz_name);
+    module_config_t *p_item = config_FindConfig(VLC_OBJECT(VLCIntf), psz_name);
 
     /* serious problem, if no item found */
     assert(p_item);
@@ -593,31 +779,40 @@
 
 - (void)refreshVoutDeviceMenu:(NSNotification *)notification
 {
-    NSUInteger count = (NSUInteger) [_screenMenu numberOfItems];
-    NSMenu *submenu = _screenMenu;
+    NSUInteger count = (NSUInteger)[_screenMenu numberOfItems];
     if (count > 0)
-        [submenu removeAllItems];
+    {
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [_screenMenu removeAllItems];
+        else
+#else
+        for (int i = count-1; i >= 0; i--) {
+            [_screenMenu removeItemAtIndex:i];
+        }
+#endif
+    }
 
     NSArray *screens = [NSScreen screens];
     NSMenuItem *mitem;
     count = [screens count];
     [_screen setEnabled: YES];
-    [submenu addItemWithTitle: _NS("Default") action:@selector(toggleFullscreenDevice:) keyEquivalent:@""];
-    mitem = [submenu itemAtIndex: 0];
+    [_screenMenu addItemWithTitle: _NS("Default") action:@selector(toggleFullscreenDevice:) keyEquivalent:@""];
+    mitem = [_screenMenu itemAtIndex: 0];
     [mitem setTag: 0];
     [mitem setEnabled: YES];
     [mitem setTarget: self];
     NSRect s_rect;
     for (NSUInteger i = 0; i < count; i++) {
         s_rect = [[screens objectAtIndex:i] frame];
-        [submenu addItemWithTitle: [NSString stringWithFormat: @"%@ %li (%ix%i)", _NS("Screen"), i+1,
+        [_screenMenu addItemWithTitle: [NSString stringWithFormat: @"%@ %li (%ix%i)", _NS("Screen"), i+1,
                                       (int)s_rect.size.width, (int)s_rect.size.height] action:@selector(toggleFullscreenDevice:) keyEquivalent:@""];
-        mitem = [submenu itemAtIndex:i+1];
+        mitem = [_screenMenu itemAtIndex:i+1];
         [mitem setTag: (int)[[screens objectAtIndex:i] displayID]];
         [mitem setEnabled: YES];
         [mitem setTarget: self];
     }
-    [[submenu itemWithTag: var_InheritInteger(VLCIntf, "macosx-vdev")] setState: NSOnState];
+    [[_screenMenu itemWithTag: var_InheritInteger(VLCIntf, "macosx-vdev")] setState: NSOnState];
 }
 
 - (void)setSubmenusEnabled:(BOOL)b_enabled
@@ -686,9 +881,9 @@
     config_PutInt(VLCIntf, "macosx-show-playback-buttons", b_value);
 
     [(VLCMainWindowControlsBar *)[[[VLCMain sharedInstance] mainWindow] controlsBar] toggleJumpButtons];
-    [[[VLCMain sharedInstance] voutController] updateWindowsUsingBlock:^(VLCVideoWindowCommon *window) {
-        [[window controlsBar] toggleForwardBackwardMode: b_value];
-    }];
+    [[[VLCMain sharedInstance] voutController]
+            updateWindowsUsingSelector:@selector(toggleForwardBackward:)
+                            withObject:[NSNumber numberWithBool:b_value]];
 
     [_toggleJumpButtons setState: b_value];
 }
@@ -868,19 +1063,20 @@
         [_timeSelectionPanel setMaxValue:(length / CLOCK_FREQ)];
         int64_t pos = var_GetInteger(p_input, "time");
         [_timeSelectionPanel setJumpTimeValue: (pos / CLOCK_FREQ)];
-        [_timeSelectionPanel runModalForWindow:[NSApp mainWindow]
-                             completionHandler:^(NSInteger returnCode, int64_t returnTime) {
+        [_timeSelectionPanel runModalForWindow:[NSApp mainWindow] target:self completionSelector:@selector(toSpecificTime:)];
 
-            if (returnCode != NSOKButton)
-                return;
+        vlc_object_release(p_input);
+    }
+}
 
-            input_thread_t *p_input = pl_CurrentInput(VLCIntf);
-            if (p_input) {
-                input_Control(p_input, INPUT_SET_TIME, (int64_t)(returnTime *1000000));
-                vlc_object_release(p_input);
-            }
-        }];
+- (void)toSpecificTime:(NSInteger)returnCode returnTime:(int64_t)time
+{
+    if (returnCode != NSOKButton)
+        return;
 
+    input_thread_t *p_input = pl_CurrentInput(VLCIntf);
+    if (p_input) {
+        input_Control(p_input, INPUT_SET_TIME, (int64_t)(time *1000000));
         vlc_object_release(p_input);
     }
 }
@@ -892,7 +1088,19 @@
     char **ids, **names;
     char *currentDevice;
 
-    [_audioDeviceMenu removeAllItems];
+    NSUInteger count = (NSUInteger)[_audioDeviceMenu numberOfItems];
+    if (count > 0)
+    {
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [_audioDeviceMenu removeAllItems];
+        else
+#else
+        for (int i = count-1; i >= 0; i--) {
+            [_audioDeviceMenu removeItemAtIndex:i];
+        }
+#endif
+    }
 
     audio_output_t *p_aout = getAout();
     if (!p_aout)
@@ -1067,9 +1275,9 @@
 
     [openPanel setAllowedFileTypes: [NSArray arrayWithObjects:@"cdg",@"idx",@"srt",@"sub",@"utf",@"ass",@"ssa",@"aqt",@"jss",@"psb",@"rt",@"smi",@"txt",@"smil",nil]];
 
-    NSURL *url = [NSURL URLWithString:[toNSStr(path) stringByExpandingTildeInPath]];
-    url = [url URLByDeletingLastPathComponent];
-    [openPanel setDirectoryURL: url];
+    NSString *pathNS = [[toNSStr(path) stringByExpandingTildeInPath] stringByDeletingLastPathComponent];
+    //NSURL *url = [NSURL URLWithString:pathNS];
+    [openPanel setDirectory: pathNS];
     free(path);
     vlc_object_release(p_input);
 
@@ -1177,7 +1385,10 @@
     [savePanel setTitle: _NS("Save Playlist")];
     [savePanel setPrompt: _NS("Save")];
     [savePanel setAccessoryView: _playlistSaveAccessoryView];
-    [savePanel setNameFieldStringValue: name];
+#ifdef MAC_OS_X_VERSION_10_6
+    if (!OSX_LEOPARD)
+        [savePanel setNameFieldStringValue: name];
+#endif
 
     if ([savePanel runModal] == NSFileHandlingPanelOKButton) {
         NSString *filename = [[savePanel URL] path];
@@ -1477,7 +1688,19 @@
     int i_type, i;
 
     /* remove previous items */
-    [menu removeAllItems];
+    NSUInteger count = (NSUInteger)[menu numberOfItems];
+    if (count > 0)
+    {
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [menu removeAllItems];
+        else
+#else
+        for (i = count-1; i >= 0; i--) {
+            [menu removeItemAtIndex:i];
+        }
+#endif
+    }
 
     /* we disable everything here, and enable it again when needed, below */
     [parent setEnabled:NO];
@@ -1587,7 +1810,6 @@
 
 - (int)toggleVarThread: (id)data
 {
-    @autoreleasepool {
         vlc_object_t *p_object;
 
         assert([data isKindOfClass:[VLCAutoGeneratedMenuContent class]]);
@@ -1601,7 +1823,6 @@
             return true;
         }
         return VLC_EGENERIC;
-    }
 }
 
 @end
@@ -1690,14 +1911,22 @@
         bEnabled = [mi isEnabled];
         [self setupMenus]; /* Make sure subtitles menu is up to date */
     } else {
-        NSMenuItem *_parent = [mi parentItem];
-        if (_parent == _subtitle_size || mi == _subtitle_size ||
-            _parent == _subtitle_textcolor || mi == _subtitle_textcolor ||
-            _parent == _subtitle_bgcolor || mi == _subtitle_bgcolor ||
-            _parent == _subtitle_bgopacity || mi == _subtitle_bgopacity ||
-            _parent == _subtitle_outlinethickness || mi == _subtitle_outlinethickness ||
-            _parent == _teletext || mi == _teletext)
+        NSMenu *_parent = [mi menu];
+        if ([[_parent title] isEqualToString: [_subtitle_sizeMenu title]] ||
+            [[mi title] isEqualToString: [_subtitle_size title]] ||
+            [[_parent title] isEqualToString: [_subtitle_textcolorMenu title]] ||
+            [[mi title] isEqualToString: [_subtitle_textcolor title]] ||
+            [[_parent title] isEqualToString: [_subtitle_bgcolorMenu title]] ||
+            [[mi title] isEqualToString: [_subtitle_bgcolor title]] ||
+            [[_parent title] isEqualToString: [_subtitle_bgopacity title]] ||
+            [[mi title] isEqualToString: [_subtitle_bgopacity title]] ||
+            [[_parent title] isEqualToString: [_subtitle_outlinethicknessMenu title]] ||
+            [[mi title] isEqualToString: [_subtitle_outlinethickness title]] ||
+            [[_parent title] isEqualToString: [_teletext title]] ||
+            [[mi title] isEqualToString: [_teletext title]])
+        {
             bEnabled = _openSubtitleFile.isEnabled;
+        }
     }
 
     /* Special case for telx menu */
@@ -1727,14 +1956,6 @@
  *the variable of the autogenerated menu
  *****************************************************************************/
 
-@interface VLCAutoGeneratedMenuContent ()
-{
-    char *psz_name;
-    vlc_object_t *vlc_object;
-    vlc_value_t value;
-    int i_type;
-}
-@end
 @implementation VLCAutoGeneratedMenuContent
 
 -(id) initWithVariableName:(const char *)name ofObject:(vlc_object_t *)object
@@ -1761,6 +1982,7 @@
     if ((i_type & VLC_VAR_TYPE) == VLC_VAR_STRING)
         free(value.psz_string);
     free(psz_name);
+    [super dealloc];
 }
 
 - (const char *)name

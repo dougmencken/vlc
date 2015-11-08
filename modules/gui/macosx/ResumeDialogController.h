@@ -32,8 +32,6 @@ enum ResumeResult {
     RESUME_NOW
 };
 
-typedef void(^CompletionBlock)(enum ResumeResult);
-
 @interface ResumeDialogController : NSWindowController
 {
     IBOutlet id o_title_lbl;
@@ -42,11 +40,20 @@ typedef void(^CompletionBlock)(enum ResumeResult);
     IBOutlet id o_restart_btn;
     IBOutlet id o_resume_btn;
     IBOutlet id o_always_resume_btn;
+
+    int currentResumeTimeout;
+
+    enum ResumeResult m_resumeResult;
+
+    id o_target;
+    SEL o_selector;
 }
 
 - (IBAction)buttonClicked:(id)sender;
 
-- (void)showWindowWithItem:(input_item_t *)p_item withLastPosition:(NSInteger)pos completionBlock:(CompletionBlock)block;
+- (void)showWindowWithItem:(input_item_t *)p_item withLastPosition:(NSInteger)pos target:(id)aObj selector:(SEL)aSel;
+
+- (void)setResumeResult:(int)result;
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level;
 

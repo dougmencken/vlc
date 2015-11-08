@@ -37,60 +37,43 @@
 #import <vlc_modules.h>
 #import <vlc_charset.h>
 #include <vlc_plugin.h>
-#import "SPMediaKeyTap.h"
-#import "AppleRemote.h"
 #import "InputManager.h"
 
 static int BossCallback(vlc_object_t *p_this, const char *psz_var,
                         vlc_value_t oldval, vlc_value_t new_val, void *param)
 {
-    @autoreleasepool {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [[VLCCoreInteraction sharedInstance] pause];
-            [[NSApplication sharedApplication] hide:nil];
-        });
+    [[VLCCoreInteraction sharedInstance] pause];
+    [[NSApplication sharedApplication] hide:nil];
 
-        return VLC_SUCCESS;
-    }
+    return VLC_SUCCESS;
 }
 
-@interface VLCCoreInteraction ()
-{
-    int i_currentPlaybackRate;
-    mtime_t timeA, timeB;
-
-    float f_maxVolume;
-
-    /* media key support */
-    BOOL b_mediaKeySupport;
-    BOOL b_mediakeyJustJumped;
-    SPMediaKeyTap *_mediaKeyController;
-    BOOL b_mediaKeyTrapEnabled;
-
-    AppleRemote *_remote;
-    BOOL b_remote_button_hold; /* true as long as the user holds the left,right,plus or minus on the remote control */
-
-    NSArray *_usedHotkeys;
-}
-@end
 
 @implementation VLCCoreInteraction
+
+@synthesize volume = _volume;
+@synthesize maxVolume = _maxVolume;
+@synthesize playbackRate = _playbackRate;
+@synthesize aspectRatioIsLocked = _aspectRatioIsLocked;
+@synthesize durationOfCurrentPlaylistItem = _durationOfCurrentPlaylistItem;
+@synthesize URLOfCurrentPlaylistItem = _URLOfCurrentPlaylistItem;
+@synthesize nameOfCurrentPlaylistItem = _nameOfCurrentPlaylistItem;
+@synthesize mute = _mute;
 
 #pragma mark - Initialization
 
 + (VLCCoreInteraction *)sharedInstance
 {
     static VLCCoreInteraction *sharedInstance = nil;
-    static dispatch_once_t pred;
-
-    dispatch_once(&pred, ^{
-        sharedInstance = [VLCCoreInteraction new];
-    });
-
+    @synchronized(self) {
+        if (sharedInstance == nil) {
+            sharedInstance = [VLCCoreInteraction new];
+        }
+    }
     return sharedInstance;
 }
 
-- (instancetype)init
+- (id)init
 {
     self = [super init];
     if (self) {
@@ -111,7 +94,7 @@ static int BossCallback(vlc_object_t *p_this, const char *psz_var,
         [_remote setClickCountEnabledButtons: kRemoteButtonPlay];
         [_remote setDelegate: self];
 
-        var_AddCallback(p_intf->p_libvlc, "intf-boss", BossCallback, (__bridge void *)self);
+        var_AddCallback(p_intf->p_libvlc, "intf-boss", BossCallback, (void *)self);
     }
     return self;
 }
@@ -119,8 +102,9 @@ static int BossCallback(vlc_object_t *p_this, const char *psz_var,
 - (void)dealloc
 {
     intf_thread_t *p_intf = VLCIntf;
-    var_DelCallback(p_intf->p_libvlc, "intf-boss", BossCallback, (__bridge void *)self);
+    var_DelCallback(p_intf->p_libvlc, "intf-boss", BossCallback, (void *)self);
     [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [super dealloc];
 }
 
 
@@ -645,7 +629,7 @@ static int BossCallback(vlc_object_t *p_this, const char *psz_var,
             input_thread_t * p_input = pl_CurrentInput(VLCIntf);
 
             if (count == 1 && p_input) {
-                int i_result = input_AddSubtitleOSD(p_input, [[o_values firstObject] UTF8String], true, true);
+                int i_result = input_AddSubtitleOSD(p_input, [[o_values objectAtIndex:0] UTF8String], true, true);
                 vlc_object_release(p_input);
                 if (i_result == VLC_SUCCESS)
                     return YES;

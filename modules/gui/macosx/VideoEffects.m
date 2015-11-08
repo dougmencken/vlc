@@ -27,16 +27,135 @@
 #import "SharedDialogs.h"
 #import "CoreInteraction.h"
 
-@interface VLCVideoEffects()
-{
-    NSInteger i_old_profile_index;
-}
-@end
-
 #pragma mark -
 #pragma mark Initialization
 
 @implementation VLCVideoEffects
+
+@synthesize tabView = _tabView;
+@synthesize profilePopup = _profilePopup;
+
+@synthesize adjustCheckbox = _adjustCheckbox;
+@synthesize adjustHueLabel = _adjustHueLabel;
+@synthesize adjustHueSlider = _adjustHueSlider;
+@synthesize adjustContrastLabel = _adjustContrastLabel;
+@synthesize adjustContrastSlider = _adjustContrastSlider;
+@synthesize adjustBrightnessLabel = _adjustBrightnessLabel;
+@synthesize adjustBrightnessSlider = _adjustBrightnessSlider;
+@synthesize adjustBrightnessCheckbox = _adjustBrightnessCheckbox;
+@synthesize adjustSaturationLabel = _adjustSaturationLabel;
+@synthesize adjustSaturationSlider = _adjustSaturationSlider;
+@synthesize adjustGammaLabel = _adjustGammaLabel;
+@synthesize adjustGammaSlider = _adjustGammaSlider;
+@synthesize adjustResetButton = _adjustResetButton;
+@synthesize sharpenCheckbox = _sharpenCheckbox;
+@synthesize sharpenLabel = _sharpenLabel;
+@synthesize sharpenSlider = _sharpenSlider;
+@synthesize bandingCheckbox = _bandingCheckbox;
+@synthesize bandingLabel = _bandingLabel;
+@synthesize bandingSlider = _bandingSlider;
+@synthesize grainCheckbox = _grainCheckbox;
+@synthesize grainSlider = _grainSlider;
+@synthesize grainLabel = _grainLabel;
+
+@synthesize cropTopLabel = _cropTopLabel;
+@synthesize cropTopTextField = _cropTopTextField;
+@synthesize cropTopStepper = _cropTopStepper;
+@synthesize cropLeftLabel = _cropLeftLabel;
+@synthesize cropLeftTextField = _cropLeftTextField;
+@synthesize cropLeftStepper = _cropLeftStepper;
+@synthesize cropRightLabel = _cropRightLabel;
+@synthesize cropRightTextField = _cropRightTextField;
+@synthesize cropRightStepper = _cropRightStepper;
+@synthesize cropBottomLabel = _cropBottomLabel;
+@synthesize cropBottomTextField = _cropBottomTextField;
+@synthesize cropBottomStepper = _cropBottomStepper;
+@synthesize cropSyncTopBottomCheckbox = _cropSyncTopBottomCheckbox;
+@synthesize cropSyncLeftRightCheckbox = _cropSyncLeftRightCheckbox;
+
+@synthesize transformCheckbox = _transformCheckbox;
+@synthesize transformPopup = _transformPopup;
+@synthesize zoomCheckbox = _zoomCheckbox;
+@synthesize puzzleCheckbox = _puzzleCheckbox;
+@synthesize puzzleRowsLabel = _puzzleRowsLabel;
+@synthesize puzzleRowsTextField = _puzzleRowsTextField;
+@synthesize puzzleRowsStepper = _puzzleRowsStepper;
+@synthesize puzzleColumnsLabel = _puzzleColumnsLabel;
+@synthesize puzzleColumnsTextField = _puzzleColumnsTextField;
+@synthesize puzzleColumnsStepper = _puzzleColumnsStepper;
+@synthesize cloneCheckbox = _cloneCheckbox;
+@synthesize cloneNumberTextField = _cloneNumberTextField;
+@synthesize cloneNumberStepper = _cloneNumberStepper;
+@synthesize cloneNumberLabel = _cloneNumberLabel;
+@synthesize wallCheckbox = _wallCheckbox;
+@synthesize wallNumbersOfRowsTextField = _wallNumbersOfRowsTextField;
+@synthesize wallNumbersOfRowsStepper = _wallNumbersOfRowsStepper;
+@synthesize wallNumbersOfRowsLabel = _wallNumbersOfRowsLabel;
+@synthesize wallNumberOfColumnsTextField = _wallNumberOfColumnsTextField;
+@synthesize wallNumberOfColumnsStepper = _wallNumberOfColumnsStepper;
+@synthesize wallNumberOfColumnsLabel = _wallNumberOfColumnsLabel;
+
+@synthesize thresholdCheckbox = _thresholdCheckbox;
+@synthesize thresholdColorLabel = _thresholdColorLabel;
+@synthesize thresholdColorTextField = _thresholdColorTextField;
+@synthesize thresholdSaturationLabel = _thresholdSaturationLabel;
+@synthesize thresholdSaturationSlider = _thresholdSaturationSlider;
+@synthesize thresholdSimilarityLabel = _thresholdSimilarityLabel;
+@synthesize thresholdSimilaritySlider = _thresholdSimilaritySlider;
+@synthesize sepiaCheckbox = _sepiaCheckbox;
+@synthesize sepiaLabel = _sepiaLabel;
+@synthesize sepiaTextField = _sepiaTextField;
+@synthesize sepiaStepper = _sepiaStepper;
+@synthesize noiseCheckbox = _noiseCheckbox;
+@synthesize gradientCheckbox = _gradientCheckbox;
+@synthesize gradientModeLabel = _gradientModeLabel;
+@synthesize gradientModePopup = _gradientModePopup;
+@synthesize gradientColorCheckbox = _gradientColorCheckbox;
+@synthesize gradientCartoonCheckbox = _gradientCartoonCheckbox;
+@synthesize extractCheckbox = _extractCheckbox;
+@synthesize extractLabel = _extractLabel;
+@synthesize extractTextField = _extractTextField;
+@synthesize invertCheckbox = _invertCheckbox;
+@synthesize posterizeCheckbox = _posterizeCheckbox;
+@synthesize posterizeLabel = _posterizeLabel;
+@synthesize posterizeTextField = _posterizeTextField;
+@synthesize posterizeStepper = _posterizeStepper;
+@synthesize blurCheckbox = _blurCheckbox;
+@synthesize blurSlider = _blurSlider;
+@synthesize blurLabel = _blurLabel;
+@synthesize motiondetectCheckbox = _motiondetectCheckbox;
+@synthesize watereffectCheckbox = _watereffectCheckbox;
+@synthesize wavesCheckbox = _wavesCheckbox;
+@synthesize psychedelicCheckbox = _psychedelicCheckbox;
+
+@synthesize addTextCheckbox = _addTextCheckbox;
+@synthesize addTextTextTextField = _addTextTextTextField;
+@synthesize addTextTextLabel = _addTextTextLabel;
+@synthesize addTextPositionLabel = _addTextPositionLabel;
+@synthesize addTextPositionPopup = _addTextPositionPopup;
+@synthesize addLogoCheckbox = _addLogoCheckbox;
+@synthesize addLogoLogoLabel = _addLogoLogoLabel;
+@synthesize addLogoLogoTextField = _addLogoLogoTextField;
+@synthesize addLogoPositionLabel = _addLogoPositionLabel;
+@synthesize addLogoPositionPopup = _addLogoPositionPopup;
+@synthesize addLogoTransparencyLabel = _addLogoTransparencyLabel;
+@synthesize addLogoTransparencySlider = _addLogoTransparencySlider;
+@synthesize anaglyphCheckbox = _anaglyphCheckbox;
+
+@synthesize popupPanel = _popupPanel;
+@synthesize textfieldPanel = _textfieldPanel;
+
+@synthesize cropLeftValue = _cropLeftValue;
+@synthesize cropTopValue = _cropTopValue;
+@synthesize cropRightValue = _cropRightValue;
+@synthesize cropBottomValue = _cropBottomValue;
+@synthesize puzzleRowsValue = _puzzleRowsValue;
+@synthesize puzzleColumnsValue = _puzzleColumnsValue;
+@synthesize wallRowsValue = _wallRowsValue;
+@synthesize wallColumnsValue = _wallColumnsValue;
+@synthesize cloneValue = _cloneValue;
+@synthesize sepiaValue = _sepiaValue;
+@synthesize posterizeValue = _posterizeValue;
 
 + (void)initialize
 {
@@ -51,8 +170,8 @@
     if (self) {
         i_old_profile_index = -1;
 
-        self.popupPanel = [[VLCPopupPanelController alloc] init];
-        self.textfieldPanel = [[VLCTextfieldPanelController alloc] init];
+        _popupPanel = [[VLCPopupPanelController alloc] init];
+        _textfieldPanel = [[VLCTextfieldPanelController alloc] init];
     }
 
     return self;
@@ -60,9 +179,13 @@
 
 - (void)windowDidLoad
 {
-    [self.window setTitle: _NS("Video Effects")];
-    [self.window setExcludedFromWindowsMenu:YES];
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+    [[self window] setTitle: _NS("Video Effects")];
+    [[self window] setExcludedFromWindowsMenu:YES];
+
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     [[_tabView tabViewItemAtIndex:[_tabView indexOfTabViewItemWithIdentifier:@"basic"]] setLabel:_NS("Basic")];
     [[_tabView tabViewItemAtIndex:[_tabView indexOfTabViewItemWithIdentifier:@"crop"]] setLabel:_NS("Crop")];
@@ -206,12 +329,13 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
 }
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level
 {
-    if (self.window && [self.window isVisible] && [self.window level] != i_level)
-        [self.window setLevel: i_level];
+    if ([self window] && [[self window] isVisible] && [[self window] level] != i_level)
+        [[self window] setLevel: i_level];
 }
 
 #pragma mark -
@@ -555,11 +679,11 @@
 
 - (IBAction)toggleWindow:(id)sender
 {
-    if ([self.window isKeyWindow])
-        [self.window orderOut:sender];
+    if ([[self window] isKeyWindow])
+        [[self window] orderOut:sender];
     else {
-        [self.window setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
-        [self.window makeKeyAndOrderFront:sender];
+        [[self window] setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
+        [[self window] makeKeyAndOrderFront:sender];
     }
 }
 
@@ -584,7 +708,7 @@
     }
 
     /* filter handling */
-    NSString *tempString = B64DecNSStr([items firstObject]);
+    NSString *tempString = B64DecNSStr([items objectAtIndex:0]);
     vout_thread_t *p_vout = getVout();
 
     /* enable the new filters */
@@ -674,54 +798,54 @@
     [_textfieldPanel setCancelButtonString:_NS("Cancel")];
     [_textfieldPanel setOkButtonString:_NS("Save")];
 
-    __weak typeof(self) _self = self;
-    [_textfieldPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSString *resultingText) {
-
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-
-        if (returnCode != NSOKButton) {
-            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"VideoEffectSelectedProfile"]];
-            return;
-        }
-
-        NSArray *profileNames = [defaults objectForKey:@"VideoEffectProfileNames"];
-
-        // duplicate names are not allowed in the popup control
-        if ([resultingText length] == 0 || [profileNames containsObject:resultingText]) {
-            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"VideoEffectSelectedProfile"]];
-
-            NSAlert *alert = [[NSAlert alloc] init];
-            [alert setAlertStyle:NSCriticalAlertStyle];
-            [alert setMessageText:_NS("Please enter a unique name for the new profile.")];
-            [alert setInformativeText:_NS("Multiple profiles with the same name are not allowed.")];
-
-            [alert beginSheetModalForWindow:_self.window
-                              modalDelegate:nil
-                             didEndSelector:nil
-                                contextInfo:nil];
-            return;
-        }
-
-        /* fetch all the current settings in a uniform string */
-        NSString *newProfile = [_self generateProfileString];
-
-        /* add string to user defaults as well as a label */
-
-        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"VideoEffectProfiles"]];
-        [workArray addObject:newProfile];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfiles"];
-        [defaults setInteger:[workArray count] - 1 forKey:@"VideoEffectSelectedProfile"];
-
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"VideoEffectProfileNames"]];
-        [workArray addObject:resultingText];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfileNames"];
-
-        /* save defaults */
-        [defaults synchronize];
-
-        /* refresh UI */
-        [_self resetProfileSelector];
-    }];
+    [_textfieldPanel runModalForWindow:[self window]];
+///    completionHandler:^(NSInteger returnCode, NSString *resultingText) {
+///
+///        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+///
+///        if (returnCode != NSOKButton) {
+///            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"VideoEffectSelectedProfile"]];
+///            return;
+///        }
+///
+///        NSArray *profileNames = [defaults objectForKey:@"VideoEffectProfileNames"];
+///
+///        // duplicate names are not allowed in the popup control
+///        if ([resultingText length] == 0 || [profileNames containsObject:resultingText]) {
+///            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"VideoEffectSelectedProfile"]];
+///
+///            NSAlert *alert = [[NSAlert alloc] init];
+///            [alert setAlertStyle:NSCriticalAlertStyle];
+///            [alert setMessageText:_NS("Please enter a unique name for the new profile.")];
+///            [alert setInformativeText:_NS("Multiple profiles with the same name are not allowed.")];
+///
+///            [alert beginSheetModalForWindow:[self window]
+///                              modalDelegate:nil
+///                             didEndSelector:nil
+///                                contextInfo:nil];
+///            return;
+///        }
+///
+///        /* fetch all the current settings in a uniform string */
+///        NSString *newProfile = [self generateProfileString];
+///
+///        /* add string to user defaults as well as a label */
+///
+///        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"VideoEffectProfiles"]];
+///        [workArray addObject:newProfile];
+///        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfiles"];
+///        [defaults setInteger:[workArray count] - 1 forKey:@"VideoEffectSelectedProfile"];
+///
+///        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"VideoEffectProfileNames"]];
+///        [workArray addObject:resultingText];
+///        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfileNames"];
+///
+///        /* save defaults */
+///        [defaults synchronize];
+///
+///        /* refresh UI */
+///        [self resetProfileSelector];
+///    }];
 }
 
 - (void)removeProfile:(id)sender
@@ -733,8 +857,10 @@
     [_popupPanel setCancelButtonString:_NS("Cancel")];
     [_popupPanel setPopupButtonContent:[[NSUserDefaults standardUserDefaults] objectForKey:@"VideoEffectProfileNames"]];
 
-    __weak typeof(self) _self = self;
-    [_popupPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
+    [_popupPanel runModalForWindow:[self window]];
+}
+
+- (void)onRemoveProfileCompletion:(NSInteger)returnCode selectedIndex:(NSInteger)index {
 
         NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 
@@ -745,14 +871,14 @@
 
         /* remove selected profile from settings */
         NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray: [defaults objectForKey:@"VideoEffectProfiles"]];
-        [workArray removeObjectAtIndex:selectedIndex];
+        [workArray removeObjectAtIndex:index];
         [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfiles"];
 
         workArray = [[NSMutableArray alloc] initWithArray: [defaults objectForKey:@"VideoEffectProfileNames"]];
-        [workArray removeObjectAtIndex:selectedIndex];
+        [workArray removeObjectAtIndex:index];
         [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"VideoEffectProfileNames"];
 
-        if (i_old_profile_index >= selectedIndex)
+        if (i_old_profile_index >= index)
             [defaults setInteger:i_old_profile_index - 1 forKey:@"VideoEffectSelectedProfile"];
 
         /* save defaults */
@@ -761,8 +887,7 @@
         /* do not save deleted profile */
         i_old_profile_index = -1;
         /* refresh UI */
-        [_self resetProfileSelector];
-    }];
+        [self resetProfileSelector];
 }
 
 #pragma mark -

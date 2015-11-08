@@ -385,13 +385,18 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
     [o_checkbox sizeToFit];                                                 \
 }
 
-@interface VLCConfigControl()
-{
-    const char *psz_name;
-}
-@end
-
 @implementation VLCConfigControl
+
+@synthesize p_item = _p_item;
+@synthesize label = _label;
+@synthesize name = _name;
+@synthesize type = _type;
+@synthesize viewType = _viewType;
+@synthesize advanced = _advanced;
+@synthesize intValue = _intValue;
+@synthesize floatValue = _floatValue;
+@synthesize stringValue = _stringValue;
+@synthesize labelSize = _labelSize;
 
 - (id)initWithFrame:(NSRect)frame
 {
@@ -906,12 +911,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface StringConfigControl()
-{
-    NSTextField     *o_textfield;
-}
-@end
-
 @implementation StringConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -990,12 +989,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
         o_textfieldString = @"";
     free(psz_value);
     [super resetValues];
-}
-@end
-
-@interface StringListConfigControl()
-{
-    NSPopUpButton      *o_popup;
 }
 @end
 
@@ -1095,14 +1088,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface FileConfigControl()
-{
-    NSTextField     *o_textfield;
-    NSButton        *o_button;
-    BOOL            b_directory;
-}
-@end
-
 @implementation FileConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1166,12 +1151,21 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
     [o_open_panel setAllowsMultipleSelection: NO];
     [o_open_panel setCanChooseFiles: !b_directory];
     [o_open_panel setCanChooseDirectories: b_directory];
-    [o_open_panel beginSheetModalForWindow:[sender window] completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSOKButton) {
-            NSString *o_path = [[[o_open_panel URLs] firstObject] path];
-            [o_textfield setStringValue: o_path];
-        }
-    }];
+    [o_open_panel beginSheetForDirectory:nil
+                                    file:nil
+                                   types:nil
+                          modalForWindow:[sender window]
+                           modalDelegate:self
+                          didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
+                             contextInfo:nil];
+}
+
+- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton) {
+        NSString *o_path = [[[panel URLs] objectAtIndex:0] path];
+        [o_textfield setStringValue: o_path];
+    }
 }
 
 - (char *)stringValue
@@ -1193,12 +1187,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 
     free(psz_value);
     [super resetValues];
-}
-@end
-
-@interface ModuleConfigControl()
-{
-    NSPopUpButton   *o_popup;
 }
 @end
 
@@ -1224,12 +1212,13 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
         else
             labelString = @"";
 
-        ADD_LABEL(self.label, mainFrame, 0, -1, labelString, o_popupTooltip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+        NSTextField* theLabel = [self label];
+        ADD_LABEL(theLabel, mainFrame, 0, -1, labelString, o_popupTooltip)
+        [theLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: theLabel];
 
         /* build the popup */
-        ADD_POPUP(o_popup, mainFrame, [self.label frame].size.width,
+        ADD_POPUP(o_popup, mainFrame, [theLabel frame].size.width,
                   -2, 0, o_popupTooltip)
         [o_popup setAutoresizingMask:NSViewWidthSizable ];
         [o_popup addItemWithTitle: _NS("Default")];
@@ -1246,9 +1235,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 {
     NSRect frame;
     NSRect superFrame = [self frame];
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_popup frame];
     frame.origin.x = i_xPos - 1;
@@ -1330,13 +1319,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface IntegerConfigControl() <NSTextFieldDelegate>
-{
-    NSTextField     *o_textfield;
-    NSStepper       *o_stepper;
-}
-@end
-
 @implementation IntegerConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1358,9 +1340,11 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -3, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -3, labelString, toolTip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the stepper */
         ADD_STEPPER(o_stepper, mainFrame, mainFrame.size.width - 19,
@@ -1386,9 +1370,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 - (void) alignWithXPosition:(int)i_xPos
 {
     NSRect frame;
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_textfield frame];
     frame.origin.x = i_xPos + 2;
@@ -1422,12 +1406,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 
 @end
 
-@interface IntegerListConfigControl()
-{
-    NSPopUpButton      *o_popup;
-}
-@end
-
 @implementation IntegerListConfigControl
 
 - (id)initWithItem:(module_config_t *)p_item
@@ -1450,12 +1428,14 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -3, labelString, o_textfieldTooltip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -3, labelString, o_textfieldTooltip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the textfield */
-        ADD_POPUP(o_popup, mainFrame, [self.label frame].size.width,
+        ADD_POPUP(o_popup, mainFrame, [selfLabel frame].size.width,
                   -2, 0, o_textfieldTooltip)
         [o_popup setAutoresizingMask:NSViewWidthSizable ];
 
@@ -1471,9 +1451,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 {
     NSRect frame;
     NSRect superFrame = [self frame];
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_popup frame];
     frame.origin.x = i_xPos + 2;
@@ -1513,15 +1493,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface RangedIntegerConfigControl() <NSTextFieldDelegate>
-{
-    NSSlider        *o_slider;
-    NSTextField     *o_textfield;
-    NSTextField     *o_textfield_min;
-    NSTextField     *o_textfield_max;
-}
-@end
-
 @implementation RangedIntegerConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1543,12 +1514,14 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -3, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -3, labelString, toolTip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the textfield */
-        ADD_TEXTFIELD(o_textfield, mainFrame, [self.label frame].size.width + 2,
+        ADD_TEXTFIELD(o_textfield, mainFrame, [selfLabel frame].size.width + 2,
                       28, 49, toolTip, @"")
         [o_textfield setIntValue: p_item->value.i];
         [o_textfield setAutoresizingMask:NSViewMaxXMargin ];
@@ -1595,9 +1568,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 - (void) alignWithXPosition:(int)i_xPos
 {
     NSRect frame;
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_textfield frame];
     frame.origin.x = i_xPos + 2;
@@ -1628,13 +1601,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface FloatConfigControl() <NSTextFieldDelegate>
-{
-    NSTextField     *o_textfield;
-    NSStepper       *o_stepper;
-}
-@end
-
 @implementation FloatConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1656,9 +1622,11 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -2, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -2, labelString, toolTip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the stepper */
         ADD_STEPPER(o_stepper, mainFrame, mainFrame.size.width - 19,
@@ -1685,9 +1653,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 - (void) alignWithXPosition:(int)i_xPos
 {
     NSRect frame;
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_textfield frame];
     frame.origin.x = i_xPos + 2;
@@ -1720,15 +1688,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface RangedFloatConfigControl() <NSTextFieldDelegate>
-{
-    NSSlider        *o_slider;
-    NSTextField     *o_textfield;
-    NSTextField     *o_textfield_min;
-    NSTextField     *o_textfield_max;
-}
-@end
-
 @implementation RangedFloatConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1750,12 +1709,14 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -3, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -3, labelString, toolTip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the textfield */
-        ADD_TEXTFIELD(o_textfield, mainFrame, [self.label frame].size.width + 2,
+        ADD_TEXTFIELD(o_textfield, mainFrame, [selfLabel frame].size.width + 2,
                       28, 49, toolTip, @"")
         [o_textfield setFloatValue: p_item->value.f];
         [o_textfield setAutoresizingMask:NSViewMaxXMargin ];
@@ -1802,9 +1763,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 - (void) alignWithXPosition:(int)i_xPos
 {
     NSRect frame;
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_textfield frame];
     frame.origin.x = i_xPos + 2;
@@ -1831,12 +1792,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
     [o_textfield setFloatValue: config_GetFloat(VLCIntf, self.p_item->psz_name)];
     [o_slider setFloatValue: config_GetFloat(VLCIntf, self.p_item->psz_name)];
     [super resetValues];
-}
-@end
-
-@interface BoolConfigControl()
-{
-    NSButton        *o_checkbox;
 }
 @end
 
@@ -1885,12 +1840,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 }
 @end
 
-@interface KeyConfigControl()
-{
-    NSPopUpButton   *o_popup;
-}
-@end
-
 @implementation KeyConfigControl
 - (id)initWithItem:(module_config_t *)p_item
           withView:(NSView *)parentView
@@ -1912,13 +1861,15 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -1, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* selfLabel = [self label];
+        ADD_LABEL(selfLabel, mainFrame, 0, -1, labelString, toolTip)
+        [selfLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: selfLabel];
 
         /* build the popup */
-        ADD_POPUP(o_popup, mainFrame, [self.label frame].origin.x +
-                  [self.label frame].size.width + 3,
+        ADD_POPUP(o_popup, mainFrame, [selfLabel frame].origin.x +
+                  [selfLabel frame].size.width + 3,
                   -2, 0, toolTip)
         [o_popup setAutoresizingMask:NSViewWidthSizable ];
 
@@ -1945,9 +1896,9 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 {
     NSRect frame;
     NSRect superFrame = [self frame];
-    frame = [self.label frame];
+    frame = [[self label] frame];
     frame.origin.x = i_xPos - frame.size.width - 3;
-    [self.label setFrame:frame];
+    [[self label] setFrame:frame];
 
     frame = [o_popup frame];
     frame.origin.x = i_xPos - 1;
@@ -1964,14 +1915,6 @@ o_textfield = [[NSSecureTextField alloc] initWithFrame: s_rc];              \
 {
     [o_popup selectItem:[[o_popup menu] itemWithTag:config_GetInt(VLCIntf, self.p_item->psz_name)]];
     [super resetValues];
-}
-@end
-
-@interface ModuleListConfigControl() <NSTextFieldDelegate, NSTableViewDataSource>
-{
-    NSTextField     *o_textfield;
-    NSTableView     *o_tableview;
-    NSMutableArray  *o_modulearray;
 }
 @end
 
@@ -2129,18 +2072,20 @@ o_moduleenabled = [NSNumber numberWithBool:NO];\
             labelString = _NS((char *)p_item->psz_text);
         else
             labelString = @"";
-        ADD_LABEL(self.label, mainFrame, 0, -3, labelString, toolTip)
-        [self.label setAutoresizingMask:NSViewNotSizable ];
-        [self addSubview: self.label];
+
+        NSTextField* theLabel = [self label];
+        ADD_LABEL(theLabel, mainFrame, 0, -3, labelString, toolTip)
+        [theLabel setAutoresizingMask:NSViewNotSizable ];
+        [self addSubview: theLabel];
 
         /* build the textfield */
         if (p_item->value.psz)
             o_textfieldString = _NS((char *)p_item->value.psz);
         else
             o_textfieldString = @"";
-        ADD_TEXTFIELD(o_textfield, mainFrame, [self.label frame].size.width + 2,
+        ADD_TEXTFIELD(o_textfield, mainFrame, [theLabel frame].size.width + 2,
                       mainFrame.size.height - 22, mainFrame.size.width -
-                      [self.label frame].size.width - 2, toolTip, o_textfieldString)
+                      [theLabel frame].size.width - 2, toolTip, o_textfieldString)
         [o_textfield setAutoresizingMask:NSViewWidthSizable ];
         [self addSubview: o_textfield];
 
@@ -2162,7 +2107,7 @@ o_moduleenabled = [NSNumber numberWithBool:NO];\
         if ([[[o_modulearray objectAtIndex:i] objectAtIndex:2]
              boolValue] != NO) {
             o_newstring = [o_newstring stringByAppendingString:
-                           [[o_modulearray objectAtIndex:i] firstObject]];
+                           [[o_modulearray objectAtIndex:i] objectAtIndex:0]];
             o_newstring = [o_newstring stringByAppendingString:@":"];
         }
 
@@ -2321,12 +2266,13 @@ objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex
                                         nil];
         NSAttributedString *o_bold_string = [[NSAttributedString alloc] initWithString: labelString attributes: boldAttributes];
 
-        ADD_LABEL(self.label, mainFrame, 1, 0, @"", @"")
-        [self.label setAttributedStringValue: o_bold_string];
-        [self.label sizeToFit];
+        NSTextField* theLabel = [self label];
+        ADD_LABEL(theLabel, mainFrame, 1, 0, @"", @"")
+        [theLabel setAttributedStringValue: o_bold_string];
+        [theLabel sizeToFit];
         
-        [self.label setAutoresizingMask:NSViewNotSizable];
-        [self addSubview: self.label];
+        [theLabel setAutoresizingMask:NSViewNotSizable];
+        [self addSubview: theLabel];
     }
     return self;
 }

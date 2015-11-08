@@ -38,7 +38,20 @@
 - (void)extensionsUpdated;
 @end
 
-@interface ExtensionsManager : NSObject
+@interface ExtensionsManager : NSObject {
+
+    extensions_manager_t *p_extensions_manager;
+    ExtensionsDialogProvider *_extensionDialogProvider;
+
+    NSMutableDictionary *p_extDict;
+
+    BOOL b_failed; ///< Flag set to true if we could not load the module
+
+    id <ExtensionsDelegate> delegate;
+
+    BOOL _isUnloading;
+
+}
 
 - (void)buildMenu:(NSMenu *)extMenu;
 

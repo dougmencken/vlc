@@ -28,9 +28,9 @@
 /*****************************************************************************
  * VLAboutBox interface
  *****************************************************************************/
-@interface AboutWindowController : NSWindowController<NSWindowDelegate>
-{
+@interface AboutWindowController : NSWindowController {
     /* main about panel and stuff related to its views */
+    NSString* o_authors;
     IBOutlet id o_name_version_field;
     IBOutlet id o_revision_field;
     IBOutlet id o_copyright_field;
@@ -51,8 +51,7 @@
 
 @end
 
-@interface HelpWindowController : NSWindowController
-{
+@interface HelpWindowController : NSWindowController {
     IBOutlet WebView *o_help_web_view; //we may _not_ use id here because of method name collisions
     IBOutlet id o_help_bwd_btn;
     IBOutlet id o_help_fwd_btn;

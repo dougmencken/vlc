@@ -180,28 +180,155 @@ static NSString* VLCOSDSettingToolbarIdentifier = @"Subtitles Settings Item Iden
 static NSString* VLCInputSettingToolbarIdentifier = @"Input Settings Item Identifier";
 static NSString* VLCHotkeysSettingToolbarIdentifier = @"Hotkeys Settings Item Identifier";
 
-@interface VLCSimplePrefs() <NSToolbarDelegate, NSWindowDelegate>
-{
-    BOOL _audioSettingChanged;
-    BOOL _intfSettingChanged;
-    BOOL _videoSettingChanged;
-    BOOL _osdSettingChanged;
-    BOOL _inputSettingChanged;
-    BOOL _hotkeyChanged;
-    id _currentlyShownCategoryView;
-
-    NSOpenPanel *_selectFolderPanel;
-    NSArray *_hotkeyDescriptions;
-    NSArray *_hotkeyNames;
-    NSArray *_hotkeysNonUseableKeys;
-    NSMutableArray *_hotkeySettings;
-    NSString *_keyInTransition;
-
-    intf_thread_t *p_intf;
-}
-@end
 
 @implementation VLCSimplePrefs
+
+@synthesize audio_dolbyPopup = _audio_dolbyPopup;
+@synthesize audio_dolbyLabel = _audio_dolbyLabel;
+@synthesize audio_effectsBox = _audio_effectsBox;
+@synthesize audio_enableCheckbox = _audio_enableCheckbox;
+@synthesize audio_generalBox = _audio_generalBox;
+@synthesize audio_langTextField = _audio_langTextField;
+@synthesize audio_langLabel = _audio_langLabel;
+@synthesize audio_lastBox = _audio_lastBox;
+@synthesize audio_lastCheckbox = _audio_lastCheckbox;
+@synthesize audio_lastpwdSecureTextField = _audio_lastpwdSecureTextField;
+@synthesize audio_lastpwdLabel = _audio_lastpwdLabel;
+@synthesize audio_lastuserTextField = _audio_lastuserTextField;
+@synthesize audio_lastuserLabel = _audio_lastuserLabel;
+@synthesize audio_spdifCheckbox = _audio_spdifCheckbox;
+@synthesize audioView = _audioView;
+@synthesize audio_visualPopup = _audio_visualPopup;
+@synthesize audio_visualLabel = _audio_visualLabel;
+@synthesize audio_volTextField = _audio_volTextField;
+@synthesize audio_volSlider = _audio_volSlider;
+@synthesize audio_autosavevolMatrix = _audio_autosavevolMatrix;
+@synthesize audio_autosavevol_yesButtonCell = _audio_autosavevol_yesButtonCell;
+@synthesize audio_autosavevol_noButtonCell = _audio_autosavevol_noButtonCell;
+@synthesize hotkeys_changeButton = _hotkeys_changeButton;
+@synthesize hotkeys_changeLabel = _hotkeys_changeLabel;
+@synthesize hotkeys_change_keysLabel = _hotkeys_change_keysLabel;
+@synthesize hotkeys_change_takenLabel = _hotkeys_change_takenLabel;
+@synthesize hotkeys_change_win = _hotkeys_change_win;
+@synthesize hotkeys_change_cancelButton = _hotkeys_change_cancelButton;
+@synthesize hotkeys_change_okButton = _hotkeys_change_okButton;
+@synthesize hotkeys_clearButton = _hotkeys_clearButton;
+@synthesize hotkeysLabel = _hotkeysLabel;
+@synthesize hotkeys_listbox = _hotkeys_listbox;
+@synthesize hotkeysView = _hotkeysView;
+@synthesize input_recordBox = _input_recordBox;
+@synthesize input_recordTextField = _input_recordTextField;
+@synthesize input_recordButton = _input_recordButton;
+@synthesize input_aviPopup = _input_aviPopup;
+@synthesize input_aviLabel = _input_aviLabel;
+@synthesize input_cachelevelPopup = _input_cachelevelPopup;
+@synthesize input_cachelevelLabel = _input_cachelevelLabel;
+@synthesize input_cachelevel_customLabel = _input_cachelevel_customLabel;
+@synthesize input_cachingBox = _input_cachingBox;
+@synthesize input_muxBox = _input_muxBox;
+@synthesize input_netBox = _input_netBox;
+@synthesize input_avcodec_hwLabel = _input_avcodec_hwLabel;
+@synthesize input_avcodec_hwPopup = _input_avcodec_hwPopup;
+@synthesize input_postprocTextField = _input_postprocTextField;
+@synthesize input_postprocLabel = _input_postprocLabel;
+@synthesize input_rtspCheckbox = _input_rtspCheckbox;
+@synthesize input_skipLoopLabel = _input_skipLoopLabel;
+@synthesize input_skipLoopPopup = _input_skipLoopPopup;
+@synthesize input_mkv_preload_dirCheckbox = _input_mkv_preload_dirCheckbox;
+@synthesize input_urlhandlerButton = _input_urlhandlerButton;
+@synthesize inputView = _inputView;
+@synthesize intf_languagePopup = _intf_languagePopup;
+@synthesize intf_languageLabel = _intf_languageLabel;
+@synthesize intf_styleLabel = _intf_styleLabel;
+@synthesize intf_style_darkButtonCell = _intf_style_darkButtonCell;
+@synthesize intf_style_brightButtonCell = _intf_style_brightButtonCell;
+@synthesize intf_artCheckbox = _intf_artCheckbox;
+@synthesize intf_embeddedCheckbox = _intf_embeddedCheckbox;
+@synthesize intf_fspanelCheckbox = _intf_fspanelCheckbox;
+@synthesize intf_appleremoteCheckbox = _intf_appleremoteCheckbox;
+@synthesize intf_appleremote_sysvolCheckbox = _intf_appleremote_sysvolCheckbox;
+@synthesize intf_mediakeysCheckbox = _intf_mediakeysCheckbox;
+@synthesize intf_networkBox = _intf_networkBox;
+@synthesize intfView = _intfView;
+@synthesize intf_updateCheckbox = _intf_updateCheckbox;
+@synthesize intf_last_updateLabel = _intf_last_updateLabel;
+@synthesize intf_enableNotificationsCheckbox = _intf_enableNotificationsCheckbox;
+@synthesize intf_nativefullscreenCheckbox = _intf_nativefullscreenCheckbox;
+@synthesize intf_autoresizeCheckbox = _intf_autoresizeCheckbox;
+@synthesize intf_pauseminimizedCheckbox = _intf_pauseminimizedCheckbox;
+@synthesize intf_luahttpBox = _intf_luahttpBox;
+@synthesize intf_luahttppwdLabel = _intf_luahttppwdLabel;
+@synthesize intf_luahttppwdTextField = _intf_luahttppwdTextField;
+@synthesize intf_pauseitunesLabel = _intf_pauseitunesLabel;
+@synthesize intf_pauseitunesPopup = _intf_pauseitunesPopup;
+@synthesize intf_continueplaybackLabel = _intf_continueplaybackLabel;
+@synthesize intf_continueplaybackPopup = _intf_continueplaybackPopup;
+@synthesize osd_encodingPopup = _osd_encodingPopup;
+@synthesize osd_encodingLabel = _osd_encodingLabel;
+@synthesize osd_fontBox = _osd_fontBox;
+@synthesize osd_fontButton = _osd_fontButton;
+@synthesize osd_font_colorPopup = _osd_font_colorPopup;
+@synthesize osd_font_colorLabel = _osd_font_colorLabel;
+@synthesize osd_fontTextField = _osd_fontTextField;
+@synthesize osd_font_sizePopup = _osd_font_sizePopup;
+@synthesize osd_font_sizeLabel = _osd_font_sizeLabel;
+@synthesize osd_fontLabel = _osd_fontLabel;
+@synthesize osd_langBox = _osd_langBox;
+@synthesize osd_langTextField = _osd_langTextField;
+@synthesize osd_langLabel = _osd_langLabel;
+@synthesize osd_opacityLabel = _osd_opacityLabel;
+@synthesize osd_opacityTextField = _osd_opacityTextField;
+@synthesize osd_opacitySlider = _osd_opacitySlider;
+@synthesize osd_outline_colorPopup = _osd_outline_colorPopup;
+@synthesize osd_outline_colorLabel = _osd_outline_colorLabel;
+@synthesize osd_outline_thicknessPopup = _osd_outline_thicknessPopup;
+@synthesize osd_outline_thicknessLabel = _osd_outline_thicknessLabel;
+@synthesize osd_forceboldCheckbox = _osd_forceboldCheckbox;
+@synthesize osd_osdBox = _osd_osdBox;
+@synthesize osd_osdCheckbox = _osd_osdCheckbox;
+@synthesize osdView = _osdView;
+@synthesize showAllButton = _showAllButton;
+@synthesize cancelButton = _cancelButton;
+@synthesize controlsBox = _controlsBox;
+@synthesize resetButton = _resetButton;
+@synthesize saveButton = _saveButton;
+@synthesize video_blackCheckbox = _video_blackCheckbox;
+@synthesize video_devicePopup = _video_devicePopup;
+@synthesize video_deviceLabel = _video_deviceLabel;
+@synthesize video_displayBox = _video_displayBox;
+@synthesize video_enableCheckbox = _video_enableCheckbox;
+@synthesize video_fullscreenCheckbox = _video_fullscreenCheckbox;
+@synthesize video_videodecoCheckbox = _video_videodecoCheckbox;
+@synthesize video_onTopCheckbox = _video_onTopCheckbox;
+@synthesize video_skipFramesCheckbox = _video_skipFramesCheckbox;
+@synthesize video_snapBox = _video_snapBox;
+@synthesize video_snap_folderButton = _video_snap_folderButton;
+@synthesize video_snap_folderTextField = _video_snap_folderTextField;
+@synthesize video_snap_folderLabel = _video_snap_folderLabel;
+@synthesize video_snap_formatPopup = _video_snap_formatPopup;
+@synthesize video_snap_formatLabel = _video_snap_formatLabel;
+@synthesize video_snap_prefixTextField = _video_snap_prefixTextField;
+@synthesize video_snap_prefixLabel = _video_snap_prefixLabel;
+@synthesize video_snap_seqnumCheckbox = _video_snap_seqnumCheckbox;
+@synthesize video_deinterlaceLabel = _video_deinterlaceLabel;
+@synthesize video_deinterlacePopup = _video_deinterlacePopup;
+@synthesize video_deinterlace_modeLabel = _video_deinterlace_modeLabel;
+@synthesize video_deinterlace_modePopup = _video_deinterlace_modePopup;
+@synthesize video_videoBox = _video_videoBox;
+@synthesize videoView = _videoView;
+@synthesize urlhandler_titleLabel = _urlhandler_titleLabel;
+@synthesize urlhandler_subtitleLabel = _urlhandler_subtitleLabel;
+@synthesize urlhandler_saveButton = _urlhandler_saveButton;
+@synthesize urlhandler_cancelButton = _urlhandler_cancelButton;
+@synthesize urlhandler_ftpPopup = _urlhandler_ftpPopup;
+@synthesize urlhandler_mmsPopup = _urlhandler_mmsPopup;
+@synthesize urlhandler_rtmpPopup = _urlhandler_rtmpPopup;
+@synthesize urlhandler_rtpPopup = _urlhandler_rtpPopup;
+@synthesize urlhandler_rtspPopup = _urlhandler_rtspPopup;
+@synthesize urlhandler_sftpPopup = _urlhandler_sftpPopup;
+@synthesize urlhandler_smbPopup = _urlhandler_smbPopup;
+@synthesize urlhandler_udpPopup = _urlhandler_udpPopup;
+@synthesize urlhandler_win = _urlhandler_win;
 
 #pragma mark Initialisation
 
@@ -238,8 +365,12 @@ static NSString* VLCHotkeysSettingToolbarIdentifier = @"Hotkeys Settings Item Id
     [toolbar setDelegate: self];
     [self.window setToolbar:toolbar];
 
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
-    [self.window setHidesOnDeactivate:YES];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
+
+    [[self window] setHidesOnDeactivate:YES];
 
     [_hotkeys_listbox setTarget:self];
     [_hotkeys_listbox setDoubleAction:@selector(hotkeyTableDoubleClick:)];
@@ -569,10 +700,17 @@ static inline char * __config_GetLabel(vlc_object_t *p_this, const char *psz_nam
     [_intf_languagePopup selectItemAtIndex:sel];
 
     [self setupButton:_intf_artCheckbox forBoolValue: "metadata-network-access"];
-
     [self setupButton:_intf_fspanelCheckbox forBoolValue: "macosx-fspanel"];
-
     [self setupButton:_intf_nativefullscreenCheckbox forBoolValue: "macosx-nativefullscreenmode"];
+
+    BOOL b_modern_sdk = NO;
+#ifdef MAC_OS_X_VERSION_10_7
+    b_modern_sdk = YES;
+#endif
+    if (!(b_modern_sdk && !OSX_SNOW_LEOPARD)) {
+        [_intf_nativefullscreenCheckbox setState: NSOffState];
+        [_intf_nativefullscreenCheckbox setEnabled: NO];
+    }
 
     [self setupButton:_intf_embeddedCheckbox forBoolValue: "embedded-video"];
 
@@ -1202,15 +1340,25 @@ static inline void save_string_list(intf_thread_t * p_intf, id object, const cha
         [_selectFolderPanel setMessage: _NS("Choose the folder to save your video snapshots to.")];
         [_selectFolderPanel setCanCreateDirectories: YES];
         [_selectFolderPanel setPrompt: _NS("Choose")];
-        [_selectFolderPanel beginSheetModalForWindow:self.window completionHandler: ^(NSInteger returnCode) {
-            if (returnCode == NSOKButton)
-            {
-                [_video_snap_folderTextField setStringValue: [[_selectFolderPanel URL] path]];
-                _videoSettingChanged = YES;
-            }
-        }];
-    } else
+        [_selectFolderPanel beginSheetForDirectory:nil
+                                              file:nil
+                                             types:nil
+                                    modalForWindow:[self window]
+                                     modalDelegate:self
+                                    didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
+                                       contextInfo:nil];
+    } else {
         _videoSettingChanged = YES;
+    }
+}
+
+- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton)
+    {
+	[_video_snap_folderTextField setStringValue: [[_selectFolderPanel URL] path]];
+	_videoSettingChanged = YES;
+    }
 }
 
 - (void)showVideoSettings
@@ -1302,18 +1450,26 @@ static inline void save_string_list(intf_thread_t * p_intf, id object, const cha
         [_selectFolderPanel setMessage: _NS("Choose the directory or filename where the records will be stored.")];
         [_selectFolderPanel setCanCreateDirectories: YES];
         [_selectFolderPanel setPrompt: _NS("Choose")];
-        [_selectFolderPanel beginSheetModalForWindow:self.window completionHandler: ^(NSInteger returnCode) {
-            if (returnCode == NSOKButton)
-            {
-                [_input_recordTextField setStringValue: [[_selectFolderPanel URL] path]];
-                _inputSettingChanged = YES;
-            }
-        }];
-
+        [_selectFolderPanel beginSheetForDirectory:nil
+                                              file:nil
+                                             types:nil
+                                    modalForWindow:[self window]
+                                     modalDelegate:self
+                                    didEndSelector:@selector(selectFolderPanelDidEnd:returnCode:contextInfo:)
+                                       contextInfo:nil];
         return;
     }
 
     _inputSettingChanged = YES;
+}
+
+- (void)selectFolderPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton)
+    {
+	[_input_recordTextField setStringValue: [[_selectFolderPanel URL] path]];
+	_inputSettingChanged = YES;
+    }
 }
 
 - (void)showInputSettings
@@ -1358,7 +1514,7 @@ static inline void save_string_list(intf_thread_t * p_intf, id object, const cha
         NSUInteger count;
 
 #define fillUrlHandlerPopup( protocol, object ) \
-        handlers = (__bridge NSArray *)LSCopyAllHandlersForURLScheme(CFSTR( protocol )); \
+        handlers = (NSArray *)LSCopyAllHandlersForURLScheme(CFSTR( protocol )); \
         rawHandlers = [[NSMutableArray alloc] init]; \
         [object removeAllItems]; \
         count = [handlers count]; \
@@ -1371,7 +1527,7 @@ static inline void save_string_list(intf_thread_t * p_intf, id object, const cha
                 [rawHandlers addObject: rawhandler]; \
             } \
         } \
-        [object selectItemAtIndex: [rawHandlers indexOfObject:(__bridge id)LSCopyDefaultHandlerForURLScheme(CFSTR( protocol ))]];
+        [object selectItemAtIndex: [rawHandlers indexOfObject:(id)LSCopyDefaultHandlerForURLScheme(CFSTR( protocol ))]];
 
         fillUrlHandlerPopup( "ftp", _urlhandler_ftpPopup);
         fillUrlHandlerPopup( "mms", _urlhandler_mmsPopup);
@@ -1390,15 +1546,15 @@ static inline void save_string_list(intf_thread_t * p_intf, id object, const cha
         [NSApp endSheet:_urlhandler_win];
 
         if (sender == _urlhandler_saveButton) {
-            LSSetDefaultHandlerForURLScheme(CFSTR("ftp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_ftpPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("mms"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_mmsPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("mmsh"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_mmsPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("rtmp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtmpPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("rtp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtpPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("rtsp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtspPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("sftp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_sftpPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("smb"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_smbPopup selectedItem] title]]);
-            LSSetDefaultHandlerForURLScheme(CFSTR("udp"), (__bridge CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_udpPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("ftp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_ftpPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("mms"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_mmsPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("mmsh"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_mmsPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("rtmp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtmpPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("rtp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtpPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("rtsp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_rtspPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("sftp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_sftpPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("smb"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_smbPopup selectedItem] title]]);
+            LSSetDefaultHandlerForURLScheme(CFSTR("udp"), (CFStringRef)[self bundleIdentifierForApplicationName:[[_urlhandler_udpPopup selectedItem] title]]);
         }
     }
 }

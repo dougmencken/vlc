@@ -19,9 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
-#import <Cocoa/Cocoa.h>
+#import <vlc_addons.h>
 
-@interface AddonsWindowController : NSWindowController
+#import <Cocoa/Cocoa.h>
+#import "CompatibilityFixes.h"
+
+@interface AddonsWindowController : NSWindowController < NSTableViewDataSource, NSTableViewDelegate >
 {
     IBOutlet NSPopUpButton *_typeSwitcher;
     IBOutlet NSButton *_localAddonsOnlyCheckbox;
@@ -34,6 +37,11 @@
     IBOutlet NSTextField *_version;
     IBOutlet NSTextView *_description;
     IBOutlet NSButton *_installButton;
+
+    addons_manager_t *_manager;
+    NSMutableArray *_addons;
+    NSArray *_displayedAddons;
+    BOOL _shouldRefreshSideBarOnAddonChange;
 }
 
 - (IBAction)switchType:(id)sender;
@@ -41,5 +49,17 @@
 - (IBAction)downloadCatalog:(id)sender;
 - (IBAction)installSelection:(id)sender;
 - (IBAction)uninstallSelection:(id)sender;
+
+- (void)addAddon:(NSValue *)o_value;
+- (void)discoveryEnded;
+- (void)addonChanged:(NSValue *)o_value;
+
+- (void)updateInstallButton:(BOOL)b_is_installed;
+
+- (void)_findInstalled;
+- (void)_refactorDataModel;
+- (void)_findNewAddons;
+- (void)_installAddonWithID:(NSData *)o_data type:(addon_type_t)type;
+- (void)_removeAddonWithID:(NSData *)o_data type:(addon_type_t)type;
 
 @end

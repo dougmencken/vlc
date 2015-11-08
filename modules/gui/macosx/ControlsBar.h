@@ -51,9 +51,24 @@
     IBOutlet id o_time_fld;
     IBOutlet id o_fullscreen_btn;
     IBOutlet id o_resize_view;
+
+    IBOutlet id _bottomBarView;
+    BOOL _darkInterface;
+    BOOL _nativeFullscreenMode;
+
+    NSImage * o_pause_img;
+    NSImage * o_pause_pressed_img;
+    NSImage * o_play_img;
+    NSImage * o_play_pressed_img;
+
+    NSTimeInterval last_fwd_event;
+    NSTimeInterval last_bwd_event;
+    BOOL just_triggered_next;
+    BOOL just_triggered_previous;
+
 }
 
-@property (readwrite, strong) IBOutlet id bottomBarView;
+@property (readwrite, retain) IBOutlet id bottomBarView;
 @property (readonly) BOOL darkInterface;
 @property (readonly) BOOL nativeFullscreenMode;
 
@@ -97,6 +112,23 @@
     IBOutlet id o_volume_up_btn;
 
     IBOutlet id o_effects_btn;
+
+    NSImage * o_repeat_img;
+    NSImage * o_repeat_pressed_img;
+    NSImage * o_repeat_all_img;
+    NSImage * o_repeat_all_pressed_img;
+    NSImage * o_repeat_one_img;
+    NSImage * o_repeat_one_pressed_img;
+    NSImage * o_shuffle_img;
+    NSImage * o_shuffle_pressed_img;
+    NSImage * o_shuffle_on_img;
+    NSImage * o_shuffle_on_pressed_img;
+
+    NSButton * o_prev_btn;
+    NSButton * o_next_btn;
+
+    BOOL b_show_jump_buttons;
+    BOOL b_show_playmode_buttons;
 }
 
 - (IBAction)stop:(id)sender;
@@ -121,6 +153,14 @@
 
 - (void)updateVolumeSlider;
 - (void)updateControls;
+
+- (void)addJumpButtons:(BOOL)b_fast;
+- (void)removeJumpButtons:(BOOL)b_fast;
+- (void)addPlaymodeButtons:(BOOL)b_fast;
+- (void)removePlaymodeButtons:(BOOL)b_fast;
+
+- (void)addEffectsButton:(BOOL)b_fast;
+- (void)removeEffectsButton:(BOOL)b_fast;
 
 @end
 

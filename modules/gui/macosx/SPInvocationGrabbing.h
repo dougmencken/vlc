@@ -12,25 +12,40 @@
 #import <Foundation/Foundation.h>
 
 @interface SPInvocationGrabber : NSObject {
+
     int frameCount;
     char **frameStrings;
+
+    id _object;
+    NSInvocation *_invocation;
+    BOOL _backgroundAfterForward;
+    BOOL _onMainAfterForward;
+    BOOL _waitUntilDone;
+
 }
--(id)initWithObject:(id)obj;
--(id)initWithObject:(id)obj stacktraceSaving:(BOOL)saveStack;
+
 @property (readonly, retain, nonatomic) id object;
 @property (readonly, retain, nonatomic) NSInvocation *invocation;
+
 @property BOOL backgroundAfterForward;
 @property BOOL onMainAfterForward;
 @property BOOL waitUntilDone;
+
+-(id)initWithObject:(id)obj;
+-(id)initWithObject:(id)obj stacktraceSaving:(BOOL)saveStack;
+
 -(void)invoke; // will release object and invocation
 -(void)printBacktrace;
 -(void)saveBacktrace;
+
 @end
 
 @interface NSObject (SPInvocationGrabbing)
+
 -(id)grab;
 -(id)invokeAfter:(NSTimeInterval)delta;
 -(id)nextRunloop;
 -(id)inBackground;
 -(id)onMainAsync:(BOOL)async;
+
 @end

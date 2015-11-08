@@ -28,6 +28,11 @@
 
 @implementation PLItem
 
+@synthesize children = _children;
+@synthesize plItemId = _plItemId;
+@synthesize input = _input;
+@synthesize parent = _parent;
+
 - (id)initWithPlaylistItem:(playlist_item_t *)p_item;
 {
     self = [super init];
@@ -45,6 +50,7 @@
 - (void)dealloc
 {
     input_item_Release(_input);
+    [super dealloc];
 }
 
 // own hash and isEqual methods are important to retain expandable state

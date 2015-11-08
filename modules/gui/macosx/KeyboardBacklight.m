@@ -31,9 +31,7 @@ enum {
     kSetLEDFadeID = 3        // setLEDFade(int, int, int, int *)
 };
 
-@implementation KeyboardBacklight {
-    io_connect_t dataPort;
-}
+@implementation KeyboardBacklight
 
 static float lastBrightnessLevel;
 
@@ -46,6 +44,7 @@ static float lastBrightnessLevel;
 - (void)dealloc {
     if (dataPort)
         IOServiceClose(dataPort);
+    [super dealloc];
 }
 
 - (io_connect_t)getDataPort {
@@ -66,11 +65,11 @@ static float lastBrightnessLevel;
 - (void)setBrightness:(float)brightness {
     if (!dataPort) return;
 
-    UInt32 inputCount = 2;
-    UInt64 inputValues[2] = { 0, brightness * 0xfff };
+    uint32_t inputCount = 2;
+    uint64_t inputValues[2] = { 0, brightness * 0xfff };
 
-    UInt32 outputCount = 1;
-    UInt64 outputValues[1];
+    uint32_t outputCount = 1;
+    uint64_t outputValues[1];
 
     kern_return_t kr = IOConnectCallScalarMethod(dataPort,
                                                  kSetLEDBrightnessID,
@@ -79,7 +78,7 @@ static float lastBrightnessLevel;
                                                  outputValues,
                                                  &outputCount);
 
-    if (kr != KERN_SUCCESS) return;
+    //if (kr != KERN_SUCCESS) return;
 }
 
 - (float)getBrightness {

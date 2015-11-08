@@ -26,75 +26,155 @@
  * VLCPlaylistInfo interface
  *****************************************************************************/
 
+#import "CompatibilityFixes.h"
+
 @class VLCInfoTreeItem;
 
-@interface VLCInfo : NSObject
+@interface VLCInfo : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate> {
+
+    VLCInfoTreeItem *rootItem;
+
+    input_item_t *p_item;
+
+    BOOL b_nibLoaded;
+    BOOL b_awakeFromNib;
+    BOOL b_stats;
+
+    // ivars for properties
+
+    input_item_t * _item;
+
+    IBOutlet NSPanel * _infoPanel;
+    IBOutlet NSOutlineView * _outlineView;
+    IBOutlet NSTabView * _tabView;
+
+    IBOutlet NSTextField * _uriLabel;
+    IBOutlet NSTextField * _titleLabel;
+    IBOutlet NSTextField * _authorLabel;
+    IBOutlet NSTextField * _uriTextField;
+    IBOutlet NSTextField * _titleTextField;
+    IBOutlet NSTextField * _authorTextField;
+    IBOutlet NSTextField * _collectionLabel;
+    IBOutlet NSTextField * _collectionTextField;
+    IBOutlet NSTextField * _copyrightLabel;
+    IBOutlet NSTextField * _copyrightTextField;
+    IBOutlet NSTextField * _dateLabel;
+    IBOutlet NSTextField * _dateTextField;
+    IBOutlet NSTextField * _descriptionLabel;
+    IBOutlet NSTextField * _descriptionTextField;
+    IBOutlet NSTextField * _encodedbyLabel;
+    IBOutlet NSTextField * _encodedbyTextField;
+    IBOutlet NSTextField * _genreLabel;
+    IBOutlet NSTextField * _genreTextField;
+    IBOutlet NSTextField * _languageLabel;
+    IBOutlet NSTextField * _languageTextField;
+    IBOutlet NSTextField * _nowPlayingLabel;
+    IBOutlet NSTextField * _nowPlayingTextField;
+    IBOutlet NSTextField * _publisherLabel;
+    IBOutlet NSTextField * _publisherTextField;
+    IBOutlet NSTextField * _seqNumLabel;
+    IBOutlet NSTextField * _seqNumTextField;
+    IBOutlet NSImageView * _imageWell;
+    IBOutlet NSButton * _saveMetaDataButton;
+
+    IBOutlet NSTextField * _audioLabel;
+    IBOutlet NSTextField * _audioDecodedLabel;
+    IBOutlet NSTextField * _audioDecodedTextField;
+    IBOutlet NSTextField * _demuxBitrateLabel;
+    IBOutlet NSTextField * _demuxBitrateTextField;
+    IBOutlet NSTextField * _demuxBytesLabel;
+    IBOutlet NSTextField * _demuxBytesTextField;
+    IBOutlet NSTextField * _displayedLabel;
+    IBOutlet NSTextField * _displayedTextField;
+    IBOutlet NSTextField * _inputBitrateLabel;
+    IBOutlet NSTextField * _inputBitrateTextField;
+    IBOutlet NSTextField * _inputLabel;
+    IBOutlet NSTextField * _lostAudioBuffersLabel;
+    IBOutlet NSTextField * _lostAudioBuffersTextField;
+    IBOutlet NSTextField * _lostFramesLabel;
+    IBOutlet NSTextField * _lostFramesTextField;
+    IBOutlet NSTextField * _playedAudioBuffersLabel;
+    IBOutlet NSTextField * _playedAudioBuffersTextField;
+    IBOutlet NSTextField * _readBytesLabel;
+    IBOutlet NSTextField * _readBytesTextField;
+    IBOutlet NSTextField * _sentBitrateLabel;
+    IBOutlet NSTextField * _sentBitrateTextField;
+    IBOutlet NSTextField * _sentBytesLabel;
+    IBOutlet NSTextField * _sentBytesTextField;
+    IBOutlet NSTextField * _sentPacketsLabel;
+    IBOutlet NSTextField * _sentPacketsTextField;
+    IBOutlet NSTextField * _soutLabel;
+    IBOutlet NSTextField * _videoLabel;
+    IBOutlet NSTextField * _videoDecodedLabel;
+    IBOutlet NSTextField * _videoDecodedTextField;
+
+}
 
 @property (readonly) input_item_t *item;
 
-@property (readwrite, weak) IBOutlet NSPanel *infoPanel;
-@property (readwrite, weak) IBOutlet NSOutlineView *outlineView;
-@property (readwrite, weak) IBOutlet NSTabView *tabView;
+@property (readwrite, assign) IBOutlet NSPanel *infoPanel;
+@property (readwrite, assign) IBOutlet NSOutlineView *outlineView;
+@property (readwrite, assign) IBOutlet NSTabView *tabView;
 
-@property (readwrite, weak) IBOutlet NSTextField *uriLabel;
-@property (readwrite, weak) IBOutlet NSTextField *titleLabel;
-@property (readwrite, weak) IBOutlet NSTextField *authorLabel;
-@property (readwrite, weak) IBOutlet NSTextField *uriTextField;
-@property (readwrite, weak) IBOutlet NSTextField *titleTextField;
-@property (readwrite, weak) IBOutlet NSTextField *authorTextField;
-@property (readwrite, weak) IBOutlet NSTextField *collectionLabel;
-@property (readwrite, weak) IBOutlet NSTextField *collectionTextField;
-@property (readwrite, weak) IBOutlet NSTextField *copyrightLabel;
-@property (readwrite, weak) IBOutlet NSTextField *copyrightTextField;
-@property (readwrite, weak) IBOutlet NSTextField *dateLabel;
-@property (readwrite, weak) IBOutlet NSTextField *dateTextField;
-@property (readwrite, weak) IBOutlet NSTextField *descriptionLabel;
-@property (readwrite, weak) IBOutlet NSTextField *descriptionTextField;
-@property (readwrite, weak) IBOutlet NSTextField *encodedbyLabel;
-@property (readwrite, weak) IBOutlet NSTextField *encodedbyTextField;
-@property (readwrite, weak) IBOutlet NSTextField *genreLabel;
-@property (readwrite, weak) IBOutlet NSTextField *genreTextField;
-@property (readwrite, weak) IBOutlet NSTextField *languageLabel;
-@property (readwrite, weak) IBOutlet NSTextField *languageTextField;
-@property (readwrite, weak) IBOutlet NSTextField *nowPlayingLabel;
-@property (readwrite, weak) IBOutlet NSTextField *nowPlayingTextField;
-@property (readwrite, weak) IBOutlet NSTextField *publisherLabel;
-@property (readwrite, weak) IBOutlet NSTextField *publisherTextField;
-@property (readwrite, weak) IBOutlet NSTextField *seqNumLabel;
-@property (readwrite, weak) IBOutlet NSTextField *seqNumTextField;
-@property (readwrite, weak) IBOutlet NSImageView *imageWell;
-@property (readwrite, weak) IBOutlet NSButton *saveMetaDataButton;
+@property (readwrite, assign) IBOutlet NSTextField *uriLabel;
+@property (readwrite, assign) IBOutlet NSTextField *titleLabel;
+@property (readwrite, assign) IBOutlet NSTextField *authorLabel;
+@property (readwrite, assign) IBOutlet NSTextField *uriTextField;
+@property (readwrite, assign) IBOutlet NSTextField *titleTextField;
+@property (readwrite, assign) IBOutlet NSTextField *authorTextField;
+@property (readwrite, assign) IBOutlet NSTextField *collectionLabel;
+@property (readwrite, assign) IBOutlet NSTextField *collectionTextField;
+@property (readwrite, assign) IBOutlet NSTextField *copyrightLabel;
+@property (readwrite, assign) IBOutlet NSTextField *copyrightTextField;
+@property (readwrite, assign) IBOutlet NSTextField *dateLabel;
+@property (readwrite, assign) IBOutlet NSTextField *dateTextField;
+@property (readwrite, assign) IBOutlet NSTextField *descriptionLabel;
+@property (readwrite, assign) IBOutlet NSTextField *descriptionTextField;
+@property (readwrite, assign) IBOutlet NSTextField *encodedbyLabel;
+@property (readwrite, assign) IBOutlet NSTextField *encodedbyTextField;
+@property (readwrite, assign) IBOutlet NSTextField *genreLabel;
+@property (readwrite, assign) IBOutlet NSTextField *genreTextField;
+@property (readwrite, assign) IBOutlet NSTextField *languageLabel;
+@property (readwrite, assign) IBOutlet NSTextField *languageTextField;
+@property (readwrite, assign) IBOutlet NSTextField *nowPlayingLabel;
+@property (readwrite, assign) IBOutlet NSTextField *nowPlayingTextField;
+@property (readwrite, assign) IBOutlet NSTextField *publisherLabel;
+@property (readwrite, assign) IBOutlet NSTextField *publisherTextField;
+@property (readwrite, assign) IBOutlet NSTextField *seqNumLabel;
+@property (readwrite, assign) IBOutlet NSTextField *seqNumTextField;
+@property (readwrite, assign) IBOutlet NSImageView *imageWell;
+@property (readwrite, assign) IBOutlet NSButton *saveMetaDataButton;
 
-@property (readwrite, weak) IBOutlet NSTextField *audioLabel;
-@property (readwrite, weak) IBOutlet NSTextField *audioDecodedLabel;
-@property (readwrite, weak) IBOutlet NSTextField *audioDecodedTextField;
-@property (readwrite, weak) IBOutlet NSTextField *demuxBitrateLabel;
-@property (readwrite, weak) IBOutlet NSTextField *demuxBitrateTextField;
-@property (readwrite, weak) IBOutlet NSTextField *demuxBytesLabel;
-@property (readwrite, weak) IBOutlet NSTextField *demuxBytesTextField;
-@property (readwrite, weak) IBOutlet NSTextField *displayedLabel;
-@property (readwrite, weak) IBOutlet NSTextField *displayedTextField;
-@property (readwrite, weak) IBOutlet NSTextField *inputBitrateLabel;
-@property (readwrite, weak) IBOutlet NSTextField *inputBitrateTextField;
-@property (readwrite, weak) IBOutlet NSTextField *inputLabel;
-@property (readwrite, weak) IBOutlet NSTextField *lostAudioBuffersLabel;
-@property (readwrite, weak) IBOutlet NSTextField *lostAudioBuffersTextField;
-@property (readwrite, weak) IBOutlet NSTextField *lostFramesLabel;
-@property (readwrite, weak) IBOutlet NSTextField *lostFramesTextField;
-@property (readwrite, weak) IBOutlet NSTextField *playedAudioBuffersLabel;
-@property (readwrite, weak) IBOutlet NSTextField *playedAudioBuffersTextField;
-@property (readwrite, weak) IBOutlet NSTextField *readBytesLabel;
-@property (readwrite, weak) IBOutlet NSTextField *readBytesTextField;
-@property (readwrite, weak) IBOutlet NSTextField *sentBitrateLabel;
-@property (readwrite, weak) IBOutlet NSTextField *sentBitrateTextField;
-@property (readwrite, weak) IBOutlet NSTextField *sentBytesLabel;
-@property (readwrite, weak) IBOutlet NSTextField *sentBytesTextField;
-@property (readwrite, weak) IBOutlet NSTextField *sentPacketsLabel;
-@property (readwrite, weak) IBOutlet NSTextField *sentPacketsTextField;
-@property (readwrite, weak) IBOutlet NSTextField *soutLabel;
-@property (readwrite, weak) IBOutlet NSTextField *videoLabel;
-@property (readwrite, weak) IBOutlet NSTextField *videoDecodedLabel;
-@property (readwrite, weak) IBOutlet NSTextField *videoDecodedTextField;
+@property (readwrite, assign) IBOutlet NSTextField *audioLabel;
+@property (readwrite, assign) IBOutlet NSTextField *audioDecodedLabel;
+@property (readwrite, assign) IBOutlet NSTextField *audioDecodedTextField;
+@property (readwrite, assign) IBOutlet NSTextField *demuxBitrateLabel;
+@property (readwrite, assign) IBOutlet NSTextField *demuxBitrateTextField;
+@property (readwrite, assign) IBOutlet NSTextField *demuxBytesLabel;
+@property (readwrite, assign) IBOutlet NSTextField *demuxBytesTextField;
+@property (readwrite, assign) IBOutlet NSTextField *displayedLabel;
+@property (readwrite, assign) IBOutlet NSTextField *displayedTextField;
+@property (readwrite, assign) IBOutlet NSTextField *inputBitrateLabel;
+@property (readwrite, assign) IBOutlet NSTextField *inputBitrateTextField;
+@property (readwrite, assign) IBOutlet NSTextField *inputLabel;
+@property (readwrite, assign) IBOutlet NSTextField *lostAudioBuffersLabel;
+@property (readwrite, assign) IBOutlet NSTextField *lostAudioBuffersTextField;
+@property (readwrite, assign) IBOutlet NSTextField *lostFramesLabel;
+@property (readwrite, assign) IBOutlet NSTextField *lostFramesTextField;
+@property (readwrite, assign) IBOutlet NSTextField *playedAudioBuffersLabel;
+@property (readwrite, assign) IBOutlet NSTextField *playedAudioBuffersTextField;
+@property (readwrite, assign) IBOutlet NSTextField *readBytesLabel;
+@property (readwrite, assign) IBOutlet NSTextField *readBytesTextField;
+@property (readwrite, assign) IBOutlet NSTextField *sentBitrateLabel;
+@property (readwrite, assign) IBOutlet NSTextField *sentBitrateTextField;
+@property (readwrite, assign) IBOutlet NSTextField *sentBytesLabel;
+@property (readwrite, assign) IBOutlet NSTextField *sentBytesTextField;
+@property (readwrite, assign) IBOutlet NSTextField *sentPacketsLabel;
+@property (readwrite, assign) IBOutlet NSTextField *sentPacketsTextField;
+@property (readwrite, assign) IBOutlet NSTextField *soutLabel;
+@property (readwrite, assign) IBOutlet NSTextField *videoLabel;
+@property (readwrite, assign) IBOutlet NSTextField *videoDecodedLabel;
+@property (readwrite, assign) IBOutlet NSTextField *videoDecodedTextField;
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level;
 - (void)initPanel;
@@ -111,7 +191,19 @@
 + (VLCInfo *)sharedInstance;
 @end
 
-@interface VLCInfoTreeItem : NSObject
+@interface VLCInfoTreeItem : NSObject {
+
+    int _numberOfChildren;
+    NSString* _name;
+    NSString* _value;
+
+    int i_object_id;
+    input_item_t *p_item;
+    VLCInfoTreeItem *_parent;
+    NSMutableArray *_children;
+    BOOL _isALeafNode;
+
+}
 
 @property (readonly) int numberOfChildren;
 @property (readonly) NSString *name;

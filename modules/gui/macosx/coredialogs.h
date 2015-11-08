@@ -45,14 +45,17 @@
     IBOutlet id o_auth_win;
 
     /* progress dialogue */
+    BOOL _progressCancelled;
     IBOutlet NSProgressIndicator * o_prog_bar;
     IBOutlet id o_prog_cancel_btn;
     IBOutlet id o_prog_description_txt;
     IBOutlet id o_prog_title_txt;
     IBOutlet id o_prog_win;
+    
+    ErrorWindowController *o_error_panel;
 }
 
-@property (atomic,readwrite) BOOL progressCancelled;
+@property (readwrite) BOOL progressCancelled;
 
 -(void)performEventWithObject: (NSValue *)o_value ofType: (const char*)type;
 

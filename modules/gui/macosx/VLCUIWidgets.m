@@ -29,25 +29,37 @@
 
 @implementation VLCDialogButton
 
+@synthesize widget = _widget;
+
 @end
 
 
 @implementation VLCDialogPopUpButton
+
+@synthesize widget = _widget;
 
 @end
 
 
 @implementation VLCDialogTextField
 
+@synthesize widget = _widget;
+
 @end
 
 
 @implementation VLCDialogWindow
 
+@synthesize dialog = _dialog;
+@synthesize has_lock = _has_lock;
+
 @end
 
 
 @implementation VLCDialogList
+
+@synthesize widget = _widget;
+@synthesize contentArray = _contentArray;
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView
 {
@@ -60,14 +72,9 @@
 }
 @end
 
-@interface VLCDialogGridView()
-{
-    NSUInteger _rowCount, _colCount;
-    NSMutableArray *_griddedViews;
-}
-@end
-
 @implementation VLCDialogGridView
+
+@synthesize numViews = _numViews;
 
 - (NSUInteger)numViews
 {

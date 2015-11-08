@@ -23,12 +23,20 @@
 
 #include <vlc_common.h>
 
-@interface PLItem : NSObject
+@interface PLItem : NSObject {
+
+    // ivars for properties
+    NSMutableArray *_children;
+    int _plItemId;
+    input_item_t *_input;
+    PLItem *_parent;
+
+}
 
 @property(readonly, copy) NSMutableArray *children;
 @property(readonly) int plItemId;
 @property(readonly) input_item_t *input;
-@property(readwrite, weak) PLItem *parent;
+@property(readwrite, assign) PLItem *parent;
 
 - (id)initWithPlaylistItem:(playlist_item_t *)p_item;
 

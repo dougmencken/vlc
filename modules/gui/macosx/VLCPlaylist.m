@@ -64,25 +64,21 @@
 + (NSImage *)_defaultTableHeaderReverseSortImage;
 @end
 
-@interface VLCPlaylist ()
-{
-    NSImage *_descendingSortingImage;
-    NSImage *_ascendingSortingImage;
-
-    BOOL b_selected_item_met;
-    BOOL b_isSortDescending;
-    NSTableColumn *_sortTableColumn;
-
-    BOOL b_playlistmenu_nib_loaded;
-    BOOL b_view_setup;
-
-    PLModel *_model;
-}
-
-- (void)saveTableColumns;
-@end
-
 @implementation VLCPlaylist
+
+@synthesize playlistMenu = _playlistMenu;
+@synthesize playPlaylistMenuItem = _playPlaylistMenuItem;
+@synthesize deletePlaylistMenuItem = _deletePlaylistMenuItem;
+@synthesize infoPlaylistMenuItem = _infoPlaylistMenuItem;
+@synthesize preparsePlaylistMenuItem = _preparsePlaylistMenuItem;
+@synthesize revealInFinderPlaylistMenuItem = _revealInFinderPlaylistMenuItem;
+@synthesize downloadCoverArtPlaylistMenuItem = _downloadCoverArtPlaylistMenuItem;
+@synthesize selectAllPlaylistMenuItem = _selectAllPlaylistMenuItem;
+@synthesize sortNamePlaylistMenuItem = _sortNamePlaylistMenuItem;
+@synthesize sortAuthorPlaylistMenuItem = _sortAuthorPlaylistMenuItem;
+@synthesize recursiveExpandPlaylistMenuItem = _recursiveExpandPlaylistMenuItem;
+@synthesize outlineView = _outlineView;
+@synthesize playlistHeaderView = _playlistHeaderView;
 
 + (void)initialize
 {
@@ -120,7 +116,7 @@
     NSArray *columns = [_outlineView tableColumns];
     NSUInteger count = columns.count;
     for (NSUInteger x = 0; x < count; x++)
-        [[columns[x] dataCell] setFont:fontToUse];
+        [[[columns objectAtIndex:x] dataCell] setFont:fontToUse];
     [_outlineView setRowHeight:rowHeight];
 }
 
@@ -145,7 +141,7 @@
     b_view_setup = YES;
 }
 
-- (void)setOutlineView:(VLCPlaylistView * __nullable)outlineView
+- (void)setOutlineView:(VLCPlaylistView *)outlineView
 {
     _outlineView = outlineView;
     [_outlineView setDelegate:self];
@@ -164,7 +160,7 @@
     [_outlineView setIntercellSpacing: NSMakeSize (0.0, 1.0)];
 }
 
-- (void)setPlaylistHeaderView:(NSTableHeaderView * __nullable)playlistHeaderView
+- (void)setPlaylistHeaderView:(NSTableHeaderView *)playlistHeaderView
 {
     VLCMainMenu *mainMenu = [[VLCMain sharedInstance] mainMenu];
     _playlistHeaderView = playlistHeaderView;
@@ -176,14 +172,14 @@
     NSString * column;
 
     for (NSUInteger i = 0; i < columnCount; i++) {
-        column = [columnArray[i] firstObject];
+        column = [[columnArray objectAtIndex:i] objectAtIndex:0];
         if ([column isEqualToString:@"status"])
             continue;
 
         if(![mainMenu setPlaylistColumnTableState: NSOnState forColumn:column])
             continue;
 
-        [[_outlineView tableColumnWithIdentifier: column] setWidth: [columnArray[i][1] floatValue]];
+        [[_outlineView tableColumnWithIdentifier: column] setWidth: [[[columnArray objectAtIndex:i] objectAtIndex:1] floatValue]];
     }
 }
 
@@ -315,8 +311,10 @@
 - (IBAction)revealItemInFinder:(id)sender
 {
     NSIndexSet *selectedRows = [_outlineView selectedRowIndexes];
-    [selectedRows enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
+    NSUInteger idx = [selectedRows firstIndex];
+    NSUInteger lastIdx = [selectedRows lastIndex];
 
+    do {
         PLItem *o_item = [_outlineView itemAtRow:idx];
 
         /* perform some checks whether it is a file and if it is local at all... */
@@ -330,8 +328,9 @@
 
         msg_Dbg(VLCIntf, "Reveal url %s in finder", [[url path] UTF8String]);
         [[NSWorkspace sharedWorkspace] selectFile: [url path] inFileViewerRootedAtPath: [url path]];
-    }];
 
+        idx = [selectedRows indexGreaterThanIndex: idx];
+    } while (idx != lastIdx);
 }
 
 /* When called retrieves the selected outlineview row and plays that node or item */
@@ -487,7 +486,7 @@
     if (optionsArray) {
         NSUInteger count = [optionsArray count];
         for (NSUInteger i = 0; i < count; i++)
-            input_item_AddOption(p_input, [optionsArray[i] UTF8String], VLC_INPUT_OPTION_TRUSTED);
+            input_item_AddOption(p_input, [[optionsArray objectAtIndex:i] UTF8String], VLC_INPUT_OPTION_TRUSTED);
     }
 
     /* Recent documents menu */
@@ -531,7 +530,7 @@
     int i_current_offset = 0;
     for (NSUInteger i = 0; i < count; ++i) {
 
-        NSDictionary *o_current_item = array[i];
+        NSDictionary *o_current_item = [array objectAtIndex:i];
         input_item_t *p_input = [self createItem: o_current_item];
         if (!p_input)
             continue;
@@ -633,7 +632,7 @@
     /* Clear indications of any existing column sorting */
     NSUInteger count = [[_outlineView tableColumns] count];
     for (NSUInteger i = 0 ; i < count ; i++)
-        [_outlineView setIndicatorImage:nil inTableColumn: [_outlineView tableColumns][i]];
+        [_outlineView setIndicatorImage:nil inTableColumn: [[_outlineView tableColumns] objectAtIndex:i]];
 
     [_outlineView setHighlightedTableColumn:nil];
     _sortTableColumn = aTableColumn;
@@ -725,7 +724,7 @@
     NSUInteger columnCount = [columns count];
     NSTableColumn *currentColumn;
     for (NSUInteger i = 0; i < columnCount; i++) {
-        currentColumn = columns[i];
+        currentColumn = [columns objectAtIndex:i];
         [arrayToSave addObject:[NSArray arrayWithObjects:[currentColumn identifier], [NSNumber numberWithFloat:[currentColumn width]], nil]];
     }
     [[NSUserDefaults standardUserDefaults] setObject:arrayToSave forKey:@"PlaylistColumnSelection"];
@@ -787,32 +786,21 @@
     if (!lastPosition || lastPosition.intValue <= 0)
         return;
 
+    ResumeDialogController* resumeDialog = [[VLCMain sharedInstance] resumeDialog];
+
     int settingValue = config_GetInt(VLCIntf, "macosx-continue-playback");
     if (settingValue == 2) // never resume
         return;
 
-    CompletionBlock completionBlock = ^(enum ResumeResult result) {
-
-        if (result == RESUME_RESTART)
-            return;
-
-        mtime_t lastPos = (mtime_t)lastPosition.intValue * 1000000;
-        msg_Dbg(VLCIntf, "continuing playback at %lld", lastPos);
-        var_SetInteger(p_input_thread, "time", lastPos);
-
-        if (result == RESUME_ALWAYS)
-            config_PutInt(VLCIntf, "macosx-continue-playback", 1);
-    };
-
     if (settingValue == 1) { // always
-        completionBlock(RESUME_NOW);
+        [resumeDialog setResumeResult:RESUME_NOW];
         return;
     }
 
-    [[[VLCMain sharedInstance] resumeDialog] showWindowWithItem:p_item
-                                               withLastPosition:lastPosition.intValue
-                                                completionBlock:completionBlock];
-
+    [resumeDialog showWindowWithItem:p_item
+                    withLastPosition:lastPosition.intValue
+                              target:resumeDialog
+                            selector:@selector(doContinuePlayback)];
 }
 
 - (void)storePlaybackPositionForItem:(input_thread_t *)p_input_thread
@@ -850,7 +838,7 @@
         NSUInteger mediaListCount = mediaList.count;
         if (mediaListCount > 30) {
             for (NSUInteger x = 0; x < mediaListCount - 30; x++) {
-                [mutDict removeObjectForKey:[mediaList firstObject]];
+                [mutDict removeObjectForKey:[mediaList objectAtIndex:0]];
                 [mediaList removeObjectAtIndex:0];
             }
         }

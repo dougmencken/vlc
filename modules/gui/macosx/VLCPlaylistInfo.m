@@ -22,42 +22,101 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  ******************************************************************************/
 
-#import "CompatibilityFixes.h"
 #import "intf.h"
 #import "VLCPlaylistInfo.h"
 #import "VLCPlaylist.h"
 #import <vlc_url.h>
 
-@interface VLCInfo () <NSOutlineViewDataSource, NSOutlineViewDelegate>
-{
-    VLCInfoTreeItem *rootItem;
-
-    input_item_t *p_item;
-
-    BOOL b_nibLoaded;
-    BOOL b_awakeFromNib;
-    BOOL b_stats;
-}
-@end
-
 @implementation VLCInfo
+
+@synthesize item = _item;
+@synthesize infoPanel = _infoPanel;
+@synthesize outlineView = _outlineView;
+@synthesize tabView = _tabView;
+@synthesize uriLabel = _uriLabel;
+@synthesize titleLabel = _titleLabel;
+@synthesize authorLabel = _authorLabel;
+@synthesize uriTextField = _uriTextField;
+@synthesize titleTextField = _titleTextField;
+@synthesize authorTextField = _authorTextField;
+@synthesize collectionLabel = _collectionLabel;
+@synthesize collectionTextField = _collectionTextField;
+@synthesize copyrightLabel = _copyrightLabel;
+@synthesize copyrightTextField = _copyrightTextField;
+@synthesize dateLabel = _dateLabel;
+@synthesize dateTextField = _dateTextField;
+@synthesize descriptionLabel = _descriptionLabel;
+@synthesize descriptionTextField = _descriptionTextField;
+@synthesize encodedbyLabel = _encodedbyLabel;
+@synthesize encodedbyTextField = _encodedbyTextField;
+@synthesize genreLabel = _genreLabel;
+@synthesize genreTextField = _genreTextField;
+@synthesize languageLabel = _languageLabel;
+@synthesize languageTextField = _languageTextField;
+@synthesize nowPlayingLabel = _nowPlayingLabel;
+@synthesize nowPlayingTextField = _nowPlayingTextField;
+@synthesize publisherLabel = _publisherLabel;
+@synthesize publisherTextField = _publisherTextField;
+@synthesize seqNumLabel = _seqNumLabel;
+@synthesize seqNumTextField = _seqNumTextField;
+@synthesize imageWell = _imageWell;
+@synthesize saveMetaDataButton = _saveMetaDataButton;
+@synthesize audioLabel = _audioLabel;
+@synthesize audioDecodedLabel = _audioDecodedLabel;
+@synthesize audioDecodedTextField = _audioDecodedTextField;
+@synthesize demuxBitrateLabel = _demuxBitrateLabel;
+@synthesize demuxBitrateTextField = _demuxBitrateTextField;
+@synthesize demuxBytesLabel = _demuxBytesLabel;
+@synthesize demuxBytesTextField = _demuxBytesTextField;
+@synthesize displayedLabel = _displayedLabel;
+@synthesize displayedTextField = _displayedTextField;
+@synthesize inputBitrateLabel = _inputBitrateLabel;
+@synthesize inputBitrateTextField = _inputBitrateTextField;
+@synthesize inputLabel = _inputLabel;
+@synthesize lostAudioBuffersLabel = _lostAudioBuffersLabel;
+@synthesize lostAudioBuffersTextField = _lostAudioBuffersTextField;
+@synthesize lostFramesLabel = _lostFramesLabel;
+@synthesize lostFramesTextField = _lostFramesTextField;
+@synthesize playedAudioBuffersLabel = _playedAudioBuffersLabel;
+@synthesize playedAudioBuffersTextField = _playedAudioBuffersTextField;
+@synthesize readBytesLabel = _readBytesLabel;
+@synthesize readBytesTextField = _readBytesTextField;
+@synthesize sentBitrateLabel = _sentBitrateLabel;
+@synthesize sentBitrateTextField = _sentBitrateTextField;
+@synthesize sentBytesLabel = _sentBytesLabel;
+@synthesize sentBytesTextField = _sentBytesTextField;
+@synthesize sentPacketsLabel = _sentPacketsLabel;
+@synthesize sentPacketsTextField = _sentPacketsTextField;
+@synthesize soutLabel = _soutLabel;
+@synthesize videoLabel = _videoLabel;
+@synthesize videoDecodedLabel = _videoDecodedLabel;
+@synthesize videoDecodedTextField = _videoDecodedTextField;
+
+static VLCInfo *sharedInstance = nil;
 
 + (VLCInfo *)sharedInstance
 {
-    static VLCInfo *sharedInstance = nil;
-    static dispatch_once_t pred;
-
-    dispatch_once(&pred, ^{
-        sharedInstance = [VLCInfo new];
-    });
-
+    @synchronized(self) {
+        if (sharedInstance == nil) {
+            sharedInstance = [VLCInfo new];
+        }
+    }
     return sharedInstance;
+}
+
++ (void)killInstance
+{
+    sharedInstance = nil;
 }
 
 - (void)awakeFromNib
 {
     [_infoPanel setExcludedFromWindowsMenu: YES];
-    [_infoPanel setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        [_infoPanel setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     [_infoPanel setTitle: _NS("Media Information")];
 
@@ -122,6 +181,8 @@
 {
     if (p_item)
         vlc_gc_decref(p_item);
+
+    [super dealloc];
 }
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level
@@ -182,7 +243,8 @@
 
 - (void)updatePanelWithItem:(input_item_t *)_p_item;
 {
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         rootItem = [[VLCInfoTreeItem alloc] init];
 
         if (_p_item != p_item) {
@@ -270,6 +332,7 @@
         /* update the stats once to display p_item change faster */
         [self updateStatistics];
     }
+    [pool drain];
 }
 
 - (void)setMeta: (char *)psz_meta forLabel: (id)theItem
@@ -417,18 +480,11 @@ error:
 
 @end
 
-@interface VLCInfoTreeItem ()
-{
-    int i_object_id;
-    input_item_t *p_item;
-    VLCInfoTreeItem *_parent;
-    NSMutableArray *_children;
-    BOOL _isALeafNode;
-}
-
-@end
-
 @implementation VLCInfoTreeItem
+
+@synthesize numberOfChildren = _numberOfChildren;
+@synthesize name = _name;
+@synthesize value = _value;
 
 - (id)initWithName:(NSString *)item_name
              value:(NSString *)item_value
@@ -456,6 +512,8 @@ error:
 {
     if (p_item)
         vlc_gc_decref(p_item);
+
+    [super dealloc];
 }
 
 /* Creates and returns the array of children

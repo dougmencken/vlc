@@ -24,14 +24,16 @@
 #import "misc.h"
 #import "StringUtility.h"
 
-@interface VLCTimeSelectionPanelController()
-{
-    TimeSelectionCompletionHandler _completionHandler;
-}
-
-@end
-
 @implementation VLCTimeSelectionPanelController
+
+@synthesize cancelButton = _cancelButton;
+@synthesize textField = _textField;
+@synthesize goToLabel = _goToLabel;
+@synthesize okButton = _okButton;
+@synthesize secsLabel = _secsLabel;
+@synthesize stepper = _stepper;
+@synthesize jumpTimeValue = _jumpTimeValue;
+@synthesize maxValue = _maxValue;
 
 #pragma mark - object handling
 
@@ -56,8 +58,8 @@
 
 - (IBAction)buttonPressed:(id)sender
 {
-    [self.window orderOut:sender];
-    [NSApp endSheet: self.window];
+    [[self window] orderOut:sender];
+    [NSApp endSheet: [self window]];
 
     // calculate resulting time in secs:
     int64_t timeInSec = 0;
@@ -68,30 +70,29 @@
         [string componentsSeparatedByString: @":"];
 
         if ([[string componentsSeparatedByString: @":"] count] == 3) {
-            timeInSec += ([[ourTempArray firstObject] intValue] *3600); //h
+            timeInSec += ([[ourTempArray objectAtIndex:0] intValue] *3600); //h
             timeInSec += ([[ourTempArray objectAtIndex:1] intValue] *60); //m
             timeInSec += [[ourTempArray objectAtIndex:2] intValue];        //s
         } else {
-            timeInSec += ([[ourTempArray firstObject] intValue] *60); //m
+            timeInSec += ([[ourTempArray objectAtIndex:0] intValue] *60); //m
             timeInSec += [[ourTempArray objectAtIndex:1] intValue]; //s
         }
     }
     else
         timeInSec = [string intValue];
 
-    if (_completionHandler)
-        _completionHandler(sender == _okButton ? NSOKButton : NSCancelButton, timeInSec);
+    ////if (_completionHandler)
+        ////_completionHandler(sender == _okButton ? NSOKButton : NSCancelButton, timeInSec);
 }
 
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(TimeSelectionCompletionHandler)handler
+- (void)runModalForWindow:(NSWindow *)window target:(id)obj completionSelector:(SEL)sel
 {
-    [self window];
-    [_stepper setMaxValue:self.maxValue];
+    [_stepper setMaxValue:[self maxValue]];
 
-    _completionHandler = [handler copy];
-    [NSApp beginSheet:self.window
-       modalForWindow:window modalDelegate:self
-       didEndSelector:nil
+    [NSApp beginSheet:[self window]
+       modalForWindow:window
+        modalDelegate:obj
+       didEndSelector:sel
           contextInfo:nil];
 }
 

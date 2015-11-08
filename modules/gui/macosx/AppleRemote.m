@@ -53,9 +53,9 @@
 
 #import "AppleRemote.h"
 
-/* this was added by the VideoLAN team to ensure Leopard-compatibility and is VLC-only */
-#import "intf.h"
+/* this one to ensure Leopard-compatibility */
 #import "CompatibilityFixes.h"
+#import "intf.h"
 
 const char* AppleRemoteDeviceName = "AppleIRController";
 const int REMOTE_SWITCH_COOKIE=19;
@@ -64,13 +64,24 @@ const NSTimeInterval HOLD_RECOGNITION_TIME_INTERVAL=0.4;
 
 @implementation AppleRemote
 
+@synthesize remoteId = remoteId;
+@synthesize remoteAvailable = remoteAvailable;
+@synthesize listeningToRemote = listeningToRemote;
+@synthesize openInExclusiveMode = openInExclusiveMode;
+@synthesize clickCountingEnabled = clickCountingEnabled;
+@synthesize clickCountEnabledButtons = clickCountEnabledButtons;
+@synthesize maximumClickCountTimeDifference = maximumClickCountTimeDifference;
+@synthesize processesBacklog = processesBacklog;
+@synthesize listeningOnAppActivate = listeningOnAppActivate;
+@synthesize simulatesPlusMinusHold = simulatesPlusMinusHold;
+
 #pragma public interface
 
 - (id)init
 {
     self = [super init];
     if (self) {
-        _openInExclusiveMode = YES;
+        openInExclusiveMode = YES;
         queue = NULL;
         hidDeviceInterface = NULL;
         NSMutableDictionary * mutableCookieToButtonMapping = [[NSMutableDictionary alloc] init];
@@ -87,19 +98,27 @@ const NSTimeInterval HOLD_RECOGNITION_TIME_INTERVAL=0.4;
         [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:kRemoteButtonPlay_Sleep]     forKey:@"37_33_21_20_2_37_33_21_20_2_"];
         [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:k2009RemoteButtonPlay]       forKey:@"33_21_20_8_2_33_21_20_8_2_"];
         [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:k2009RemoteButtonFullscreen] forKey:@"33_21_20_3_2_33_21_20_3_2_"];
-        [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:kRemoteControl_Switched]     forKey:@"42_33_23_21_20_2_33_23_21_20_2_"];
+
+        if( OSX_SNOW_LEOPARD ) {
+            /* Snow Leopard cookies */
+            [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:kRemoteControl_Switched] forKey:@"19_"];
+        } else {
+            /* Lion cookies */
+            [mutableCookieToButtonMapping setObject:[NSNumber numberWithInt:kRemoteControl_Switched] forKey:@"42_33_23_21_20_2_33_23_21_20_2_"];
+        }
 
         _cookieToButtonMapping = [[NSDictionary alloc] initWithDictionary: mutableCookieToButtonMapping];
 
         /* defaults */
-        _simulatesPlusMinusHold = YES;
-        _maximumClickCountTimeDifference = DEFAULT_MAXIMUM_CLICK_TIME_DIFFERENCE;
+        simulatesPlusMinusHold = YES;
+        maximumClickCountTimeDifference = DEFAULT_MAXIMUM_CLICK_TIME_DIFFERENCE;
     }
     return self;
 }
 
 - (void) dealloc {
     [self stopListening:self];
+    [super dealloc];
 }
 
 - (int) remoteId {
@@ -133,10 +152,10 @@ const NSTimeInterval HOLD_RECOGNITION_TIME_INTERVAL=0.4;
  * Delegating objects do not (and should not) retain their delegates.
  * However, clients of delegating objects (applications, usually) are responsible for ensuring that their delegates are around
  * to receive delegation messages. To do this, they may have to retain the delegate. */
-- (void) setDelegate: (id) _delegate {
-    if (_delegate && [_delegate respondsToSelector:@selector(appleRemoteButton:pressedDown:clickCount:)]==NO) return;
+- (void) setDelegate: (id) deleg {
+    if (deleg && [deleg respondsToSelector:@selector(appleRemoteButton:pressedDown:clickCount:)] == NO) return;
 
-    delegate = _delegate;
+    delegate = deleg;
 }
 - (id) delegate {
     return delegate;
@@ -345,7 +364,7 @@ static AppleRemote* sharedInstance=nil;
             }
             [self performSelector: @selector(executeClickCountEvent:)
                        withObject: [NSArray arrayWithObjects: eventNumber, timeNumber, nil]
-                       afterDelay: _maximumClickCountTimeDifference];
+                       afterDelay: maximumClickCountTimeDifference];
         } else {
             [delegate appleRemoteButton:event pressedDown: pressedDown clickCount:1];
         }
@@ -353,7 +372,7 @@ static AppleRemote* sharedInstance=nil;
 }
 
 - (void) executeClickCountEvent: (NSArray*) values {
-    AppleRemoteEventIdentifier event = [[values firstObject] unsignedIntValue];
+    AppleRemoteEventIdentifier event = [[values objectAtIndex:0] unsignedIntValue];
     NSTimeInterval eventTimePoint = [[values objectAtIndex:1] doubleValue];
 
     BOOL finishedClicking = NO;
@@ -415,7 +434,7 @@ static AppleRemote* sharedInstance=nil;
 Will be called for any event of any type (cookie) to which we subscribe
 */
 static void QueueCallbackFunction(void* target,  IOReturn result, void* refcon, void* sender) {
-    AppleRemote* remote = (__bridge AppleRemote*)target;
+    AppleRemote* remote = (AppleRemote*)target;
 
     IOHIDEventStruct event;
     AbsoluteTime     zeroTime = {0,0};
@@ -522,7 +541,7 @@ static void QueueCallbackFunction(void* target,  IOReturn result, void* refcon, 
     success = (*handle)->copyMatchingElements(handle, NULL, &elementsRef);
 
     if (success == kIOReturnSuccess) {
-        NSArray *elements = (__bridge NSArray *)elementsRef;
+        NSArray *elements = (NSArray *)elementsRef;
 
         /*
         cookies = calloc(NUMBER_OF_APPLE_REMOTE_ACTIONS, sizeof(IOHIDElementCookie));
@@ -536,7 +555,7 @@ static void QueueCallbackFunction(void* target,  IOReturn result, void* refcon, 
             //Get cookie
             object = [element valueForKey: (NSString*)CFSTR(kIOHIDElementCookieKey) ];
             if (object == nil || ![object isKindOfClass:[NSNumber class]]) continue;
-            if (object == 0 || CFGetTypeID((__bridge CFTypeRef)(object)) != CFNumberGetTypeID()) continue;
+            if (object == 0 || CFGetTypeID((CFTypeRef)(object)) != CFNumberGetTypeID()) continue;
             cookie = (IOHIDElementCookie) [object longValue];
 
             //Get usage
@@ -584,7 +603,7 @@ static void QueueCallbackFunction(void* target,  IOReturn result, void* refcon, 
             // add callback for async events
             ioReturnValue = (*queue)->createAsyncEventSource(queue, &eventSource);
             if (ioReturnValue == KERN_SUCCESS) {
-                ioReturnValue = (*queue)->setEventCallout(queue,QueueCallbackFunction, (__bridge void *)(self), NULL);
+                ioReturnValue = (*queue)->setEventCallout(queue,QueueCallbackFunction, (void *)(self), NULL);
                 if (ioReturnValue == KERN_SUCCESS) {
                     CFRunLoopAddSource(CFRunLoopGetCurrent(), eventSource, kCFRunLoopDefaultMode);
                     //start data delivery to queue

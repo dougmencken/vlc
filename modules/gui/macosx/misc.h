@@ -45,6 +45,7 @@
  *****************************************************************************/
 
 @interface NSAnimation (VLCAdditions)
+
 @property (readwrite) void * userInfo;
 
 @end
@@ -65,8 +66,11 @@
 - (void)blackoutOtherScreens;
 + (void)unblackoutScreens;
 
+#ifdef MAC_OS_X_VERSION_10_6
 - (void)setFullscreenPresentationOptions;
 - (void)setNonFullscreenPresentationOptions;
+#endif
+
 @end
 
 /*****************************************************************************
@@ -85,7 +89,12 @@
  * VLCDragDropView
  *****************************************************************************/
 
-@interface VLCDragDropView : NSView
+@interface VLCDragDropView : NSView {
+    bool b_activeDragAndDrop;
+    
+    id _dropHandler;
+    BOOL _drawBorder;
+}
 
 @property (nonatomic, assign) id dropHandler;
 @property (nonatomic, assign) BOOL drawBorder;
@@ -118,7 +127,13 @@
  * TimeLineSlider
  *****************************************************************************/
 
-@interface TimeLineSlider : NSSlider
+@interface TimeLineSlider : NSSlider {
+    NSImage *o_knob_img;
+    NSRect img_rect;
+    BOOL b_dark;
+    
+    CGFloat _knobPosition;
+}
 
 @property (readonly) CGFloat knobPosition;
 
@@ -131,7 +146,9 @@
  * VLCVolumeSliderCommon
  *****************************************************************************/
 
-@interface VLCVolumeSliderCommon : NSSlider
+@interface VLCVolumeSliderCommon : NSSlider {
+    BOOL _usesBrightArtwork;
+}
 
 @property (readwrite, nonatomic) BOOL usesBrightArtwork;
 
@@ -139,6 +156,8 @@
 - (void)drawFullVolumeMarker;
 
 - (CGFloat)fullVolumePos;
+
+- (void)drawFullVolBezierPath:(NSBezierPath*)bezierPath;
 
 @end
 
@@ -149,7 +168,10 @@
  * ITSlider
  *****************************************************************************/
 
-@interface ITSlider : VLCVolumeSliderCommon
+@interface ITSlider : VLCVolumeSliderCommon {
+    NSImage *img;
+    NSRect image_rect;
+}
 
 @end
 
@@ -159,7 +181,13 @@
  * we need the implementation to catch our click-event in the controller window
  *****************************************************************************/
 
-@interface VLCTimeField : NSTextField
+@interface VLCTimeField : NSTextField {
+    NSShadow * o_string_shadow;
+    NSTextAlignment textAlignment;
+
+    NSString *o_remaining_identifier;
+    BOOL b_time_remaining;
+}
 
 @property (readonly) BOOL timeRemaining;
 
@@ -177,7 +205,11 @@
 /*****************************************************************************
  * VLCThreePartImageView interface
  *****************************************************************************/
-@interface VLCThreePartImageView : NSView
+@interface VLCThreePartImageView : NSView {
+    NSImage *_left_img;
+    NSImage *_middle_img;
+    NSImage *_right_img;
+}
 
 - (void)setImagesLeft:(NSImage *)left middle: (NSImage *)middle right:(NSImage *)right;
 
@@ -189,7 +221,9 @@
  *
  * Formats a text field to only accept decimals and :
  *****************************************************************************/
-@interface PositionFormatter : NSFormatter
+@interface PositionFormatter : NSFormatter {
+    NSCharacterSet *o_forbidden_characters;
+}
 
 - (NSString*)stringForObjectValue:(id)obj;
 

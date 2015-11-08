@@ -15,6 +15,14 @@
 
 @implementation SideBarItem
 
+@synthesize title = _title;
+@synthesize identifier = _identifier;
+@synthesize untranslatedTitle = _untranslatedTitle;
+@synthesize icon = _icon;
+@synthesize badgeValue = _badgeValue;
+@synthesize sdtype = _sdtype;
+@synthesize children = _children;
+
 #pragma mark -
 #pragma mark Init/Dealloc/Finalize
 

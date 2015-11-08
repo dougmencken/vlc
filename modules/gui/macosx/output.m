@@ -28,19 +28,57 @@
 #include "intf.h"
 #include "output.h"
 
-@interface VLCOutput()
-{
-    NSString *_transcode;
-    NSArray *_soutMRL;
-}
-@end
-
 @implementation VLCOutput
 
-- (NSArray *)soutMRL
-{
-    return _soutMRL;
-}
+@synthesize outputSheet = _outputSheet;
+@synthesize okButton = _okButton;
+
+@synthesize optionsBox = _optionsBox;
+@synthesize displayOnLocalScreenCheckbox = _displayOnLocalScreenCheckbox;
+@synthesize outputMethodMatrix = _outputMethodMatrix;
+@synthesize fileTextField = _fileTextField;
+@synthesize dumpCheckbox = _dumpCheckbox;
+@synthesize browseButton = _browseButton;
+@synthesize streamAddressTextField = _streamAddressTextField;
+@synthesize streamAddressLabel = _streamAddressLabel;
+@synthesize streamPortTextField = _streamPortTextField;
+@synthesize streamPortStepper = _streamPortStepper;
+@synthesize streamPortLabel = _streamPortLabel;
+@synthesize streamTTLTextField = _streamTTLTextField;
+@synthesize streamTTLStepper = _streamTTLStepper;
+@synthesize streamTTLLabel = _streamTTLLabel;
+@synthesize streamTypePopup = _streamTypePopup;
+@synthesize streamTypeLabel = _streamTypeLabel;
+
+@synthesize muxLabel = _muxLabel;
+@synthesize muxSelectorPopup = _muxSelectorPopup;
+
+@synthesize transcodeBox = _transcodeBox;
+@synthesize transcodeAudioBitrateComboBox = _transcodeAudioBitrateComboBox;
+@synthesize transcodeAudioBitrateLabel = _transcodeAudioBitrateLabel;
+@synthesize transcodeAudioChannelsComboBox = _transcodeAudioChannelsComboBox;
+@synthesize transcodeAudioChannelsLabel = _transcodeAudioChannelsLabel;
+@synthesize transcodeAudioCheckbox = _transcodeAudioCheckbox;
+@synthesize transcodeAudioSelectorPopup = _transcodeAudioSelectorPopup;
+@synthesize transcodeVideoBitrateComboBox = _transcodeVideoBitrateComboBox;
+@synthesize transcodeVideoBitrateLabel = _transcodeVideoBitrateLabel;
+@synthesize transcodeVideoScaleComboBox = _transcodeVideoScaleComboBox;
+@synthesize transcodeVideoScaleLabel = _transcodeVideoScaleLabel;
+@synthesize transcodeVideoCheckbox = _transcodeVideoCheckbox;
+@synthesize transcodeVideoSelectorPopup = _transcodeVideoSelectorPopup;
+
+@synthesize miscBox = _miscBox;
+@synthesize sapCheckbox = _sapCheckbox;
+@synthesize channelNameTextField = _channelNameTextField;
+@synthesize channelNameLabel = _channelNameLabel;
+
+@synthesize sdpURLTextField = _sdpURLTextField;
+@synthesize sdpURLLabel = _sdpURLLabel;
+@synthesize rtspCheckbox = _rtspCheckbox;
+@synthesize httpCheckbox = _httpCheckbox;
+@synthesize fileCheckbox = _fileCheckbox;
+
+@synthesize soutMRL = _soutMRL;
 
 - (void)awakeFromNib
 {
@@ -334,7 +372,7 @@
             if ([urlItems count] == 1)
                 [finalStreamAddress appendFormat: @"\"%@:%@\"", [self.streamAddressTextField stringValue],[self.streamPortTextField stringValue]];
             else {
-                [finalStreamAddress appendFormat: @"\"%@:%@", [urlItems firstObject], [self.streamPortTextField stringValue]];
+                [finalStreamAddress appendFormat: @"\"%@:%@", [urlItems objectAtIndex:0], [self.streamPortTextField stringValue]];
                 NSUInteger itemCount = [urlItems count];
                 for (NSUInteger x = 0; x < itemCount; x++)
                     [finalStreamAddress appendFormat: @"/%@", [urlItems objectAtIndex:x]];
@@ -408,7 +446,10 @@
     NSSavePanel *save_panel = [NSSavePanel savePanel];
     [save_panel setTitle: _NS("Save File")];
     [save_panel setPrompt: _NS("Save")];
-    [save_panel setNameFieldStringValue: name];
+#ifdef MAC_OS_X_VERSION_10_6
+    if (!OSX_LEOPARD)
+        [save_panel setNameFieldStringValue: name];
+#endif
 
     if ([save_panel runModal] == NSFileHandlingPanelOKButton) {
         [self.fileTextField setStringValue: [[save_panel URL] path]];

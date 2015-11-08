@@ -131,6 +131,7 @@ NSString *const VLCOpenTextFieldWasClicked = @"VLCOpenTextFieldWasClicked";
  *****************************************************************************/
 
 @implementation NSAnimation (VLCAdditions)
+
 /* fake class attributes  */
 static NSMapTable *VLCAdditions_userInfo = NULL;
 
@@ -142,17 +143,18 @@ static NSMapTable *VLCAdditions_userInfo = NULL;
 
 - (void)dealloc
 {
-    NSMapRemove(VLCAdditions_userInfo, (__bridge const void * __nullable)(self));
+    NSMapRemove(VLCAdditions_userInfo, (const void *)(self));
+    [super dealloc];
 }
 
 - (void)setUserInfo: (void *)userInfo
 {
-    NSMapInsert(VLCAdditions_userInfo, (__bridge const void * __nullable)(self), (void*)userInfo);
+    NSMapInsert(VLCAdditions_userInfo, (const void *)(self), (void*)userInfo);
 }
 
 - (void *)userInfo
 {
-    return NSMapGet(VLCAdditions_userInfo, (__bridge const void * __nullable)(self));
+    return NSMapGet(VLCAdditions_userInfo, (const void *)(self));
 }
 @end
 
@@ -198,7 +200,7 @@ static bool b_old_spaces_style = YES;
 - (BOOL)hasMenuBar
 {
     if (b_old_spaces_style)
-        return ([self displayID] == [[[NSScreen screens] firstObject] displayID]);
+        return ([self displayID] == [[[NSScreen screens] objectAtIndex:0] displayID]);
     else
         return YES;
 }
@@ -261,7 +263,10 @@ static bool b_old_spaces_style = YES;
 
         [blackoutWindows addObject: blackoutWindow];
 
-        [screen setFullscreenPresentationOptions];
+        #ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [screen setFullscreenPresentationOptions];
+        #endif
     }
 }
 
@@ -271,11 +276,15 @@ static bool b_old_spaces_style = YES;
 
     for (NSUInteger i = 0; i < blackoutWindowCount; i++) {
         VLCWindow *blackoutWindow = [blackoutWindows objectAtIndex:i];
-        [[blackoutWindow screen] setNonFullscreenPresentationOptions];
+#ifdef MAC_OS_X_VERSION_10_6
+        if (!OSX_LEOPARD)
+            [[blackoutWindow screen] setNonFullscreenPresentationOptions];
+#endif
         [blackoutWindow closeAndAnimate: YES];
     }
 }
 
+#ifdef MAC_OS_X_VERSION_10_6
 - (void)setFullscreenPresentationOptions
 {
     NSApplicationPresentationOptions presentationOpts = [NSApp presentationOptions];
@@ -288,13 +297,16 @@ static bool b_old_spaces_style = YES;
 
 - (void)setNonFullscreenPresentationOptions
 {
+
     NSApplicationPresentationOptions presentationOpts = [NSApp presentationOptions];
     if ([self hasMenuBar])
         presentationOpts &= (~NSApplicationPresentationAutoHideMenuBar);
     if ([self hasMenuBar] || [self hasDock])
         presentationOpts &= (~NSApplicationPresentationAutoHideDock);
     [NSApp setPresentationOptions:presentationOpts];
+
 }
+#endif
 
 @end
 
@@ -315,13 +327,10 @@ static bool b_old_spaces_style = YES;
  * VLCDragDropView
  *****************************************************************************/
 
-@interface VLCDragDropView()
-{
-    bool b_activeDragAndDrop;
-}
-@end
-
 @implementation VLCDragDropView
+
+@synthesize dropHandler = _dropHandler;
+@synthesize drawBorder = _drawBorder;
 
 - (id)initWithFrame:(NSRect)frame
 {
@@ -347,6 +356,7 @@ static bool b_old_spaces_style = YES;
 - (void)dealloc
 {
     [self unregisterDraggedTypes];
+    [super dealloc];
 }
 
 - (void)awakeFromNib
@@ -492,9 +502,11 @@ void _drawFrameInRect(NSRect frameRect)
     CGFloat f_deltaY = [o_event deltaY];
     CGFloat f_deltaX = [o_event deltaX];
 
-    if ([o_event isDirectionInvertedFromDevice])
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD && [o_event isDirectionInvertedFromDevice])
         f_deltaX = -f_deltaX; // optimisation, actually double invertion of f_deltaY here
     else
+#endif
         f_deltaY = -f_deltaY;
 
     // positive for left / down, negative otherwise
@@ -528,15 +540,9 @@ void _drawFrameInRect(NSRect frameRect)
  * TimeLineSlider
  *****************************************************************************/
 
-@interface TimeLineSlider()
-{
-    NSImage *o_knob_img;
-    NSRect img_rect;
-    BOOL b_dark;
-}
-@end
-
 @implementation TimeLineSlider
+
+@synthesize knobPosition = _knobPosition;
 
 - (void)awakeFromNib
 {
@@ -590,15 +596,19 @@ void _drawFrameInRect(NSRect frameRect)
 
 @implementation VLCVolumeSliderCommon : NSSlider
 
+@synthesize usesBrightArtwork = _usesBrightArtwork;
+
 - (void)scrollWheel:(NSEvent *)o_event
 {
     BOOL b_up = NO;
     CGFloat f_deltaY = [o_event deltaY];
     CGFloat f_deltaX = [o_event deltaX];
 
-    if ([o_event isDirectionInvertedFromDevice])
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD && [o_event isDirectionInvertedFromDevice])
         f_deltaX = -f_deltaX; // optimisation, actually double invertion of f_deltaY here
     else
+#endif
         f_deltaY = -f_deltaY;
 
     // positive for left / down, negative otherwise
@@ -667,7 +677,7 @@ void _drawFrameInRect(NSRect frameRect)
     VLCVolumeSliderCommon *o_slider = (VLCVolumeSliderCommon *)controlView;
     CGFloat fullVolumePos = [o_slider fullVolumePos] + 2.;
 
-    CGPoint snapToPoint = currentPoint;
+    NSPoint snapToPoint = currentPoint;
     if (ABS(fullVolumePos - currentPoint.x) <= 4.)
         snapToPoint.x = fullVolumePos;
 
@@ -679,13 +689,6 @@ void _drawFrameInRect(NSRect frameRect)
 /*****************************************************************************
  * ITSlider
  *****************************************************************************/
-
-@interface ITSlider()
-{
-    NSImage *img;
-    NSRect image_rect;
-}
-@end
 
 @implementation ITSlider
 
@@ -737,17 +740,8 @@ void _drawFrameInRect(NSRect frameRect)
  * we need this to catch our click-event in the controller window
  *****************************************************************************/
 
-@interface VLCTimeField()
-{
-    NSShadow * o_string_shadow;
-    NSTextAlignment textAlignment;
-
-    NSString *o_remaining_identifier;
-    BOOL b_time_remaining;
-}
-@end
-
 @implementation VLCTimeField
+
 + (void)initialize
 {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
@@ -838,14 +832,6 @@ void _drawFrameInRect(NSRect frameRect)
  * VLCThreePartImageView interface
  *****************************************************************************/
 
-@interface VLCThreePartImageView()
-{
-    NSImage *_left_img;
-    NSImage *_middle_img;
-    NSImage *_right_img;
-}
-@end
-
 @implementation VLCThreePartImageView
 
 - (void)setImagesLeft:(NSImage *)left middle: (NSImage *)middle right:(NSImage *)right
@@ -861,12 +847,6 @@ void _drawFrameInRect(NSRect frameRect)
     NSDrawThreePartImage( bnds, _left_img, _middle_img, _right_img, NO, NSCompositeSourceOver, 1, NO );
 }
 
-@end
-
-@interface PositionFormatter()
-{
-    NSCharacterSet *o_forbidden_characters;
-}
 @end
 
 @implementation PositionFormatter

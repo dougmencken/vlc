@@ -33,26 +33,6 @@
 #import "fspanel.h"
 #import "CompatibilityFixes.h"
 
-@interface VLCFSPanel()
-{
-    NSTimer *fadeTimer,*hideAgainTimer;
-    NSPoint mouseClic;
-    BOOL b_fadeQueued;
-    BOOL b_keptVisible;
-    BOOL b_alreadyCounting;
-    int i_timeToKeepVisibleInSec;
-
-    BOOL b_nonActive;
-    BOOL b_displayed;
-    BOOL b_voutWasUpdated;
-    int i_device;
-
-    VLCWindow *o_vout_window;
-}
-
-- (void)hideMouse;
-@end
-
 /*****************************************************************************
  * VLCFSPanel
  *****************************************************************************/
@@ -68,11 +48,15 @@
     if (!win)
         return win;
 
-    self.contentView = [[VLCFSPanelView alloc] initWithFrame:contentRect];
+    [self setContentView:[[VLCFSPanelView alloc] initWithFrame:contentRect]];
     [win setOpaque:NO];
     [win setHasShadow: NO];
     [win setBackgroundColor:[NSColor clearColor]];
-    [win setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_LEOPARD && !OSX_SNOW_LEOPARD)
+        [win setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     /* let the window sit on top of everything else and start out completely transparent */
     [win setLevel:NSModalPanelWindowLevel];
@@ -81,7 +65,7 @@
     [self setFrameAutosaveName:@"fspanel"];
     [self setNonActive:nil];
 
-    [self setContentView:[[VLCFSPanelView alloc] initWithFrame: [self frame]]];
+    ////[self setContentView:[[VLCFSPanelView alloc] initWithFrame: [self frame]]];
     BOOL isInside = (NSPointInRect([NSEvent mouseLocation],[self frame]));
     [[self contentView] addTrackingRect:[[self contentView] bounds] owner:self userData:nil assumeInside:isInside];
     if (isInside)
@@ -89,7 +73,10 @@
     if (!isInside)
         [self mouseExited:NULL];
 
-    [self setAnimationBehavior:NSWindowAnimationBehaviorNone];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OS_LEOPARD)
+        [self setAnimationBehavior:NSWindowAnimationBehaviorNone];
+#endif
 
     /* get a notification if VLC isn't the active app anymore */
     [[NSNotificationCenter defaultCenter]
@@ -129,6 +116,8 @@
     }
 
     [self setFadeTimer:nil];
+
+    [super dealloc];
 }
 
 -(void)center
@@ -384,21 +373,6 @@
 /*****************************************************************************
  * FSPanelView
  *****************************************************************************/
-
-@interface VLCFSPanelView()
-{
-    NSColor *fillColor;
-    NSButton *o_prev, *o_next, *o_bwd, *o_fwd, *o_play, *o_fullscreen;
-    NSTextField *o_streamTitle_txt;
-    VLCTimeField *o_streamPosition_txt, *o_streamLength_txt;
-    NSSlider *o_fs_timeSlider;
-    VLCFSVolumeSlider *o_fs_volumeSlider;
-    VLCProgressView *o_progress_view;
-    NSImage *o_background_img, *o_vol_sld_img, *o_vol_mute_img, *o_vol_max_img, *o_time_sld_img;
-    NSTimeInterval last_fwd_event;
-    NSTimeInterval last_bwd_event;
-}
-@end
 
 @implementation VLCFSPanelView
 

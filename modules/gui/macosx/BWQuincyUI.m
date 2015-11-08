@@ -71,9 +71,9 @@ const CGFloat kDetailsHeight = 285;
 
 - (void)awakeFromNib
 {
-	crashLogTextView.editable = NO;
-	crashLogTextView.selectable = NO;
-	crashLogTextView.automaticSpellingCorrectionEnabled = NO;
+    [crashLogTextView setEditable: NO];
+    [crashLogTextView setSelectable: NO];
+    //[crashLogTextView setAutomaticSpellingCorrectionEnabled: NO];
 
     [showButton setTitle:_NS("Show Details")];
     [hideButton setTitle:_NS("Hide Details")];

@@ -38,10 +38,13 @@
 #import <vlc_atomic.h>
 
 #import <Cocoa/Cocoa.h>
+#import "CompatibilityFixes.h"
 #import "misc.h"
 #import "MainWindow.h"
 #import "VLCVoutWindowController.h"
 #import "StringUtility.h"
+#import "CoreInteraction.h"
+#import "BWQuincyManager.h"
 
 /*****************************************************************************
  * Local prototypes.
@@ -75,7 +78,39 @@ static NSString * VLCInputChangedNotification = @"VLCInputChangedNotification";
 @class VLCConvertAndSave;
 @class ExtensionsManager;
 
-@interface VLCMain : NSObject <NSWindowDelegate, NSApplicationDelegate>
+@interface VLCMain : NSObject <NSWindowDelegate, NSApplicationDelegate, BWQuincyManagerDelegate> {
+
+    VLCVoutWindowController* _voutController;
+    BOOL _nativeFullscreenMode;
+    BOOL _playlistUpdatedSelectorInQueue;
+
+    intf_thread_t *p_intf;
+    BOOL launched;
+    int items_at_launch;
+
+    BOOL b_active_videoplayback;
+
+    NSWindowController *_mainWindowController;
+    VLCMainMenu *_mainmenu;
+    VLCPrefs *_prefs;
+    VLCSimplePrefs *_sprefs;
+    VLCOpen *_open;
+    VLCCoreDialogProvider *_coredialogs;
+    VLCBookmarks *_bookmarks;
+    VLCCoreInteraction *_coreinteraction;
+    ResumeDialogController *_resume_dialog;
+    VLCInputManager *_input_manager;
+    VLCPlaylist *_playlist;
+    VLCDebugMessageVisualizer *_messagePanelController;
+    VLCTrackSynchronization *_trackSyncPanel;
+    VLCAudioEffects *_audioEffectsPanel;
+    VLCVideoEffects *_videoEffectsPanel;
+    VLCConvertAndSave *_convertAndSaveWindow;
+    ExtensionsManager *_extensionsManager;
+
+    bool b_intf_terminating; /* Makes sure applicationWillTerminate will be called only once */
+
+}
 
 @property (readonly) VLCVoutWindowController* voutController;
 @property (readonly) BOOL nativeFullscreenMode;

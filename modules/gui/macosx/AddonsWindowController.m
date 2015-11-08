@@ -21,39 +21,22 @@
 
 #import <vlc_common.h>
 #import <vlc_events.h>
-#import <vlc_addons.h>
 
 #import "AddonsWindowController.h"
 #import "intf.h"
 #import "MainWindow.h"
 #import "AddonListDataSource.h"
 
-@interface AddonsWindowController() <NSTableViewDataSource, NSTableViewDelegate>
-{
-    addons_manager_t *_manager;
-    NSMutableArray *_addons;
-    NSArray *_displayedAddons;
-    BOOL _shouldRefreshSideBarOnAddonChange;
-}
-
-- (void)addAddon:(NSValue *)o_value;
-- (void)discoveryEnded;
-- (void)addonChanged:(NSValue *)o_value;
-
-@end
-
 static void addonsEventsCallback( const vlc_event_t *event, void *data )
 {
-    AddonsWindowController *controller = (__bridge AddonsWindowController *)data;
+    AddonsWindowController *controller = (AddonsWindowController *)data;
 
-    @autoreleasepool {
-        if (event->type == vlc_AddonFound)
-            [controller performSelectorOnMainThread:@selector(addAddon:) withObject:[NSValue valueWithPointer:event->u.addon_generic_event.p_entry] waitUntilDone:NO];
-        else if (event->type == vlc_AddonsDiscoveryEnded)
-            [controller performSelectorOnMainThread:@selector(discoveryEnded) withObject:nil waitUntilDone:NO];
-        else if (event->type == vlc_AddonChanged)
-            [controller performSelectorOnMainThread:@selector(addonChanged:) withObject:[NSValue valueWithPointer:event->u.addon_generic_event.p_entry] waitUntilDone:NO];
-    }
+    if (event->type == vlc_AddonFound)
+        [controller performSelectorOnMainThread:@selector(addAddon:) withObject:[NSValue valueWithPointer:event->u.addon_generic_event.p_entry] waitUntilDone:NO];
+    else if (event->type == vlc_AddonsDiscoveryEnded)
+        [controller performSelectorOnMainThread:@selector(discoveryEnded) withObject:nil waitUntilDone:NO];
+    else if (event->type == vlc_AddonChanged)
+        [controller performSelectorOnMainThread:@selector(addonChanged:) withObject:[NSValue valueWithPointer:event->u.addon_generic_event.p_entry] waitUntilDone:NO];
 }
 
 @implementation AddonsWindowController
@@ -75,6 +58,8 @@ static void addonsEventsCallback( const vlc_event_t *event, void *data )
 {
     if (_manager)
         addons_manager_Delete(_manager);
+
+    [super dealloc];
 }
 
 #pragma mark - UI handling
@@ -122,9 +107,9 @@ static void addonsEventsCallback( const vlc_event_t *event, void *data )
         return;
 
     vlc_event_manager_t *p_em = _manager->p_event_manager;
-    vlc_event_attach(p_em, vlc_AddonFound, addonsEventsCallback, (__bridge void *)self);
-    vlc_event_attach(p_em, vlc_AddonsDiscoveryEnded, addonsEventsCallback, (__bridge void *)self);
-    vlc_event_attach(p_em, vlc_AddonChanged, addonsEventsCallback, (__bridge void *)self);
+    vlc_event_attach(p_em, vlc_AddonFound, addonsEventsCallback, (void *)self);
+    vlc_event_attach(p_em, vlc_AddonsDiscoveryEnded, addonsEventsCallback, (void *)self);
+    vlc_event_attach(p_em, vlc_AddonChanged, addonsEventsCallback, (void *)self);
 
     [self _findInstalled];
 }

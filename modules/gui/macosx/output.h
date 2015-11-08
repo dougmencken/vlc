@@ -24,55 +24,109 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston MA 02110-1301, USA.
  *****************************************************************************/
 
-@interface VLCOutput : NSObject
+@interface VLCOutput : NSObject {
 
-@property (readwrite, weak) IBOutlet NSPanel *outputSheet;
-@property (readwrite, weak) IBOutlet NSButton *okButton;
+    IBOutlet NSPanel * _outputSheet;
+    IBOutlet NSButton * _okButton;
 
-@property (readwrite, weak) IBOutlet NSBox *optionsBox;
-@property (readwrite, weak) IBOutlet NSButton *displayOnLocalScreenCheckbox;
-@property (readwrite, weak) IBOutlet NSMatrix *outputMethodMatrix;
-@property (readwrite, weak) IBOutlet NSTextField *fileTextField;
-@property (readwrite, weak) IBOutlet NSButton *dumpCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *browseButton;
-@property (readwrite, weak) IBOutlet NSTextField *streamAddressTextField;
-@property (readwrite, weak) IBOutlet NSTextField *streamAddressLabel;
-@property (readwrite, weak) IBOutlet NSTextField *streamPortTextField;
-@property (readwrite, weak) IBOutlet NSStepper *streamPortStepper;
-@property (readwrite, weak) IBOutlet NSTextField *streamPortLabel;
-@property (readwrite, weak) IBOutlet NSTextField *streamTTLTextField;
-@property (readwrite, weak) IBOutlet NSStepper *streamTTLStepper;
-@property (readwrite, weak) IBOutlet NSTextField *streamTTLLabel;
-@property (readwrite, weak) IBOutlet NSPopUpButton *streamTypePopup;
-@property (readwrite, weak) IBOutlet NSTextField *streamTypeLabel;
+    IBOutlet NSBox * _optionsBox;
+    IBOutlet NSButton * _displayOnLocalScreenCheckbox;
+    IBOutlet NSMatrix * _outputMethodMatrix;
+    IBOutlet NSTextField * _fileTextField;
+    IBOutlet NSButton * _dumpCheckbox;
+    IBOutlet NSButton * _browseButton;
+    IBOutlet NSTextField * _streamAddressTextField;
+    IBOutlet NSTextField * _streamAddressLabel;
+    IBOutlet NSTextField * _streamPortTextField;
+    IBOutlet NSStepper * _streamPortStepper;
+    IBOutlet NSTextField * _streamPortLabel;
+    IBOutlet NSTextField * _streamTTLTextField;
+    IBOutlet NSStepper * _streamTTLStepper;
+    IBOutlet NSTextField * _streamTTLLabel;
+    IBOutlet NSPopUpButton * _streamTypePopup;
+    IBOutlet NSTextField * _streamTypeLabel;
 
-@property (readwrite, weak) IBOutlet NSTextField *muxLabel;
-@property (readwrite, weak) IBOutlet NSPopUpButton *muxSelectorPopup;
+    IBOutlet NSTextField * _muxLabel;
+    IBOutlet NSPopUpButton * _muxSelectorPopup;
 
-@property (readwrite, weak) IBOutlet NSBox *transcodeBox;
-@property (readwrite, weak) IBOutlet NSComboBox *transcodeAudioBitrateComboBox;
-@property (readwrite, weak) IBOutlet NSTextField *transcodeAudioBitrateLabel;
-@property (readwrite, weak) IBOutlet NSComboBox *transcodeAudioChannelsComboBox;
-@property (readwrite, weak) IBOutlet NSTextField *transcodeAudioChannelsLabel;
-@property (readwrite, weak) IBOutlet NSButton *transcodeAudioCheckbox;
-@property (readwrite, weak) IBOutlet NSPopUpButton *transcodeAudioSelectorPopup;
-@property (readwrite, weak) IBOutlet NSComboBox *transcodeVideoBitrateComboBox;
-@property (readwrite, weak) IBOutlet NSTextField *transcodeVideoBitrateLabel;
-@property (readwrite, weak) IBOutlet NSComboBox *transcodeVideoScaleComboBox;
-@property (readwrite, weak) IBOutlet NSTextField *transcodeVideoScaleLabel;
-@property (readwrite, weak) IBOutlet NSButton *transcodeVideoCheckbox;
-@property (readwrite, weak) IBOutlet NSPopUpButton *transcodeVideoSelectorPopup;
+    IBOutlet NSBox * _transcodeBox;
+    IBOutlet NSComboBox * _transcodeAudioBitrateComboBox;
+    IBOutlet NSTextField * _transcodeAudioBitrateLabel;
+    IBOutlet NSComboBox * _transcodeAudioChannelsComboBox;
+    IBOutlet NSTextField * _transcodeAudioChannelsLabel;
+    IBOutlet NSButton * _transcodeAudioCheckbox;
+    IBOutlet NSPopUpButton * _transcodeAudioSelectorPopup;
+    IBOutlet NSComboBox * _transcodeVideoBitrateComboBox;
+    IBOutlet NSTextField * _transcodeVideoBitrateLabel;
+    IBOutlet NSComboBox * _transcodeVideoScaleComboBox;
+    IBOutlet NSTextField * _transcodeVideoScaleLabel;
+    IBOutlet NSButton * _transcodeVideoCheckbox;
+    IBOutlet NSPopUpButton * _transcodeVideoSelectorPopup;
 
-@property (readwrite, weak) IBOutlet NSBox *miscBox;
-@property (readwrite, weak) IBOutlet NSButton *sapCheckbox;
-@property (readwrite, weak) IBOutlet NSTextField *channelNameTextField;
-@property (readwrite, weak) IBOutlet NSTextField *channelNameLabel;
+    IBOutlet NSBox * _miscBox;
+    IBOutlet NSButton * _sapCheckbox;
+    IBOutlet NSTextField * _channelNameTextField;
+    IBOutlet NSTextField * _channelNameLabel;
 
-@property (readwrite, weak) IBOutlet NSTextField *sdpURLTextField;
-@property (readwrite, weak) IBOutlet NSTextField *sdpURLLabel;
-@property (readwrite, weak) IBOutlet NSButton *rtspCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *httpCheckbox;
-@property (readwrite, weak) IBOutlet NSButton *fileCheckbox;
+    IBOutlet NSTextField * _sdpURLTextField;
+    IBOutlet NSTextField * _sdpURLLabel;
+    IBOutlet NSButton * _rtspCheckbox;
+    IBOutlet NSButton * _httpCheckbox;
+    IBOutlet NSButton * _fileCheckbox;
+
+    NSArray * _soutMRL;
+
+    NSString * _transcode;
+
+}
+
+@property (readwrite, assign) IBOutlet NSPanel *outputSheet;
+@property (readwrite, assign) IBOutlet NSButton *okButton;
+
+@property (readwrite, assign) IBOutlet NSBox *optionsBox;
+@property (readwrite, assign) IBOutlet NSButton *displayOnLocalScreenCheckbox;
+@property (readwrite, assign) IBOutlet NSMatrix *outputMethodMatrix;
+@property (readwrite, assign) IBOutlet NSTextField *fileTextField;
+@property (readwrite, assign) IBOutlet NSButton *dumpCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *browseButton;
+@property (readwrite, assign) IBOutlet NSTextField *streamAddressTextField;
+@property (readwrite, assign) IBOutlet NSTextField *streamAddressLabel;
+@property (readwrite, assign) IBOutlet NSTextField *streamPortTextField;
+@property (readwrite, assign) IBOutlet NSStepper *streamPortStepper;
+@property (readwrite, assign) IBOutlet NSTextField *streamPortLabel;
+@property (readwrite, assign) IBOutlet NSTextField *streamTTLTextField;
+@property (readwrite, assign) IBOutlet NSStepper *streamTTLStepper;
+@property (readwrite, assign) IBOutlet NSTextField *streamTTLLabel;
+@property (readwrite, assign) IBOutlet NSPopUpButton *streamTypePopup;
+@property (readwrite, assign) IBOutlet NSTextField *streamTypeLabel;
+
+@property (readwrite, assign) IBOutlet NSTextField *muxLabel;
+@property (readwrite, assign) IBOutlet NSPopUpButton *muxSelectorPopup;
+
+@property (readwrite, assign) IBOutlet NSBox *transcodeBox;
+@property (readwrite, assign) IBOutlet NSComboBox *transcodeAudioBitrateComboBox;
+@property (readwrite, assign) IBOutlet NSTextField *transcodeAudioBitrateLabel;
+@property (readwrite, assign) IBOutlet NSComboBox *transcodeAudioChannelsComboBox;
+@property (readwrite, assign) IBOutlet NSTextField *transcodeAudioChannelsLabel;
+@property (readwrite, assign) IBOutlet NSButton *transcodeAudioCheckbox;
+@property (readwrite, assign) IBOutlet NSPopUpButton *transcodeAudioSelectorPopup;
+@property (readwrite, assign) IBOutlet NSComboBox *transcodeVideoBitrateComboBox;
+@property (readwrite, assign) IBOutlet NSTextField *transcodeVideoBitrateLabel;
+@property (readwrite, assign) IBOutlet NSComboBox *transcodeVideoScaleComboBox;
+@property (readwrite, assign) IBOutlet NSTextField *transcodeVideoScaleLabel;
+@property (readwrite, assign) IBOutlet NSButton *transcodeVideoCheckbox;
+@property (readwrite, assign) IBOutlet NSPopUpButton *transcodeVideoSelectorPopup;
+
+@property (readwrite, assign) IBOutlet NSBox *miscBox;
+@property (readwrite, assign) IBOutlet NSButton *sapCheckbox;
+@property (readwrite, assign) IBOutlet NSTextField *channelNameTextField;
+@property (readwrite, assign) IBOutlet NSTextField *channelNameLabel;
+
+@property (readwrite, assign) IBOutlet NSTextField *sdpURLTextField;
+@property (readwrite, assign) IBOutlet NSTextField *sdpURLLabel;
+@property (readwrite, assign) IBOutlet NSButton *rtspCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *httpCheckbox;
+@property (readwrite, assign) IBOutlet NSButton *fileCheckbox;
 
 @property (readonly) NSArray *soutMRL;
 

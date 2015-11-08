@@ -47,26 +47,113 @@
 #define ASF 12
 /* 13-15 are present, but not set */
 
-@interface VLCConvertAndSave()
-{
-    NSArray *_videoCodecs;
-    NSArray *_audioCodecs;
-    NSArray *_subsCodecs;
-    BOOL b_streaming;
-}
-
-- (void)updateDropView;
-- (void)updateOKButton;
-- (void)resetCustomizationSheetBasedOnProfile:(NSString *)profileString;
-- (void)selectCellByEncapsulationFormat:(NSString *)format;
-- (NSString *)currentEncapsulationFormatAsFileExtension:(BOOL)b_extension;
-- (NSString *)composedOptions;
-- (void)updateCurrentProfile;
-- (void)storeProfilesOnDisk;
-- (void)recreateProfilePopup;
-@end
 
 @implementation VLCConvertAndSave
+
+@synthesize dropBox = _dropBox;
+@synthesize dropLabel = _dropLabel;
+
+@synthesize dropImage = _dropImage;
+@synthesize dropButton = _dropButton;
+@synthesize profileLabel = _profileLabel;
+@synthesize profilePopup = _profilePopup;
+@synthesize customizeButton = _customizeButton;
+
+@synthesize destinationLabel = _destinationLabel;
+@synthesize destinationBox = _destinationBox;
+
+@synthesize destinationCancelBtn = _destinationCancelBtn;
+@synthesize destinationStreamButton = _destinationStreamButton;
+@synthesize destinationFileButton = _destinationFileButton;
+
+@synthesize okButton = _okButton;
+
+@synthesize dropinView = _dropinView;
+@synthesize dropinIcon = _dropinIcon;
+@synthesize dropinMediaLabel = _dropinMediaLabel;
+@synthesize fileDestinationView = _fileDestinationView;
+@synthesize fileDestinationIcon = _fileDestinationIcon;
+@synthesize fileDestinationFileName = _fileDestinationFileName;
+@synthesize fileDestinationFileNameStub = _fileDestinationFileNameStub;
+@synthesize fileDestinationBrowseButton = _fileDestinationBrowseButton;
+@synthesize streamDestinationView = _streamDestinationView;
+@synthesize streamDestinationURLLabel = _streamDestinationURLLabel;
+@synthesize streamDestinationButton = _streamDestinationButton;
+
+@synthesize customizePanel = _customizePanel;
+@synthesize customizeNewProfileButton = _customizeNewProfileButton;
+@synthesize customizeCancelButton = _customizeCancelButton;
+@synthesize customizeOkButton = _customizeOkButton;
+@synthesize customizeTabView = _customizeTabView;
+@synthesize customizeEncapMatrix = _customizeEncapMatrix;
+
+@synthesize customizeVidCheckbox = _customizeVidCheckbox;
+@synthesize customizeVidKeepCheckbox = _customizeVidKeepCheckbox;
+@synthesize customizeVidSettingsBox = _customizeVidSettingsBox;
+@synthesize customizeVidCodecLabel = _customizeVidCodecLabel;
+@synthesize customizeVidBitrateLabel = _customizeVidBitrateLabel;
+@synthesize customizeVidFramerateLabel = _customizeVidFramerateLabel;
+@synthesize customizeVidResolutionBox = _customizeVidResolutionBox;
+@synthesize customizeVidWidthLabel = _customizeVidWidthLabel;
+@synthesize customizeVidHeightLabel = _customizeVidHeightLabel;
+@synthesize customizeVidScaleLabel = _customizeVidScaleLabel;
+@synthesize customizeVidResLabel = _customizeVidResLabel;
+@synthesize customizeVidCodecPopup = _customizeVidCodecPopup;
+@synthesize customizeVidBitrateField = _customizeVidBitrateField;
+@synthesize customizeVidFramerateField = _customizeVidFramerateField;
+@synthesize customizeVidWidthField = _customizeVidWidthField;
+@synthesize customizeVidHeightField = _customizeVidHeightField;
+@synthesize customizeVidScalePopup = _customizeVidScalePopup;
+
+@synthesize customizeAudCheckbox = _customizeAudCheckbox;
+@synthesize customizeAudKeepCheckbox = _customizeAudKeepCheckbox;
+@synthesize customizeAudSettingsBox = _customizeAudSettingsBox;
+@synthesize customizeAudCodecLabel = _customizeAudCodecLabel;
+@synthesize customizeAudBitrateLabel = _customizeAudBitrateLabel;
+@synthesize customizeAudChannelsLabel = _customizeAudChannelsLabel;
+@synthesize customizeAudSamplerateLabel = _customizeAudSamplerateLabel;
+@synthesize customizeAudCodecPopup = _customizeAudCodecPopup;
+@synthesize customizeAudBitrateField = _customizeAudBitrateField;
+@synthesize customizeAudChannelsField = _customizeAudChannelsField;
+@synthesize customizeAudSampleratePopup = _customizeAudSampleratePopup;
+
+@synthesize customizeSubsCheckbox = _customizeSubsCheckbox;
+@synthesize customizeSubsOverlayCheckbox = _customizeSubsOverlayCheckbox;
+@synthesize customizeSubsPopup = _customizeSubsPopup;
+
+@synthesize streamPanel = _streamPanel;
+@synthesize streamDestinationLabel = _streamDestinationLabel;
+@synthesize streamTypeLabel = _streamTypeLabel;
+@synthesize streamAddressLabel = _streamAddressLabel;
+@synthesize streamTypePopup = _streamTypePopup;
+@synthesize streamAddressField = _streamAddressField;
+@synthesize streamTTLLabel = _streamTTLLabel;
+@synthesize streamTTLField = _streamTTLField;
+@synthesize streamTTLStepper = _streamTTLStepper;
+@synthesize streamPortLabel = _streamPortLabel;
+@synthesize streamPortField = _streamPortField;
+@synthesize streamAnnouncementLabel = _streamAnnouncementLabel;
+@synthesize streamSAPCheckbox = _streamSAPCheckbox;
+@synthesize streamChannelField = _streamChannelField;
+@synthesize streamSDPMatrix = _streamSDPMatrix;
+@synthesize streamSDPFileBrowseButton = _streamSDPFileBrowseButton;
+@synthesize streamSDPField = _streamSDPField;
+@synthesize streamCancelButton = _streamCancelButton;
+@synthesize streamOkButton = _streamOkButton;
+
+@synthesize popupPanel = _popupPanel;
+@synthesize textfieldPanel = _textfieldPanel;
+
+@synthesize MRL = _MRL;
+@synthesize outputDestination = _outputDestination;
+@synthesize profileNames = _profileNames;
+@synthesize profileValueList = _profileValueList;
+@synthesize currentProfile = _currentProfile;
+
+@synthesize vidBitrate = _vidBitrate;
+@synthesize vidFramerate = _vidFramerate;
+@synthesize audBitrate = _audBitrate;
+@synthesize audChannels = _audChannels;
 
 #pragma mark -
 #pragma mark Initialization
@@ -123,15 +210,16 @@
 {
     self = [super initWithWindowNibName:@"ConvertAndSave"];
     if (self) {
-        self.popupPanel = [[VLCPopupPanelController alloc] init];
-        self.textfieldPanel = [[VLCTextfieldPanelController alloc] init];
+        _popupPanel = [[VLCPopupPanelController alloc] init];
+        _textfieldPanel = [[VLCTextfieldPanelController alloc] init];
     }
     return self;
 }
 
 - (void)windowDidLoad
 {
-    [self.window setTitle: _NS("Convert & Stream")];
+    [[self window] setTitle: _NS("Convert & Stream")];
+
     [_okButton setTitle: _NS("Go!")];
     [_dropLabel setStringValue: _NS("Drop media here")];
     [_dropButton setTitle: _NS("Open media...")];
@@ -225,9 +313,9 @@
     [_customizeAudSampleratePopup removeAllItems];
     [_customizeSubsPopup removeAllItems];
 
-    [_customizeVidCodecPopup addItemsWithTitles:[_videoCodecs firstObject]];
-    [_customizeAudCodecPopup addItemsWithTitles:[_audioCodecs firstObject]];
-    [_customizeSubsPopup addItemsWithTitles:[_subsCodecs firstObject]];
+    [_customizeVidCodecPopup addItemsWithTitles:[_videoCodecs objectAtIndex:0]];
+    [_customizeAudCodecPopup addItemsWithTitles:[_audioCodecs objectAtIndex:0]];
+    [_customizeSubsPopup addItemsWithTitles:[_subsCodecs objectAtIndex:0]];
 
     [_customizeAudSampleratePopup addItemWithTitle:@"8000"];
     [_customizeAudSampleratePopup addItemWithTitle:@"11025"];
@@ -250,7 +338,7 @@
     [_dropBox enablePlaylistItems];
     [_dropBox setDropHandler: self];
 
-    [self resetCustomizationSheetBasedOnProfile:[self.profileValueList firstObject]];
+    [self resetCustomizationSheetBasedOnProfile:[_profileValueList objectAtIndex:0]];
 }
 
 # pragma mark -
@@ -260,9 +348,9 @@
 {
     if (b_streaming) {
         if ([[[_streamTypePopup selectedItem] title] isEqualToString:@"HTTP"]) {
-            NSString *muxformat = [self.currentProfile firstObject];
+            NSString *muxformat = [_currentProfile objectAtIndex:0];
             if ([muxformat isEqualToString:@"wav"] || [muxformat isEqualToString:@"mov"] || [muxformat isEqualToString:@"mp4"] || [muxformat isEqualToString:@"mkv"]) {
-                NSBeginInformationalAlertSheet(_NS("Invalid container format for HTTP streaming"), _NS("OK"), @"", @"", self.window,
+                NSBeginInformationalAlertSheet(_NS("Invalid container format for HTTP streaming"), _NS("OK"), @"", @"", [self window],
                                                nil, nil, nil, nil,
                                                _NS("Media encapsulated as %@ cannot be streamed through the HTTP protocol for technical reasons."),
                                                [[self currentEncapsulationFormatAsFileExtension:YES] uppercaseString]);
@@ -298,7 +386,7 @@
     /* we're done with this input */
     vlc_gc_decref(p_input);
 
-    [self.window performClose:sender];
+    [[self window] performClose:sender];
 }
 
 - (IBAction)openMedia:(id)sender
@@ -308,22 +396,31 @@
     [openPanel setCanChooseDirectories:NO];
     [openPanel setResolvesAliases:YES];
     [openPanel setAllowsMultipleSelection:NO];
-    [openPanel beginSheetModalForWindow:self.window completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSOKButton)
-        {
-            [self setMRL: toNSStr(vlc_path2uri([[[openPanel URL] path] UTF8String], NULL))];
-            [self updateOKButton];
-            [self updateDropView];
-        }
-    }];
+    [openPanel beginSheetForDirectory:nil
+                                 file:nil
+                                types:nil
+                       modalForWindow:[self window]
+                        modalDelegate:self
+                       didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
+                          contextInfo:nil];
+}
+
+- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton)
+    {
+        [self setMRL: [NSString stringWithUTF8String:vlc_path2uri([[[panel URL] path] UTF8String], NULL)]];
+        [self updateOKButton];
+        [self updateDropView];
+    }
 }
 
 - (IBAction)switchProfile:(id)sender
 {
     NSUInteger index = [_profilePopup indexOfSelectedItem];
     // last index is "custom"
-    if (index <= ([self.profileValueList count] - 1))
-        [self resetCustomizationSheetBasedOnProfile:[self.profileValueList objectAtIndex:index]];
+    if (index <= ([_profileValueList count] - 1))
+        [self resetCustomizationSheetBasedOnProfile:[_profileValueList objectAtIndex:index]];
 }
 
 - (IBAction)deleteProfileAction:(id)sender
@@ -333,29 +430,28 @@
     [_popupPanel setSubTitleString:_NS("Select the profile you would like to remove:")];
     [_popupPanel setOkButtonString:_NS("Remove")];
     [_popupPanel setCancelButtonString:_NS("Cancel")];
-    [_popupPanel setPopupButtonContent:self.profileNames];
+    [_popupPanel setPopupButtonContent:_profileNames];
 
-    __weak typeof(self) _self = self;
-    [_popupPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
-
-        if (returnCode != NSOKButton)
-            return;
-
-        /* remove requested profile from the arrays */
-        NSMutableArray * workArray = [[NSMutableArray alloc] initWithArray:_self.profileNames];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [_self setProfileNames:[[NSArray alloc] initWithArray:workArray]];
-        workArray = [[NSMutableArray alloc] initWithArray:_self.profileValueList];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [_self setProfileValueList:[[NSArray alloc] initWithArray:workArray]];
-
-        /* update UI */
-        [_self recreateProfilePopup];
-
-        /* update internals */
-        [_self switchProfile:_self];
-        [_self storeProfilesOnDisk];
-    }];
+    [_popupPanel runModalForWindow:[self window]];
+//    completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
+//        if (returnCode != NSOKButton)
+//            return;
+//
+//        /* remove requested profile from the arrays */
+//        NSMutableArray * workArray = [[NSMutableArray alloc] initWithArray:_profileNames];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [_self setProfileNames:[[NSArray alloc] initWithArray:workArray]];
+//        workArray = [[NSMutableArray alloc] initWithArray:_profileValueList];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [_self setProfileValueList:[[NSArray alloc] initWithArray:workArray]];
+//
+//        /* update UI */
+//        [_self recreateProfilePopup];
+//
+//        /* update internals */
+//        [_self switchProfile:_self];
+//        [_self storeProfilesOnDisk];
+//    }
 }
 
 - (IBAction)iWantAFile:(id)sender
@@ -408,19 +504,27 @@
     [saveFilePanel setCanCreateDirectories: YES];
     if ([[_customizeEncapMatrix selectedCell] tag] != RAW) // there is no clever guess for this
         [saveFilePanel setAllowedFileTypes:[NSArray arrayWithObject:[self currentEncapsulationFormatAsFileExtension:YES]]];
-    [saveFilePanel beginSheetModalForWindow:self.window completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSOKButton) {
-            [self setOutputDestination:[[saveFilePanel URL] path]];
-            [_fileDestinationFileName setStringValue: [[NSFileManager defaultManager] displayNameAtPath:_outputDestination]];
-            [[_fileDestinationFileNameStub animator] setHidden: YES];
-            [[_fileDestinationFileName animator] setHidden: NO];
-        } else {
-            [self setOutputDestination:@""];
-            [[_fileDestinationFileName animator] setHidden: YES];
-            [[_fileDestinationFileNameStub animator] setHidden: NO];
-        }
-        [self updateOKButton];
-    }];
+    [saveFilePanel beginSheetForDirectory:nil
+                                     file:nil
+                           modalForWindow:[self window]
+                            modalDelegate:self
+                           didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:)
+                              contextInfo:nil];
+}
+
+- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton) {
+        [self setOutputDestination:[[sheet URL] path]];
+        [_fileDestinationFileName setStringValue: [[NSFileManager defaultManager] displayNameAtPath:_outputDestination]];
+        [[_fileDestinationFileNameStub animator] setHidden: YES];
+        [[_fileDestinationFileName animator] setHidden: NO];
+    } else {
+        [self setOutputDestination:@""];
+        [[_fileDestinationFileName animator] setHidden: YES];
+        [[_fileDestinationFileNameStub animator] setHidden: NO];
+    }
+    [self updateOKButton];
 }
 
 #pragma mark -
@@ -428,7 +532,7 @@
 
 - (IBAction)customizeProfile:(id)sender
 {
-    [NSApp beginSheet:_customizePanel modalForWindow:self.window modalDelegate:self didEndSelector:NULL contextInfo:nil];
+    [NSApp beginSheet:_customizePanel modalForWindow:[self window] modalDelegate:self didEndSelector:NULL contextInfo:nil];
 }
 
 - (IBAction)closeCustomizationSheet:(id)sender
@@ -471,31 +575,31 @@
     [_textfieldPanel setCancelButtonString: _NS("Cancel")];
     [_textfieldPanel setOkButtonString: _NS("Save")];
 
-    __weak typeof(self) _self = self;
-    [_textfieldPanel runModalForWindow:_customizePanel completionHandler:^(NSInteger returnCode, NSString *resultingText) {
-        if (returnCode != NSOKButton || [resultingText length] == 0)
-            return;
-
-        /* prepare current data */
-        [_self updateCurrentProfile];
-
-        /* add profile to arrays */
-        NSMutableArray * workArray = [[NSMutableArray alloc] initWithArray:self.profileNames];
-        [workArray addObject:resultingText];
-        [_self setProfileNames:[[NSArray alloc] initWithArray:workArray]];
-
-        workArray = [[NSMutableArray alloc] initWithArray:self.profileValueList];
-        [workArray addObject:[self.currentProfile componentsJoinedByString:@";"]];
-        [_self setProfileValueList:[[NSArray alloc] initWithArray:workArray]];
-
-        /* update UI */
-        [_self recreateProfilePopup];
-        [_profilePopup selectItemWithTitle:resultingText];
-
-        /* update internals */
-        [_self switchProfile:self];
-        [_self storeProfilesOnDisk];
-    }];
+    [_textfieldPanel runModalForWindow:_customizePanel];
+//    completionHandler:^(NSInteger returnCode, NSString *resultingText) {
+//        if (returnCode != NSOKButton || [resultingText length] == 0)
+//            return;
+//
+//        /* prepare current data */
+//        [self updateCurrentProfile];
+//
+//        /* add profile to arrays */
+//        NSMutableArray * workArray = [[NSMutableArray alloc] initWithArray:_profileNames];
+//        [workArray addObject:resultingText];
+//        [self setProfileNames:[[NSArray alloc] initWithArray:workArray]];
+//
+//        workArray = [[NSMutableArray alloc] initWithArray:_profileValueList];
+//        [workArray addObject:[_currentProfile componentsJoinedByString:@";"]];
+//        [self setProfileValueList:[[NSArray alloc] initWithArray:workArray]];
+//
+//        /* update UI */
+//        [self recreateProfilePopup];
+//        [_profilePopup selectItemWithTitle:resultingText];
+//
+//        /* update internals */
+//        [self switchProfile:self];
+//        [self storeProfilesOnDisk];
+//    }
 }
 
 #pragma mark -
@@ -503,7 +607,7 @@
 
 - (IBAction)showStreamPanel:(id)sender
 {
-    [NSApp beginSheet:_streamPanel modalForWindow:self.window modalDelegate:self didEndSelector:NULL contextInfo:nil];
+    [NSApp beginSheet:_streamPanel modalForWindow:[self window] modalDelegate:self didEndSelector:NULL contextInfo:nil];
 }
 
 - (IBAction)closeStreamPanel:(id)sender
@@ -588,10 +692,18 @@
     [saveFilePanel setCanSelectHiddenExtension: YES];
     [saveFilePanel setCanCreateDirectories: YES];
     [saveFilePanel setAllowedFileTypes:[NSArray arrayWithObject:@"sdp"]];
-    [saveFilePanel beginSheetModalForWindow:_streamPanel completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSOKButton)
-            [_streamSDPField setStringValue:[[saveFilePanel URL] path]];
-    }];
+    [saveFilePanel beginSheetForDirectory:nil
+                                     file:nil
+                           modalForWindow:_streamPanel
+                            modalDelegate:self
+                           didEndSelector:@selector(sdpFileLocationDidEnd:returnCode:contextInfo:)
+                              contextInfo:nil];
+}
+
+- (void)sdpFileLocationDidEnd:(NSSavePanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton)
+        [_streamSDPField setStringValue:[[panel URL] path]];
 }
 
 #pragma mark -
@@ -609,7 +721,7 @@
             NSArray *values = [[paste propertyListForType: NSFilenamesPboardType] sortedArrayUsingSelector:@selector(caseInsensitiveCompare:)];
 
             if ([values count] > 0) {
-                [self setMRL: toNSStr(vlc_path2uri([[values firstObject] UTF8String], NULL))];
+                [self setMRL: toNSStr(vlc_path2uri([[values objectAtIndex:0] UTF8String], NULL))];
                 [self updateOKButton];
                 [self updateDropView];
                 return YES;
@@ -695,7 +807,7 @@
         return;
     }
 
-    [self selectCellByEncapsulationFormat:[components firstObject]];
+    [self selectCellByEncapsulationFormat:[components objectAtIndex:0]];
     [_customizeVidCheckbox setState:[[components objectAtIndex:1] intValue]];
     [_customizeAudCheckbox setState:[[components objectAtIndex:2] intValue]];
     [_customizeSubsCheckbox setState:[[components objectAtIndex:3] intValue]];
@@ -873,20 +985,20 @@
 {
     NSMutableString *composedOptions = [[NSMutableString alloc] initWithString:@":sout=#transcode{"];
     BOOL haveVideo = YES;
-    if ([[self.currentProfile objectAtIndex:1] intValue]) {
+    if ([[_currentProfile objectAtIndex:1] intValue]) {
         // video is enabled
-        if (![[self.currentProfile objectAtIndex:4] isEqualToString:@"copy"]) {
-        [composedOptions appendFormat:@"vcodec=%@", [self.currentProfile objectAtIndex:4]];
-            if ([[self.currentProfile objectAtIndex:5] intValue] > 0) // bitrate
-                [composedOptions appendFormat:@",vb=%@", [self.currentProfile objectAtIndex:5]];
-            if ([[self.currentProfile objectAtIndex:6] floatValue] > 0.) // scale
-                [composedOptions appendFormat:@",scale=%@", [self.currentProfile objectAtIndex:6]];
-            if ([[self.currentProfile objectAtIndex:7] floatValue] > 0.) // fps
-                [composedOptions appendFormat:@",fps=%@", [self.currentProfile objectAtIndex:7]];
-            if ([[self.currentProfile objectAtIndex:8] intValue] > 0) // width
-                [composedOptions appendFormat:@",width=%@", [self.currentProfile objectAtIndex:8]];
-            if ([[self.currentProfile objectAtIndex:9] intValue] > 0) // height
-                [composedOptions appendFormat:@",height=%@", [self.currentProfile objectAtIndex:9]];
+        if (![[_currentProfile objectAtIndex:4] isEqualToString:@"copy"]) {
+        [composedOptions appendFormat:@"vcodec=%@", [_currentProfile objectAtIndex:4]];
+            if ([[_currentProfile objectAtIndex:5] intValue] > 0) // bitrate
+                [composedOptions appendFormat:@",vb=%@", [_currentProfile objectAtIndex:5]];
+            if ([[_currentProfile objectAtIndex:6] floatValue] > 0.) // scale
+                [composedOptions appendFormat:@",scale=%@", [_currentProfile objectAtIndex:6]];
+            if ([[_currentProfile objectAtIndex:7] floatValue] > 0.) // fps
+                [composedOptions appendFormat:@",fps=%@", [_currentProfile objectAtIndex:7]];
+            if ([[_currentProfile objectAtIndex:8] intValue] > 0) // width
+                [composedOptions appendFormat:@",width=%@", [_currentProfile objectAtIndex:8]];
+            if ([[_currentProfile objectAtIndex:9] intValue] > 0) // height
+                [composedOptions appendFormat:@",height=%@", [_currentProfile objectAtIndex:9]];
         } else {
             haveVideo = NO;
         }
@@ -895,15 +1007,15 @@
     }
 
     BOOL haveAudio = YES;
-    if ([[self.currentProfile objectAtIndex:2] intValue]) {
+    if ([[_currentProfile objectAtIndex:2] intValue]) {
         // audio is enabled
-        if (![[self.currentProfile objectAtIndex:10] isEqualToString:@"copy"]) {
+        if (![[_currentProfile objectAtIndex:10] isEqualToString:@"copy"]) {
             if(haveVideo)
                 [composedOptions appendString:@","];
-            [composedOptions appendFormat:@"acodec=%@", [self.currentProfile objectAtIndex:10]];
-            [composedOptions appendFormat:@",ab=%@", [self.currentProfile objectAtIndex:11]]; // bitrate
-            [composedOptions appendFormat:@",channels=%@", [self.currentProfile objectAtIndex:12]]; // channel number
-            [composedOptions appendFormat:@",samplerate=%@", [self.currentProfile objectAtIndex:13]]; // sample rate
+            [composedOptions appendFormat:@"acodec=%@", [_currentProfile objectAtIndex:10]];
+            [composedOptions appendFormat:@",ab=%@", [_currentProfile objectAtIndex:11]]; // bitrate
+            [composedOptions appendFormat:@",channels=%@", [_currentProfile objectAtIndex:12]]; // channel number
+            [composedOptions appendFormat:@",samplerate=%@", [_currentProfile objectAtIndex:13]]; // sample rate
         } else {
             haveAudio = NO;
         }
@@ -913,19 +1025,19 @@
 
         [composedOptions appendString:@"acodec=none"];
     }
-    if ([self.currentProfile objectAtIndex:3]) {
+    if ([_currentProfile objectAtIndex:3]) {
         if(haveVideo || haveAudio)
             [composedOptions appendString:@","];
         // subtitles enabled
-        [composedOptions appendFormat:@"scodec=%@", [self.currentProfile objectAtIndex:14]];
-        if ([[self.currentProfile objectAtIndex:15] intValue])
+        [composedOptions appendFormat:@"scodec=%@", [_currentProfile objectAtIndex:14]];
+        if ([[_currentProfile objectAtIndex:15] intValue])
             [composedOptions appendFormat:@",soverlay"];
     }
 
     if (!b_streaming) {
         /* file transcoding */
         // add muxer
-        [composedOptions appendFormat:@"}:standard{mux=%@", [self.currentProfile firstObject]];
+        [composedOptions appendFormat:@"}:standard{mux=%@", [_currentProfile objectAtIndex:0]];
 
 
         // add output destination
@@ -939,7 +1051,7 @@
         else if ([[[_streamTypePopup selectedItem] title] isEqualToString:@"MMSH"])
             [composedOptions appendFormat:@":standard{mux=asfh,dst=%@,port=%@,access=mmsh", _outputDestination, [_streamPortField stringValue]];
         else
-            [composedOptions appendFormat:@":standard{mux=%@,dst=%@,port=%@,access=http", [self.currentProfile firstObject], [_streamPortField stringValue], _outputDestination];
+            [composedOptions appendFormat:@":standard{mux=%@,dst=%@,port=%@,access=http", [_currentProfile objectAtIndex:0], [_streamPortField stringValue], _outputDestination];
 
         if ([_streamSAPCheckbox state])
             [composedOptions appendFormat:@",sap,name=\"%@\"", [_streamChannelField stringValue]];
@@ -967,13 +1079,13 @@
 
 - (void)updateCurrentProfile
 {
-    [self.currentProfile removeAllObjects];
+    [_currentProfile removeAllObjects];
 
     NSInteger i;
-    [self.currentProfile addObject: [self currentEncapsulationFormatAsFileExtension:NO]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeVidCheckbox state]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeAudCheckbox state]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeSubsCheckbox state]]];
+    [_currentProfile addObject: [self currentEncapsulationFormatAsFileExtension:NO]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeVidCheckbox state]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeAudCheckbox state]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeSubsCheckbox state]]];
     
     NSString *videoCodec;
     if([_customizeVidKeepCheckbox state] == NSOnState)
@@ -985,13 +1097,13 @@
         else
             videoCodec = @"none";
     }
-    [self.currentProfile addObject: videoCodec];
+    [_currentProfile addObject: videoCodec];
 
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [self vidBitrate]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [[[_customizeVidScalePopup selectedItem] title] intValue]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [self vidFramerate]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [_customizeVidWidthField intValue]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [_customizeVidHeightField intValue]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [self vidBitrate]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [[[_customizeVidScalePopup selectedItem] title] intValue]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [self vidFramerate]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [_customizeVidWidthField intValue]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [_customizeVidHeightField intValue]]];
 
     NSString *audioCodec;
     if([_customizeAudKeepCheckbox state] == NSOnState)
@@ -1003,17 +1115,17 @@
         else
             audioCodec = @"none";
     }
-    [self.currentProfile addObject: audioCodec];
+    [_currentProfile addObject: audioCodec];
     
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [self audBitrate]]];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%i", [self audChannels]]];
-    [self.currentProfile addObject: [[_customizeAudSampleratePopup selectedItem] title]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [self audBitrate]]];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%i", [self audChannels]]];
+    [_currentProfile addObject: [[_customizeAudSampleratePopup selectedItem] title]];
     i = [_customizeSubsPopup indexOfSelectedItem];
     if (i >= 0)
-        [self.currentProfile addObject: [[_subsCodecs objectAtIndex:1] objectAtIndex:i]];
+        [_currentProfile addObject: [[_subsCodecs objectAtIndex:1] objectAtIndex:i]];
     else
-        [self.currentProfile addObject: @"none"];
-    [self.currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeSubsOverlayCheckbox state]]];
+        [_currentProfile addObject: @"none"];
+    [_currentProfile addObject: [NSString stringWithFormat:@"%li", [_customizeSubsOverlayCheckbox state]]];
 }
 
 - (void)storeProfilesOnDisk
@@ -1027,7 +1139,7 @@
 - (void)recreateProfilePopup
 {
     [_profilePopup removeAllItems];
-    [_profilePopup addItemsWithTitles:self.profileNames];
+    [_profilePopup addItemsWithTitles:_profileNames];
     [_profilePopup addItemWithTitle:_NS("Custom")];
     [[_profilePopup menu] addItem:[NSMenuItem separatorItem]];
     [_profilePopup addItemWithTitle:_NS("Organize Profiles...")];

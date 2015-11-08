@@ -21,14 +21,26 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface VLCTimeSelectionPanelController : NSWindowController
+@interface VLCTimeSelectionPanelController : NSWindowController {
 
-@property (readwrite, weak) IBOutlet NSButton *cancelButton;
-@property (readwrite, weak) IBOutlet NSTextField *textField;
-@property (readwrite, weak) IBOutlet NSTextField *goToLabel;
-@property (readwrite, weak) IBOutlet NSButton *okButton;
-@property (readwrite, weak) IBOutlet NSTextField *secsLabel;
-@property (readwrite, weak) IBOutlet NSStepper *stepper;
+    IBOutlet NSButton * _cancelButton;
+    IBOutlet NSTextField * _textField;
+    IBOutlet NSTextField * _goToLabel;
+    IBOutlet NSButton * _okButton;
+    IBOutlet NSTextField * _secsLabel;
+    IBOutlet NSStepper * _stepper;
+
+    int _jumpTimeValue;
+    int _maxValue;
+
+}
+
+@property (readwrite, assign) IBOutlet NSButton *cancelButton;
+@property (readwrite, assign) IBOutlet NSTextField *textField;
+@property (readwrite, assign) IBOutlet NSTextField *goToLabel;
+@property (readwrite, assign) IBOutlet NSButton *okButton;
+@property (readwrite, assign) IBOutlet NSTextField *secsLabel;
+@property (readwrite, assign) IBOutlet NSStepper *stepper;
 
 @property (nonatomic) int jumpTimeValue;
 @property (nonatomic) int maxValue;
@@ -36,18 +48,9 @@
 - (IBAction)buttonPressed:(id)sender;
 
 /**
- * Completion handler for textfield panel
- * \param returnCode Result from panel. Can be NSOKButton or NSCancelButton.
- * \param returnTime Resulting time in seconds entered in panel.
- */
-typedef void(^TimeSelectionCompletionHandler)(NSInteger returnCode, int64_t returnTime);
-
-/**
  * Shows the panel as a modal dialog with window as its owner.
- * \param window Parent window for the dialog.
- * \param handler Completion block.
  */
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(TimeSelectionCompletionHandler)handler;
+- (void)runModalForWindow:(NSWindow *)window target:(id)obj completionSelector:(SEL)sel;
 
 
 @end

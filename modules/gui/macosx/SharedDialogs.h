@@ -23,45 +23,75 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface VLCTextfieldPanelController : NSWindowController
 
-@property (weak) IBOutlet NSTextField *titleLabel;
-@property (weak) IBOutlet NSTextField *subtitleLabel;
-@property (weak) IBOutlet NSTextField *textField;
-@property (weak) IBOutlet NSButton *cancelButton;
-@property (weak) IBOutlet NSButton *okButton;
+@interface VLCTextfieldPanelController : NSWindowController {
+
+    // ivars for properties
+
+    IBOutlet NSTextField * _titleLabel;
+    IBOutlet NSTextField * _subtitleLabel;
+    IBOutlet NSTextField * _textField;
+    IBOutlet NSButton * _cancelButton;
+    IBOutlet NSButton * _okButton;
+
+    NSString * _titleString;
+    NSString * _subTitleString;
+    NSString * _okButtonString;
+    NSString * _cancelButtonString;
+
+    id _target;
+
+}
+
+@property (assign) IBOutlet NSTextField *titleLabel;
+@property (assign) IBOutlet NSTextField *subtitleLabel;
+@property (assign) IBOutlet NSTextField *textField;
+@property (assign) IBOutlet NSButton *cancelButton;
+@property (assign) IBOutlet NSButton *okButton;
 
 @property (readwrite, assign) NSString *titleString;
 @property (readwrite, assign) NSString *subTitleString;
 @property (readwrite, assign) NSString *okButtonString;
 @property (readwrite, assign) NSString *cancelButtonString;
 
-/**
- * Completion handler for textfield panel
- * \param returnCode Result from panel. Can be NSOKButton or NSCancelButton.
- * \param resultingText Resulting text string entered in panel.
- */
-typedef void(^TextfieldPanelCompletionBlock)(NSInteger returnCode, NSString *resultingText);
+@property (readwrite, assign) id target;
 
 /**
  * Shows the panel as a modal dialog with window as its owner.
  * \param window Parent window for the dialog.
- * \param handler Completion block.
  */
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(TextfieldPanelCompletionBlock)handler;
+- (void)runModalForWindow:(NSWindow *)window;
 
 - (IBAction)windowElementAction:(id)sender;
 
 @end
 
 
-@interface VLCPopupPanelController : NSWindowController
+@interface VLCPopupPanelController : NSWindowController {
 
-@property (weak) IBOutlet NSTextField *titleLabel;
-@property (weak) IBOutlet NSTextField *subtitleLabel;
-@property (weak) IBOutlet NSPopUpButton *popupButton;
-@property (weak) IBOutlet NSButton *cancelButton;
-@property (weak) IBOutlet NSButton *okButton;
+    // properties
+
+    IBOutlet NSTextField * _titleLabel;
+    IBOutlet NSTextField * _subtitleLabel;
+    IBOutlet NSPopUpButton * _popupButton;
+    IBOutlet NSButton * _cancelButton;
+    IBOutlet NSButton * _okButton;
+
+    NSString * _titleString;
+    NSString * _subTitleString;
+    NSString * _okButtonString;
+    NSString * _cancelButtonString;
+    NSArray * _popupButtonContent;
+
+    id _target;
+
+}
+
+@property (assign) IBOutlet NSTextField *titleLabel;
+@property (assign) IBOutlet NSTextField *subtitleLabel;
+@property (assign) IBOutlet NSPopUpButton *popupButton;
+@property (assign) IBOutlet NSButton *cancelButton;
+@property (assign) IBOutlet NSButton *okButton;
 
 @property (readwrite, assign) NSString *titleString;
 @property (readwrite, assign) NSString *subTitleString;
@@ -69,19 +99,13 @@ typedef void(^TextfieldPanelCompletionBlock)(NSInteger returnCode, NSString *res
 @property (readwrite, assign) NSString *cancelButtonString;
 @property (readwrite, assign) NSArray *popupButtonContent;
 
-/**
- * Completion handler for popup panel
- * \param returnCode Result from panel. Can be NSOKButton or NSCancelButton.
- * \param selectedIndex Selected index of the popup in panel.
- */
-typedef void(^PopupPanelCompletionBlock)(NSInteger returnCode, NSInteger selectedIndex);
+@property (readwrite, assign) id target;
 
 /**
  * Shows the panel as a modal dialog with window as its owner.
  * \param window Parent window for the dialog.
- * \param handler Completion block.
  */
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(PopupPanelCompletionBlock)handler;
+- (void)runModalForWindow:(NSWindow *)window;
 
 - (IBAction)windowElementAction:(id)sender;
 

@@ -23,15 +23,18 @@
 
 #import "SharedDialogs.h"
 
-@interface VLCTextfieldPanelController()
-{
-    TextfieldPanelCompletionBlock _completionBlock;
-}
-
-@end
-
 @implementation VLCTextfieldPanelController
 
+@synthesize titleLabel = _titleLabel;
+@synthesize subtitleLabel = _subtitleLabel;
+@synthesize textField = _textField;
+@synthesize cancelButton = _cancelButton;
+@synthesize okButton = _okButton;
+@synthesize titleString = _titleString;
+@synthesize subTitleString = _subTitleString;
+@synthesize okButtonString = _okButtonString;
+@synthesize cancelButtonString = _cancelButtonString;
+@synthesize target = _target;
 
 - (id)init
 {
@@ -42,14 +45,14 @@
 
 - (IBAction)windowElementAction:(id)sender
 {
-    [self.window orderOut:sender];
-    [NSApp endSheet: self.window];
+    [[self window] orderOut:sender];
+    [NSApp endSheet: [self window]];
 
-    if (_completionBlock)
-        _completionBlock(sender == _okButton ? NSOKButton : NSCancelButton, [_textField stringValue]);
+    ///if (_completionBlock)
+        ///_completionBlock(sender == _okButton ? NSOKButton : NSCancelButton, [_textField stringValue]);
 }
 
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(TextfieldPanelCompletionBlock)handler;
+- (void)runModalForWindow:(NSWindow *)window; ///completionHandler:(TextfieldPanelCompletionBlock)handler;
 {
     [self window];
 
@@ -59,20 +62,26 @@
     [_okButton setTitle:self.okButtonString];
     [_textField setStringValue:@""];
 
-    _completionBlock = [handler copy];
+///    _completionBlock = [handler copy];
 
-    [NSApp beginSheet:self.window modalForWindow:window modalDelegate:self didEndSelector:NULL contextInfo:nil];
+    [NSApp beginSheet:[self window] modalForWindow:window modalDelegate:self didEndSelector:NULL contextInfo:nil];
 }
 
-@end
-
-@interface VLCPopupPanelController()
-{
-    PopupPanelCompletionBlock _completionBlock;
-}
 @end
 
 @implementation VLCPopupPanelController
+
+@synthesize titleLabel = _titleLabel;
+@synthesize subtitleLabel = _subtitleLabel;
+@synthesize popupButton = _popupButton;
+@synthesize cancelButton = _cancelButton;
+@synthesize okButton = _okButton;
+@synthesize titleString = _titleString;
+@synthesize subTitleString = _subTitleString;
+@synthesize okButtonString = _okButtonString;
+@synthesize cancelButtonString = _cancelButtonString;
+@synthesize popupButtonContent = _popupButtonContent;
+@synthesize target = _target;
 
 - (id)init
 {
@@ -83,14 +92,14 @@
 
 - (IBAction)windowElementAction:(id)sender
 {
-    [self.window orderOut:sender];
-    [NSApp endSheet: self.window];
+    [[self window] orderOut:sender];
+    [NSApp endSheet: [self window]];
 
-    if (_completionBlock)
-        _completionBlock(sender == _okButton ? NSOKButton : NSCancelButton, [_popupButton indexOfSelectedItem]);
+///    if (_completionBlock)
+///        _completionBlock(sender == _okButton ? NSOKButton : NSCancelButton, [_popupButton indexOfSelectedItem]);
 }
 
-- (void)runModalForWindow:(NSWindow *)window completionHandler:(PopupPanelCompletionBlock)handler;
+- (void)runModalForWindow:(NSWindow *)window; ///completionHandler:(PopupPanelCompletionBlock)handler;
 {
     [self window];
 
@@ -102,9 +111,9 @@
     for (NSString *value in self.popupButtonContent)
         [[_popupButton menu] addItemWithTitle:value action:nil keyEquivalent:@""];
 
-    _completionBlock = [handler copy];
+///    _completionBlock = [handler copy];
 
-    [NSApp beginSheet:self.window modalForWindow:window modalDelegate:self didEndSelector:NULL contextInfo:nil];
+    [NSApp beginSheet:[self window] modalForWindow:window modalDelegate:self didEndSelector:NULL contextInfo:nil];
 }
 
 @end

@@ -24,11 +24,26 @@
 
 static NSMenu *o_keys_menu = nil;
 
-@interface VLCConfigControl : NSView
+@interface VLCConfigControl : NSView {
+
+    module_config_t * _p_item;
+    NSTextField * _label;
+    NSString * _name;
+    int _type;
+    int _viewType;
+    bool _advanced;
+    int _intValue;
+    float _floatValue;
+    char * _stringValue;
+    int _labelSize;
+
+    const char *psz_name;
+
+}
 
 @property (readonly) module_config_t *p_item;
 
-@property (readwrite) NSTextField *label;
+@property (readwrite, assign) NSTextField *label;
 
 @property (readonly) NSString *name;
 @property (readonly) int type;
@@ -55,21 +70,29 @@ static NSMenu *o_keys_menu = nil;
 
 @end
 
-@interface StringConfigControl : VLCConfigControl
+@interface StringConfigControl : VLCConfigControl {
+    NSTextField     *o_textfield;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
 
 @end
 
-@interface StringListConfigControl : VLCConfigControl
+@interface StringListConfigControl : VLCConfigControl {
+    NSPopUpButton      *o_popup;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
 
 @end
 
-@interface FileConfigControl : VLCConfigControl
+@interface FileConfigControl : VLCConfigControl {
+    NSTextField     *o_textfield;
+    NSButton        *o_button;
+    BOOL            b_directory;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
@@ -78,46 +101,19 @@ static NSMenu *o_keys_menu = nil;
 
 @end
 
-@interface ModuleConfigControl : VLCConfigControl
+@interface ModuleConfigControl : VLCConfigControl {
+    NSPopUpButton   *o_popup;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
 
 @end
 
-@interface IntegerConfigControl : VLCConfigControl
-
-- (id)initWithItem:(module_config_t *)_p_item
-          withView:(NSView *)o_parent_view;
-
-- (IBAction)stepperChanged:(id)sender;
-
-@end
-
-@interface IntegerListConfigControl : VLCConfigControl
-
-- (id)initWithItem:(module_config_t *)_p_item
-          withView:(NSView *)o_parent_view;
-
-@end
-
-@interface RangedIntegerConfigControl : VLCConfigControl
-
-- (id)initWithItem:(module_config_t *)_p_item
-          withView:(NSView *)o_parent_view;
-
-- (IBAction)sliderChanged:(id)sender;
-
-@end
-
-@interface BoolConfigControl : VLCConfigControl
-
-- (id)initWithItem:(module_config_t *)_p_item
-          withView:(NSView *)o_parent_view;
-
-@end
-
-@interface FloatConfigControl : VLCConfigControl
+@interface IntegerConfigControl : VLCConfigControl <NSTextFieldDelegate> {
+    NSTextField     *o_textfield;
+    NSStepper       *o_stepper;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
@@ -126,7 +122,21 @@ static NSMenu *o_keys_menu = nil;
 
 @end
 
-@interface RangedFloatConfigControl : VLCConfigControl
+@interface IntegerListConfigControl : VLCConfigControl {
+    NSPopUpButton      *o_popup;
+}
+
+- (id)initWithItem:(module_config_t *)_p_item
+          withView:(NSView *)o_parent_view;
+
+@end
+
+@interface RangedIntegerConfigControl : VLCConfigControl <NSTextFieldDelegate> {
+    NSSlider        *o_slider;
+    NSTextField     *o_textfield;
+    NSTextField     *o_textfield_min;
+    NSTextField     *o_textfield_max;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
@@ -135,14 +145,55 @@ static NSMenu *o_keys_menu = nil;
 
 @end
 
-@interface KeyConfigControl : VLCConfigControl
+@interface BoolConfigControl : VLCConfigControl {
+    NSButton        *o_checkbox;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;
 
 @end
 
-@interface ModuleListConfigControl : VLCConfigControl
+@interface FloatConfigControl : VLCConfigControl <NSTextFieldDelegate> {
+    NSTextField     *o_textfield;
+    NSStepper       *o_stepper;
+}
+
+- (id)initWithItem:(module_config_t *)_p_item
+          withView:(NSView *)o_parent_view;
+
+- (IBAction)stepperChanged:(id)sender;
+
+@end
+
+@interface RangedFloatConfigControl : VLCConfigControl <NSTextFieldDelegate> {
+    NSSlider        *o_slider;
+    NSTextField     *o_textfield;
+    NSTextField     *o_textfield_min;
+    NSTextField     *o_textfield_max;
+}
+
+- (id)initWithItem:(module_config_t *)_p_item
+          withView:(NSView *)o_parent_view;
+
+- (IBAction)sliderChanged:(id)sender;
+
+@end
+
+@interface KeyConfigControl : VLCConfigControl {
+    NSPopUpButton   *o_popup;
+}
+
+- (id)initWithItem:(module_config_t *)_p_item
+          withView:(NSView *)o_parent_view;
+
+@end
+
+@interface ModuleListConfigControl : VLCConfigControl <NSTextFieldDelegate, NSTableViewDataSource> {
+    NSTextField     *o_textfield;
+    NSTableView     *o_tableview;
+    NSMutableArray  *o_modulearray;
+}
 
 - (id)initWithItem:(module_config_t *)_p_item
           withView:(NSView *)o_parent_view;

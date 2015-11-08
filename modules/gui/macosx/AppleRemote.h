@@ -59,6 +59,8 @@
 #import <IOKit/hid/IOHIDLib.h>
 #import <IOKit/hid/IOHIDKeys.h>
 
+#import "CompatibilityFixes.h"
+
 enum AppleRemoteEventIdentifier
 {
     kRemoteButtonVolume_Plus        =1<<1,
@@ -98,10 +100,20 @@ The class is not thread safe
     AppleRemoteEventIdentifier lastPlusMinusEvent;
     NSTimeInterval lastPlusMinusEventTime;
 
-    int remoteId;
     NSTimeInterval lastClickCountEventTime;
     AppleRemoteEventIdentifier lastClickCountEvent;
     unsigned int eventClickCount;
+
+    int remoteId;
+    BOOL remoteAvailable;
+    BOOL listeningToRemote;
+    BOOL openInExclusiveMode;
+    BOOL clickCountingEnabled;
+    unsigned int clickCountEnabledButtons;
+    NSTimeInterval maximumClickCountTimeDifference;
+    BOOL processesBacklog;
+    BOOL listeningOnAppActivate;
+    BOOL simulatesPlusMinusHold;
 
     id delegate;
 }
@@ -141,7 +153,8 @@ The class is not thread safe
 @property (readwrite) BOOL simulatesPlusMinusHold;
 
 /* Delegates are not retained */
-@property (readwrite, assign) id delegate;
+- (id) delegate;
+- (void) setDelegate: (id) deleg;
 
 - (IBAction) startListening: (id) sender;
 - (IBAction) stopListening: (id) sender;

@@ -37,17 +37,11 @@ NSString * const PXSLItemWillCollapseNotification = @"PXSourceListItemWillCollap
 NSString * const PXSLItemDidCollapseNotification = @"PXSourceListItemDidCollapse";
 NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKeyPressedOnRows";
 
-#pragma mark -
-@interface PXSourceList ()
-
-- (NSSize)sizeOfBadgeAtRow:(NSInteger)rowIndex;
-- (void)drawBadgeForRow:(NSInteger)rowIndex inRect:(NSRect)badgeFrame;
-- (void)registerDelegateToReceiveNotification:(NSString*)notification withSelector:(SEL)selector;
-
-@end
 
 #pragma mark -
 @implementation PXSourceList
+
+@synthesize iconSize = _iconSize;
 
 @dynamic dataSource;
 @dynamic delegate;
@@ -73,6 +67,7 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 {
     //Unregister the delegate from receiving notifications
     [[NSNotificationCenter defaultCenter] removeObserver:_secondaryDelegate];
+    [super dealloc];
 }
 
 #pragma mark -
@@ -378,11 +373,22 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
                         iconRect = NSMakeRect(NSMidX(iconRect)-(actualIconSize.width/2.0f), NSMidY(iconRect)-(actualIconSize.height/2.0f), actualIconSize.width, actualIconSize.height);
                     }
 
-                    [icon drawInRect:iconRect
-                            fromRect:NSZeroRect
-                           operation:NSCompositeSourceOver
-                            fraction:1
-                      respectFlipped:YES hints:nil];
+                    #ifdef MAC_OS_X_VERSION_10_7
+                    if (OSX_LION) {
+                        [icon drawInRect:iconRect
+                                fromRect:NSZeroRect
+                               operation:NSCompositeSourceOver
+                                fraction:1
+                          respectFlipped:YES hints:nil];
+                    } else
+                    #endif
+                    {
+                        [icon setFlipped:[self isFlipped]];
+                        [icon drawInRect:iconRect
+                                fromRect:NSZeroRect
+                               operation:NSCompositeSourceOver
+                                fraction:1];
+                    }
                 }
             }
         }
@@ -701,7 +707,7 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
     NSInteger row = [self rowForItem:item];
 
     //Return the default table column
-    return [[[self tableColumns] firstObject] dataCellForRow:row];
+    return [[[self tableColumns] objectAtIndex:0] dataCellForRow:row];
 }
 
 - (void)outlineView:(NSOutlineView *)outlineView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn item:(id)item

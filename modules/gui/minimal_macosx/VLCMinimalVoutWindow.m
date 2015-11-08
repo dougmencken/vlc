@@ -52,17 +52,21 @@
     initialFrame = [self frame];
     [self setFrame:[[self screen] frame] display:YES animate:YES];
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
     NSApplicationPresentationOptions presentationOpts = [NSApp presentationOptions];
     if ([screen hasMenuBar])
         presentationOpts |= NSApplicationPresentationAutoHideMenuBar;
     if ([screen hasMenuBar] || [screen hasDock])
         presentationOpts |= NSApplicationPresentationAutoHideDock;
     [NSApp setPresentationOptions:presentationOpts];
+#endif
 }
 
 - (void)leaveFullscreen
 {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
     [NSApp setPresentationOptions: NSApplicationPresentationDefault];
+#endif
     [self setFrame:initialFrame display:YES animate:YES];
 }
 

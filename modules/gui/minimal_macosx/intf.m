@@ -92,13 +92,15 @@ extern OSErr    CPSSetFrontProcess(CPSProcessSerNum *psn);
 static void Run(intf_thread_t *p_intf)
 {
     CPSProcessSerNum PSN;
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         [NSApplication sharedApplication];
         if (!CPSGetCurrentProcess(&PSN))
             if (!CPSEnableForegroundOperation(&PSN,0x03,0x3C,0x2C,0x1103))
                 if (!CPSSetFrontProcess(&PSN))
                     [NSApplication sharedApplication];
     }
+    [pool drain];
 }
 
 /*****************************************************************************
@@ -112,7 +114,8 @@ int WindowOpen(vout_window_t *p_wnd, const vout_window_cfg_t *cfg)
      && cfg->type != VOUT_WINDOW_TYPE_NSOBJECT)
         return VLC_EGENERIC;
 
-    @autoreleasepool {
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
         NSRect proposedVideoViewPosition = NSMakeRect(cfg->x, cfg->y, cfg->width, cfg->height);
 
         VLCMinimalVoutWindow *o_window = [[VLCMinimalVoutWindow alloc] initWithContentRect:proposedVideoViewPosition];
@@ -124,11 +127,12 @@ int WindowOpen(vout_window_t *p_wnd, const vout_window_cfg_t *cfg)
         }
 
         msg_Dbg(p_wnd, "returning video window with proposed position x=%i, y=%i, width=%i, height=%i", cfg->x, cfg->y, cfg->width, cfg->height);
-        p_wnd->handle.nsobject = (void *)CFBridgingRetain([o_window contentView]);
+        p_wnd->handle.nsobject = (void *)[o_window contentView];
 
         p_wnd->type = VOUT_WINDOW_TYPE_NSOBJECT;
         p_wnd->control = WindowControl;
     }
+    [pool drain];
 
     vout_window_SetFullScreen(p_wnd, cfg->is_fullscreen);
     return VLC_SUCCESS;
@@ -136,7 +140,7 @@ int WindowOpen(vout_window_t *p_wnd, const vout_window_cfg_t *cfg)
 
 static int WindowControl(vout_window_t *p_wnd, int i_query, va_list args)
 {
-    NSWindow * o_window = [(__bridge id)p_wnd->handle.nsobject window];
+    NSWindow * o_window = [(id)p_wnd->handle.nsobject window];
     if (!o_window) {
         msg_Err(p_wnd, "failed to recover cocoa window");
         return VLC_EGENERIC;
@@ -153,7 +157,8 @@ static int WindowControl(vout_window_t *p_wnd, int i_query, va_list args)
         }
         case VOUT_WINDOW_SET_SIZE:
         {
-            @autoreleasepool {
+            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+            {
                 NSRect theFrame = [o_window frame];
                 unsigned int i_width  = va_arg(args, unsigned int);
                 unsigned int i_height = va_arg(args, unsigned int);
@@ -161,11 +166,13 @@ static int WindowControl(vout_window_t *p_wnd, int i_query, va_list args)
                 theFrame.size.height = i_height;
                 [o_window setFrame: theFrame display: YES animate: YES];
             }
+            [pool drain];
             return VLC_SUCCESS;
         }
         case VOUT_WINDOW_SET_FULLSCREEN:
         {
-            @autoreleasepool {
+            NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+            {
                 int i_full = va_arg(args, int);
 
                 if (i_full)
@@ -173,6 +180,7 @@ static int WindowControl(vout_window_t *p_wnd, int i_query, va_list args)
                 else
                     [o_window performSelectorOnMainThread:@selector(leaveFullscreen) withObject:nil waitUntilDone:NO];
             }
+            [pool drain];
             return VLC_SUCCESS;
         }
         default:
@@ -183,9 +191,11 @@ static int WindowControl(vout_window_t *p_wnd, int i_query, va_list args)
 
 void WindowClose(vout_window_t *p_wnd)
 {
-    @autoreleasepool {
-        NSWindow * o_window = [(__bridge id)p_wnd->handle.nsobject window];
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    {
+        NSWindow * o_window = [(id)p_wnd->handle.nsobject window];
         if (o_window)
             o_window = nil;
     }
+    [pool drain];
 }

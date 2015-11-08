@@ -23,9 +23,42 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface VLCCoreInteraction : NSObject
+#import "AppleRemote.h"
+#import "SPMediaKeyTap.h"
+#import <vlc_common.h>
+
+@interface VLCCoreInteraction : NSObject {
+
+    int i_currentPlaybackRate;
+    mtime_t timeA, timeB;
+
+    float f_maxVolume;
+
+    /* media key support */
+    BOOL b_mediaKeySupport;
+    BOOL b_mediakeyJustJumped;
+    SPMediaKeyTap *_mediaKeyController;
+    BOOL b_mediaKeyTrapEnabled;
+
+    AppleRemote *_remote;
+    BOOL b_remote_button_hold; /* true as long as the user holds the left,right,plus or minus on the remote control */
+
+    NSArray *_usedHotkeys;
+
+    // ivars for properties
+    int _volume;
+    float _maxVolume;
+    int _playbackRate;
+    BOOL _aspectRatioIsLocked;
+    int _durationOfCurrentPlaylistItem;
+    NSURL * _URLOfCurrentPlaylistItem;
+    NSString * _nameOfCurrentPlaylistItem;
+    BOOL _mute;
+
+}
 
 + (VLCCoreInteraction *)sharedInstance;
+
 @property (readwrite) int volume;
 @property (readonly, nonatomic) float maxVolume;
 @property (readwrite) int playbackRate;

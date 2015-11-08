@@ -120,7 +120,7 @@ typedef enum CrashReportStatus {
 
   NSMutableString   *_contentOfProperty;
 
-  id<BWQuincyManagerDelegate> __weak _delegate;
+  id<BWQuincyManagerDelegate> _delegate;
 
   NSString   *_submissionURL;
   NSString   *_companyName;
@@ -130,11 +130,16 @@ typedef enum CrashReportStatus {
   NSString   *_crashFile;
 
   BWQuincyUI *_quincyUI;
+
+  NSString *_customAppVersion;
 }
 
 - (NSString*) modelVersion;
 
 + (BWQuincyManager *)sharedQuincyManager;
+
+// delegate is required
+@property (nonatomic, assign) id <BWQuincyManagerDelegate> delegate;
 
 // submission URL defines where to send the crash reports to (required)
 @property (nonatomic, retain) NSString *submissionURL;
@@ -142,18 +147,12 @@ typedef enum CrashReportStatus {
 // defines the company name to be shown in the crash reporting dialog
 @property (nonatomic, retain) NSString *companyName;
 
-// delegate is required
-@property (nonatomic, weak) id <BWQuincyManagerDelegate> delegate;
+// If you want to use HockeyApp instead of your own server, this is required
+@property (nonatomic, retain) NSString *appIdentifier;
 
 // if YES, the crash report will be submitted without asking the user
 // if NO, the user will be asked if the crash report can be submitted (default)
 @property (nonatomic, assign, getter=isAutoSubmitCrashReport) BOOL autoSubmitCrashReport;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// settings
-
-// If you want to use HockeyApp instead of your own server, this is required
-@property (nonatomic, retain) NSString *appIdentifier;
 
 
 - (void) cancelReport;

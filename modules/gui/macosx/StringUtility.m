@@ -47,16 +47,14 @@ NSString *const kVLCMediaUnknown = @"Unknown";
 
 @implementation VLCStringUtility
 
-
 + (VLCStringUtility *)sharedInstance
 {
     static VLCStringUtility *sharedInstance = nil;
-    static dispatch_once_t pred;
-
-    dispatch_once(&pred, ^{
-        sharedInstance = [VLCStringUtility new];
-    });
-
+    @synchronized(self) {
+        if (sharedInstance == nil) {
+            sharedInstance = [VLCStringUtility new];
+        }
+    }
     return sharedInstance;
 }
 

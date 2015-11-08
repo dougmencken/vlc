@@ -27,15 +27,30 @@
 /*****************************************************************************
  * VLCPrefs interface
  *****************************************************************************/
-@interface VLCPrefs : NSWindowController
+@interface VLCPrefs : NSWindowController {
 
-@property (readwrite, weak) IBOutlet NSTextField *titleLabel;
-@property (readwrite, weak) IBOutlet NSOutlineView *tree;
-@property (readwrite, weak) IBOutlet NSScrollView *prefsView;
-@property (readwrite, weak) IBOutlet NSButton *saveButton;
-@property (readwrite, weak) IBOutlet NSButton *cancelButton;
-@property (readwrite, weak) IBOutlet NSButton *resetButton;
-@property (readwrite, weak) IBOutlet NSButton *showBasicButton;
+    VLCTreeMainItem *_rootTreeItem;
+    NSView *o_emptyView;
+    NSMutableDictionary *o_save_prefs;
+
+    // property ivars
+    IBOutlet NSTextField * _titleLabel;
+    IBOutlet NSOutlineView * _tree;
+    IBOutlet NSScrollView * _prefsView;
+    IBOutlet NSButton * _saveButton;
+    IBOutlet NSButton * _cancelButton;
+    IBOutlet NSButton * _resetButton;
+    IBOutlet NSButton * _showBasicButton;
+
+}
+
+@property (readwrite, assign) IBOutlet NSTextField *titleLabel;
+@property (readwrite, assign) IBOutlet NSOutlineView *tree;
+@property (readwrite, assign) IBOutlet NSScrollView *prefsView;
+@property (readwrite, assign) IBOutlet NSButton *saveButton;
+@property (readwrite, assign) IBOutlet NSButton *cancelButton;
+@property (readwrite, assign) IBOutlet NSButton *resetButton;
+@property (readwrite, assign) IBOutlet NSButton *showBasicButton;
 
 - (void)setTitle: (NSString *) o_title_name;
 - (void)showPrefsWithLevel:(NSInteger)i_window_level;

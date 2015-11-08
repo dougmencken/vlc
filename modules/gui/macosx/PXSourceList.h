@@ -8,6 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "CompatibilityFixes.h"
+
 #import "PXSourceListDelegate.h"
 #import "PXSourceListDataSource.h"
 
@@ -15,6 +17,9 @@
 {
     id <PXSourceListDelegate> _secondaryDelegate; //Used to store the publicly visible delegate
     id <PXSourceListDataSource> _secondaryDataSource; //Used to store the publicly visible data source
+
+    // properties
+    NSSize _iconSize;
 }
 
 @property (nonatomic) NSSize iconSize;
@@ -28,6 +33,10 @@
 
 - (BOOL)itemHasBadge:(id)item; //Returns whether `item` has a badge
 - (NSInteger)badgeValueForItem:(id)item; //Returns the badge value for `item`
+
+- (NSSize)sizeOfBadgeAtRow:(NSInteger)rowIndex;
+- (void)drawBadgeForRow:(NSInteger)rowIndex inRect:(NSRect)badgeFrame;
+- (void)registerDelegateToReceiveNotification:(NSString*)notification withSelector:(SEL)selector;
 
 @end
 

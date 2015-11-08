@@ -36,6 +36,22 @@
 
 @implementation VLCTrackSynchronization
 
+@synthesize resetButton = _resetButton;
+@synthesize avLabel = _avLabel;
+@synthesize av_advanceLabel = _av_advanceLabel;
+@synthesize av_advanceTextField = _av_advanceTextField;
+@synthesize avStepper = _avStepper;
+@synthesize svLabel = _svLabel;
+@synthesize sv_advanceLabel = _sv_advanceLabel;
+@synthesize sv_advanceTextField = _sv_advanceTextField;
+@synthesize sv_advanceStepper = _sv_advanceStepper;
+@synthesize sv_speedLabel = _sv_speedLabel;
+@synthesize sv_speedTextField = _sv_speedTextField;
+@synthesize sv_speedStepper = _sv_speedStepper;
+@synthesize sv_durLabel = _sv_durLabel;
+@synthesize sv_durTextField = _sv_durTextField;
+@synthesize sv_durStepper = _sv_durStepper;
+
 - (id)init
 {
     self = [super initWithWindowNibName:@"SyncTracks"];
@@ -45,7 +61,7 @@
 
 - (void)windowDidLoad
 {
-    [self.window setTitle:_NS("Track Synchronization")];
+    [[self window] setTitle:_NS("Track Synchronization")];
     [_resetButton setTitle:_NS("Reset")];
     [_avLabel setStringValue:_NS("Audio/Video")];
     [_av_advanceLabel setStringValue: _NS("Audio track synchronization:")];
@@ -81,24 +97,27 @@
     [[_sv_durTextField formatter] setFormat:[NSString stringWithFormat:@"#,##0.000%@", o_suffix]];
     [_sv_durTextField setToolTip: o_toolTip];
 
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_LEOPARD && !OSX_SNOW_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     [self resetValues:self];
 }
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level
 {
-    if (self.window && [self.window isVisible] && [self.window level] != i_level)
-        [self.window setLevel: i_level];
+    if ([self window] && [[self window] isVisible] && [[self window] level] != i_level)
+        [[self window] setLevel: i_level];
 }
 
 - (IBAction)toggleWindow:(id)sender
 {
-    if ([self.window isVisible])
-        [self.window orderOut:sender];
+    if ([[self window] isVisible])
+        [[self window] orderOut:sender];
     else {
-        [self.window setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
-        [self.window makeKeyAndOrderFront:sender];
+        [[self window] setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
+        [[self window] makeKeyAndOrderFront:sender];
 
         [self updateValues];
     }

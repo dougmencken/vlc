@@ -80,14 +80,18 @@
 
 @end
 
-@interface VLCTreeItem : NSObject
-{
+@interface VLCTreeItem : NSObject {
+
     NSString *_name;
     NSMutableArray *_children;
     NSMutableArray *_options;
     NSMutableArray *_subviews;
+
+    VLCPrefs *_prefsViewController;
+
 }
-@property (readwrite, weak) VLCPrefs *prefsViewController;
+
+@property (readwrite, assign) VLCPrefs *prefsViewController;
 
 - (id)initWithName:(NSString*)name;
 
@@ -104,8 +108,7 @@
 @end
 
 /* CONFIG_SUBCAT */
-@interface VLCTreeSubCategoryItem : VLCTreeItem
-{
+@interface VLCTreeSubCategoryItem : VLCTreeItem {
     int _subCategory;
 }
 + (VLCTreeSubCategoryItem *)subCategoryTreeItemWithSubCategory:(int)subCategory;
@@ -114,8 +117,7 @@
 @end
 
 /* Plugin daughters */
-@interface VLCTreePluginItem : VLCTreeItem
-{
+@interface VLCTreePluginItem : VLCTreeItem {
     module_config_t * _configItems;
     unsigned int _configSize;
 }
@@ -127,8 +129,7 @@
 @end
 
 /* CONFIG_CAT */
-@interface VLCTreeCategoryItem : VLCTreeItem
-{
+@interface VLCTreeCategoryItem : VLCTreeItem {
     int _category;
 }
 + (VLCTreeCategoryItem *)categoryTreeItemWithCategory:(int)category;
@@ -139,8 +140,7 @@
 @end
 
 /* individual options. */
-@interface VLCTreeLeafItem : VLCTreeItem
-{
+@interface VLCTreeLeafItem : VLCTreeItem {
     module_config_t * _configItem;
 }
 - (id)initWithConfigItem:(module_config_t *)configItem;
@@ -157,15 +157,15 @@
  * VLCPrefs implementation
  *****************************************************************************/
 
-@interface VLCPrefs()
-{
-    VLCTreeMainItem *_rootTreeItem;
-    NSView *o_emptyView;
-    NSMutableDictionary *o_save_prefs;
-}
-@end
-
 @implementation VLCPrefs
+
+@synthesize titleLabel = _titleLabel;
+@synthesize tree = _tree;
+@synthesize prefsView = _prefsView;
+@synthesize saveButton = _saveButton;
+@synthesize cancelButton = _cancelButton;
+@synthesize resetButton = _resetButton;
+@synthesize showBasicButton = _showBasicButton;
 
 - (id)init
 {
@@ -180,10 +180,13 @@
     o_emptyView = [[NSView alloc] init];
     _rootTreeItem = [[VLCTreeMainItem alloc] init];
 
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
-    [self.window setHidesOnDeactivate:YES];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
+    [[self window] setHidesOnDeactivate:YES];
 
-    [self.window setTitle: _NS("Preferences")];
+    [[self window] setTitle: _NS("Preferences")];
     [_saveButton setTitle: _NS("Save")];
     [_cancelButton setTitle: _NS("Cancel")];
     [_resetButton setTitle: _NS("Reset All")];
@@ -203,9 +206,9 @@
 
 - (void)showPrefsWithLevel:(NSInteger)iWindow_level
 {
-    [self.window setLevel: iWindow_level];
-    [self.window center];
-    [self.window makeKeyAndOrderFront:self];
+    [[self window] setLevel: iWindow_level];
+    [[self window] center];
+    [[self window] makeKeyAndOrderFront:self];
     [_rootTreeItem resetView];
 }
 
@@ -215,17 +218,17 @@
     [_rootTreeItem applyChanges];
     [[VLCCoreInteraction sharedInstance] fixPreferences];
     config_SaveConfigFile(VLCIntf);
-    [self.window orderOut:self];
+    [[self window] orderOut:self];
 }
 
 - (IBAction)closePrefs: (id)sender
 {
-    [self.window orderOut:self];
+    [[self window] orderOut:self];
 }
 
 - (IBAction)showSimplePrefs: (id)sender
 {
-    [self.window orderOut: self];
+    [[self window] orderOut: self];
     [[[VLCMain sharedInstance] simplePreferences] showSimplePrefs];
 }
 
@@ -281,6 +284,8 @@
 #pragma mark -
 #pragma mark (Root class for all TreeItems)
 @implementation VLCTreeItem
+
+@synthesize prefsViewController = _prefsViewController;
 
 - (id)initWithName:(NSString*)name
 {
@@ -603,6 +608,7 @@
 - (void)dealloc
 {
     module_config_free(_configItems);
+    [super dealloc];
 }
 
 - (module_config_t *)configItems

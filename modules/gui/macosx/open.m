@@ -38,48 +38,178 @@
 #import "intf.h"
 #import "VLCPlaylist.h"
 #import "open.h"
-#import "output.h"
-#import "eyetv.h"
 #import "misc.h"
 
 #import <vlc_url.h>
 
-struct display_info_t
-{
-    CGRect rect;
-    CGDirectDisplayID id;
-};
-
-@interface VLCOpen()
-{
-    VLCOutput *_output;
-    BOOL b_outputNibLoaded;
-    NSArray *_qtkvideoDevices;
-    NSArray *_qtkaudioDevices;
-    NSString *_qtkCurrentDeviceUID;
-    NSString *_qtkCurrentAudioDeviceUID;
-
-    BOOL b_autoplay;
-    BOOL b_nodvdmenus;
-    NSView *_currentOpticalMediaView;
-    NSImageView *_currentOpticalMediaIconView;
-    NSMutableArray *_allMediaDevices;
-    NSArray *_opticalDevices;
-    NSMutableArray *_specialMediaFolders;
-    NSString *_filePath;
-    NSView *_currentCaptureView;
-    NSString *_fileSlavePath;
-    NSString *_subPath;
-    NSString *_MRL;
-    NSMutableArray *_displayInfos;
-    VLCEyeTVController *_eyeTVController;
-}
-
-@property (readwrite, assign) NSString *MRL;
-
-@end
-
 @implementation VLCOpen
+
+@synthesize mrlTextField = _mrlTextField;
+@synthesize mrlLabel = _mrlLabel;
+@synthesize mrlView = _mrlView;
+@synthesize mrlButton = _mrlButton;
+@synthesize tabView = _tabView;
+@synthesize okButton = _okButton;
+@synthesize cancelButton = _cancelButton;
+
+@synthesize outputCheckbox = _outputCheckbox;
+@synthesize outputSettingsButton = _outputSettingsButton;
+
+@synthesize fileNameLabel = _fileNameLabel;
+@synthesize fileNameStubLabel = _fileNameStubLabel;
+@synthesize fileIconWell = _fileIconWell;
+@synthesize fileBrowseButton = _fileBrowseButton;
+@synthesize fileTreatAsPipeButton = _fileTreatAsPipeButton;
+@synthesize fileSlaveCheckbox = _fileSlaveCheckbox;
+@synthesize fileSelectSlaveButton = _fileSelectSlaveButton;
+@synthesize fileSlaveFilenameLabel = _fileSlaveFilenameLabel;
+@synthesize fileSlaveIconWell = _fileSlaveIconWell;
+@synthesize fileSubtitlesFilenameLabel = _fileSubtitlesFilenameLabel;
+@synthesize fileSubtitlesIconWell = _fileSubtitlesIconWell;
+@synthesize fileCustomTimingCheckbox = _fileCustomTimingCheckbox;
+@synthesize fileStartTimeTextField = _fileStartTimeTextField;
+@synthesize fileStartTimeLabel = _fileStartTimeLabel;
+@synthesize fileStopTimeTextField = _fileStopTimeTextField;
+@synthesize fileStopTimeLabel = _fileStopTimeLabel;
+
+@synthesize discSelectorPopup = _discSelectorPopup;
+@synthesize discNoDiscView = _discNoDiscView;
+@synthesize discNoDiscLabel = _discNoDiscLabel;
+@synthesize discNoDiscVideoTSButton = _discNoDiscVideoTSButton;
+@synthesize discAudioCDView = _discAudioCDView;
+@synthesize discAudioCDLabel = _discAudioCDLabel;
+@synthesize discAudioCDTrackCountLabel = _discAudioCDTrackCountLabel;
+@synthesize discAudioCDVideoTSButton = _discAudioCDVideoTSButton;
+@synthesize discDVDView = _discDVDView;
+@synthesize discDVDLabel = _discDVDLabel;
+@synthesize discDVDDisableMenusButton = _discDVDDisableMenusButton;
+@synthesize discDVDVideoTSButton = _discDVDVideoTSButton;
+@synthesize discDVDwomenusView = _discDVDwomenusView;
+@synthesize discDVDwomenusLabel = _discDVDwomenusLabel;
+@synthesize discDVDwomenusEnableMenusButton = _discDVDwomenusEnableMenusButton;
+@synthesize discDVDwomenusVideoTSButton = _discDVDwomenusVideoTSButton;
+@synthesize discDVDwomenusTitleTextField = _discDVDwomenusTitleTextField;
+@synthesize discDVDwomenusTitleLabel = _discDVDwomenusTitleLabel;
+@synthesize discDVDwomenusTitleStepper = _discDVDwomenusTitleStepper;
+@synthesize discDVDwomenusChapterTextField = _discDVDwomenusChapterTextField;
+@synthesize discDVDwomenusChapterLabel = _discDVDwomenusChapterLabel;
+@synthesize discDVDwomenusChapterStepper = _discDVDwomenusChapterStepper;
+@synthesize discVCDView = _discVCDView;
+@synthesize discVCDLabel = _discVCDLabel;
+@synthesize discVCDVideoTSButton = _discVCDVideoTSButton;
+@synthesize discVCDTitleTextField = _discVCDTitleTextField;
+@synthesize discVCDTitleLabel = _discVCDTitleLabel;
+@synthesize discVCDTitleStepper = _discVCDTitleStepper;
+@synthesize discVCDChapterTextField = _discVCDChapterTextField;
+@synthesize discVCDChapterLabel = _discVCDChapterLabel;
+@synthesize discVCDChapterStepper = _discVCDChapterStepper;
+@synthesize discBDView = _discBDView;
+@synthesize discBDLabel = _discBDLabel;
+@synthesize discBDVideoTSButton = _discBDVideoTSButton;
+
+@synthesize netHTTPURLLabel = _netHTTPURLLabel;
+@synthesize netHTTPURLTextField = _netHTTPURLTextField;
+@synthesize netHelpLabel = _netHelpLabel;
+
+@synthesize netHelpUDPLabel = _netHelpUDPLabel;
+@synthesize netUDPProtocolMatrix = _netUDPProtocolMatrix;
+@synthesize netUDPProtocolLabel = _netUDPProtocolLabel;
+@synthesize netUDPAddressLabel = _netUDPAddressLabel;
+@synthesize netUDPModeLabel = _netUDPModeLabel;
+@synthesize netModeMatrix = _netModeMatrix;
+@synthesize netOpenUDPButton = _netOpenUDPButton;
+@synthesize netUDPCancelButton = _netUDPCancelButton;
+@synthesize netUDPOKButton = _netUDPOKButton;
+@synthesize netUDPPanel = _netUDPPanel;
+@synthesize netUDPPortTextField = _netUDPPortTextField;
+@synthesize netUDPPortLabel = _netUDPPortLabel;
+@synthesize netUDPPortStepper = _netUDPPortStepper;
+@synthesize netUDPMAddressTextField = _netUDPMAddressTextField;
+@synthesize netUDPMAddressLabel = _netUDPMAddressLabel;
+@synthesize netUDPMPortTextField = _netUDPMPortTextField;
+@synthesize netUDPMPortLabel = _netUDPMPortLabel;
+@synthesize netUDPMPortStepper = _netUDPMPortStepper;
+
+@synthesize fileSubCheckbox = _fileSubCheckbox;
+@synthesize fileSubSettingsButton = _fileSubSettingsButton;
+@synthesize fileSubSheet = _fileSubSheet;
+@synthesize fileSubPathLabel = _fileSubPathLabel;
+@synthesize fileSubPathTextField = _fileSubPathTextField;
+@synthesize fileSubIconView = _fileSubIconView;
+@synthesize fileSubBrowseButton = _fileSubBrowseButton;
+@synthesize fileSubOverrideCheckbox = _fileSubOverrideCheckbox;
+@synthesize fileSubDelayTextField = _fileSubDelayTextField;
+@synthesize fileSubDelayLabel = _fileSubDelayLabel;
+@synthesize fileSubDelayStepper = _fileSubDelayStepper;
+@synthesize fileSubFPSTextField = _fileSubFPSTextField;
+@synthesize fileSubFPSLabel = _fileSubFPSLabel;
+@synthesize fileSubFPSStepper = _fileSubFPSStepper;
+@synthesize fileSubEncodingPopup = _fileSubEncodingPopup;
+@synthesize fileSubEncodingLabel = _fileSubEncodingLabel;
+@synthesize fileSubSizePopup = _fileSubSizePopup;
+@synthesize fileSubSizeLabel = _fileSubSizeLabel;
+@synthesize fileSubAlignPopup = _fileSubAlignPopup;
+@synthesize fileSubAlignLabel = _fileSubAlignLabel;
+@synthesize fileSubOKButton = _fileSubOKButton;
+@synthesize fileSubFontBox = _fileSubFontBox;
+@synthesize fileSubFileBox = _fileSubFileBox;
+
+@synthesize captureLabel = _captureLabel;
+@synthesize captureLongLabel = _captureLongLabel;
+@synthesize captureModePopup = _captureModePopup;
+@synthesize captureView = _captureView;
+
+@synthesize eyeTVnotLaunchedView = _eyeTVnotLaunchedView;
+@synthesize eyeTVrunningView = _eyeTVrunningView;
+@synthesize eyeTVchannelsPopup = _eyeTVchannelsPopup;
+@synthesize eyeTVcurrentChannelLabel = _eyeTVcurrentChannelLabel;
+@synthesize eyeTVChannelStatusLabel = _eyeTVChannelStatusLabel;
+@synthesize eyeTVChannelProgressBar = _eyeTVChannelProgressBar;
+@synthesize eyeTVlaunchEyeTVButton = _eyeTVlaunchEyeTVButton;
+@synthesize eyeTVgetPluginButton = _eyeTVgetPluginButton;
+@synthesize eyeTVnextProgramButton = _eyeTVnextProgramButton;
+@synthesize eyeTVnoInstanceLabel = _eyeTVnoInstanceLabel;
+@synthesize eyeTVnoInstanceLongLabel = _eyeTVnoInstanceLongLabel;
+@synthesize eyeTVpreviousProgramButton = _eyeTVpreviousProgramButton;
+
+@synthesize screenView = _screenView;
+@synthesize screenlongLabel = _screenlongLabel;
+@synthesize screenFPSTextField = _screenFPSTextField;
+@synthesize screenFPSLabel = _screenFPSLabel;
+@synthesize screenFPSStepper = _screenFPSStepper;
+@synthesize screenLabel = _screenLabel;
+@synthesize screenPopup = _screenPopup;
+@synthesize screenLeftTextField = _screenLeftTextField;
+@synthesize screenLeftLabel = _screenLeftLabel;
+@synthesize screenLeftStepper = _screenLeftStepper;
+@synthesize screenTopTextField = _screenTopTextField;
+@synthesize screenTopLabel = _screenTopLabel;
+@synthesize screenTopStepper = _screenTopStepper;
+@synthesize screenWidthTextField = _screenWidthTextField;
+@synthesize screenWidthLabel = _screenWidthLabel;
+@synthesize screenWidthStepper = _screenWidthStepper;
+@synthesize screenHeightTextField = _screenHeightTextField;
+@synthesize screenHeightLabel = _screenHeightLabel;
+@synthesize screenHeightStepper = _screenHeightStepper;
+@synthesize screenFollowMouseCheckbox = _screenFollowMouseCheckbox;
+@synthesize screenqtkAudioPopup = _screenqtkAudioPopup;
+@synthesize screenqtkAudioCheckbox = _screenqtkAudioCheckbox;
+
+@synthesize qtkView = _qtkView;
+@synthesize qtkVideoDevicePopup = _qtkVideoDevicePopup;
+@synthesize qtkVideoCheckbox = _qtkVideoCheckbox;
+@synthesize qtkAudioDevicePopup = _qtkAudioDevicePopup;
+@synthesize qtkAudioCheckbox = _qtkAudioCheckbox;
+@synthesize qtkWidthLabel = _qtkWidthLabel;
+@synthesize qtkWidthTextField = _qtkWidthTextField;
+@synthesize qtkWidthStepper = _qtkWidthStepper;
+@synthesize qtkHeightLabel = _qtkHeightLabel;
+@synthesize qtkHeightTextField = _qtkHeightTextField;
+@synthesize qtkHeightStepper = _qtkHeightStepper;
+
+@synthesize fileSubDelay = _fileSubDelay;
+@synthesize fileSubFps = _fileSubFps;
+@synthesize MRL = _MRL;
 
 #pragma mark -
 #pragma mark Init
@@ -95,28 +225,32 @@ struct display_info_t
 - (void)dealloc
 {
     for (int i = 0; i < [_displayInfos count]; i ++) {
-        NSValue *v = _displayInfos[i];
+        NSValue *v = [_displayInfos objectAtIndex:i];
         free([v pointerValue]);
     }
+    [super dealloc];
 }
 
 - (void)windowDidLoad
 {
     _output = [VLCOutput new];
 
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
-    [self.window setTitle: _NS("Open Source")];
+    [[self window] setTitle: _NS("Open Source")];
     [_mrlLabel setStringValue: _NS("Media Resource Locator (MRL)")];
 
     [_okButton setTitle: _NS("Open")];
     [_cancelButton setTitle: _NS("Cancel")];
 
-    [[_tabView tabViewItemAtIndex: 0] setLabel: _NS("File")];
+    [[_tabView tabViewItemAtIndex:0] setLabel: _NS("File")];
     [_tabView accessibilitySetOverrideValue:_NS("4 Tabs to choose between media input. Select 'File' for files, 'Disc' for optical media such as DVDs, Audio CDs or BRs, 'Network' for network streams or 'Capture' for Input Devices such as microphones or cameras, the current screen or TV streams if the EyeTV application is installed.") forAttribute:NSAccessibilityDescriptionAttribute];
-    [[_tabView tabViewItemAtIndex: 1] setLabel: _NS("Disc")];
-    [[_tabView tabViewItemAtIndex: 2] setLabel: _NS("Network")];
-    [[_tabView tabViewItemAtIndex: 3] setLabel: _NS("Capture")];
+    [[_tabView tabViewItemAtIndex:1] setLabel: _NS("Disc")];
+    [[_tabView tabViewItemAtIndex:2] setLabel: _NS("Network")];
+    [[_tabView tabViewItemAtIndex:3] setLabel: _NS("Capture")];
     [_fileNameLabel setStringValue: @""];
     [_fileNameStubLabel setStringValue: _NS("Choose a file")];
     [_fileIconWell setImage: [NSImage imageNamed:@"generic"]];
@@ -164,7 +298,7 @@ struct display_info_t
     [_netHTTPURLLabel setStringValue: _NS("URL")];
     [_netHelpLabel setStringValue: _NS("To Open a usual network stream (HTTP, RTSP, RTMP, MMS, FTP, etc.), just enter the URL in the field above. If you want to open a RTP or UDP stream, press the button below.")];
     [_netHelpUDPLabel setStringValue: _NS("If you want to open a multicast stream, enter the respective IP address given by the stream provider. In unicast mode, VLC will use your machine's IP automatically.\n\nTo open a stream using a different protocol, just press Cancel to close this sheet.")];
-    [_netHTTPURLTextField accessibilitySetOverrideValue:_NS("Enter a URL here to open the network stream. To open RTP or UDP streams, click on the respective button below.") forAttribute:NSAccessibilityDescriptionAttribute];
+    [[_netHTTPURLTextField cell] accessibilitySetOverrideValue:_NS("Enter a URL here to open the network stream. To open RTP or UDP streams, click on the respective button below.") forAttribute:NSAccessibilityDescriptionAttribute];
     [_netUDPCancelButton setTitle: _NS("Cancel")];
     [_netUDPOKButton setTitle: _NS("Open")];
     [_netOpenUDPButton setTitle: _NS("Open RTP/UDP Stream")];
@@ -189,8 +323,8 @@ struct display_info_t
     [_screenLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Screen")]];
     [_screenLeftLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen left")]];
     [_screenTopLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen top")]];
-    [_screenWidthLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen Width")]];
-    [_screenHeightLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen Height")]];
+    [_screenWidthLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen width")]];
+    [_screenHeightLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Subscreen height")]];
     [_screenFollowMouseCheckbox setTitle: _NS("Follow the mouse")];
     [_screenqtkAudioCheckbox setTitle: _NS("Capture Audio")];
     [_eyeTVcurrentChannelLabel setStringValue: _NS("Current channel:")];
@@ -201,8 +335,8 @@ struct display_info_t
     [_eyeTVnoInstanceLongLabel setStringValue: _NS("VLC could not connect to EyeTV.\nMake sure that you installed VLC's EyeTV plugin.")];
     [_eyeTVlaunchEyeTVButton setTitle: _NS("Launch EyeTV now")];
     [_eyeTVgetPluginButton setTitle: _NS("Download Plugin")];
-    [_qtkWidthLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Image Width")]];
-    [_qtkHeightLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Image Height")]];
+    [_qtkWidthLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Image width")]];
+    [_qtkHeightLabel setStringValue: [NSString stringWithFormat:@"%@:",_NS("Image height")]];
 
     // setup start / stop time fields
     [_fileStartTimeTextField setFormatter:[[PositionFormatter alloc] init]];
@@ -219,8 +353,7 @@ struct display_info_t
 
         NSUInteger deviceCount = _qtkvideoDevices.count;
         for (int ivideo = 0; ivideo < deviceCount; ivideo++) {
-            QTCaptureDevice *qtkDevice;
-            qtkDevice = _qtkvideoDevices[ivideo];
+            QTCaptureDevice *qtkDevice = [_qtkvideoDevices objectAtIndex:ivideo];
             // allow same name for multiple times
             [[_qtkVideoDevicePopup menu] addItemWithTitle:[qtkDevice localizedDisplayName] action:nil keyEquivalent:@""];
 
@@ -244,7 +377,7 @@ struct display_info_t
 
         NSUInteger deviceCount = _qtkaudioDevices.count;
         for (int iaudio = 0; iaudio < deviceCount; iaudio++) {
-            QTCaptureDevice *qtkaudioDevice = _qtkaudioDevices[iaudio];
+            QTCaptureDevice *qtkaudioDevice = [_qtkaudioDevices objectAtIndex:iaudio];
 
             // allow same name for multiple times
             [[_qtkAudioDevicePopup menu] addItemWithTitle:[qtkaudioDevice localizedDisplayName] action:nil keyEquivalent:@""];
@@ -408,8 +541,8 @@ struct display_info_t
     [_tabView selectTabViewItemAtIndex: i_type];
     [_fileSubCheckbox setState: NSOffState];
 
-    i_result = [NSApp runModalForWindow: self.window];
-    [self.window close];
+    i_result = [NSApp runModalForWindow: [self window]];
+    [[self window] close];
 
     if (i_result) {
         NSMutableDictionary *itemOptionsDictionary;
@@ -443,21 +576,21 @@ struct display_info_t
             NSUInteger componentCount = [components count];
             NSInteger tempValue = 0;
             if (componentCount == 1)
-                tempValue = [[components firstObject] intValue];
+                tempValue = [[components objectAtIndex:0] intValue];
             else if (componentCount == 2)
-                tempValue = [[components firstObject] intValue] * 60 + [components[1] intValue];
+                tempValue = [[components objectAtIndex:0] intValue] * 60 + [[components objectAtIndex:1] intValue];
             else if (componentCount == 3)
-                tempValue = [[components firstObject] intValue] * 3600 + [components[1] intValue] * 60 + [components[2] intValue];
+                tempValue = [[components objectAtIndex:0] intValue] * 3600 + [[components objectAtIndex:1] intValue] * 60 + [[components objectAtIndex:2] intValue];
             if (tempValue > 0)
                 [options addObject: [NSString stringWithFormat:@"start-time=%li", tempValue]];
             components = [[_fileStopTimeTextField stringValue] componentsSeparatedByString:@":"];
             componentCount = [components count];
             if (componentCount == 1)
-                tempValue = [[components firstObject] intValue];
+                tempValue = [[components objectAtIndex:0] intValue];
             else if (componentCount == 2)
-                tempValue = [[components firstObject] intValue] * 60 + [components[1] intValue];
+                tempValue = [[components objectAtIndex:0] intValue] * 60 + [[components objectAtIndex:1] intValue];
             else if (componentCount == 3)
-                tempValue = [[components firstObject] intValue] * 3600 + [components[1] intValue] * 60 + [components[2] intValue];
+                tempValue = [[components objectAtIndex:0] intValue] * 3600 + [[components objectAtIndex:1] intValue] * 60 + [[components objectAtIndex:2] intValue];
             if (tempValue != 0)
                 [options addObject: [NSString stringWithFormat:@"stop-time=%li", tempValue]];
         }
@@ -465,14 +598,14 @@ struct display_info_t
             NSArray *soutMRL = [_output soutMRL];
             NSUInteger count = [soutMRL count];
             for (NSUInteger i = 0 ; i < count ; i++)
-                [options addObject: [NSString stringWithString: soutMRL[i]]];
+                [options addObject: [NSString stringWithString: [soutMRL objectAtIndex:i]]];
         }
         if ([_fileSlaveCheckbox state] && _fileSlavePath)
             [options addObject: [NSString stringWithFormat: @"input-slave=%@", _fileSlavePath]];
         if ([[[_tabView selectedTabViewItem] label] isEqualToString: _NS("Capture")]) {
             if ([[[_captureModePopup selectedItem] title] isEqualToString: _NS("Screen")]) {
                 int selected_index = [_screenPopup indexOfSelectedItem];
-                NSValue *v = _displayInfos[selected_index];
+                NSValue *v = [_displayInfos objectAtIndex:selected_index];
                 struct display_info_t *item = (struct display_info_t *)[v pointerValue];
 
                 [options addObject: [NSString stringWithFormat: @"screen-fps=%f", [_screenFPSTextField floatValue]]];
@@ -511,7 +644,7 @@ struct display_info_t
     int selected_index = [_screenPopup indexOfSelectedItem];
     if (selected_index >= [_displayInfos count]) return;
 
-    NSValue *v = _displayInfos[selected_index];
+    NSValue *v = [_displayInfos objectAtIndex:selected_index];
     struct display_info_t *item = (struct display_info_t *)[v pointerValue];
 
     [_screenLeftStepper setMaxValue: item->rect.size.width];
@@ -526,13 +659,13 @@ struct display_info_t
 {
     NSInteger selectedDevice = [_qtkVideoDevicePopup indexOfSelectedItem];
     if (_qtkvideoDevices.count >= 1) {
-        NSValue *sizes = [[[_qtkvideoDevices[selectedDevice] formatDescriptions] firstObject] attributeForKey: QTFormatDescriptionVideoEncodedPixelsSizeAttribute];
+        NSValue *sizes = [[[[_qtkvideoDevices objectAtIndex:selectedDevice] formatDescriptions] objectAtIndex:0] attributeForKey: QTFormatDescriptionVideoEncodedPixelsSizeAttribute];
 
         [_qtkWidthTextField setIntValue: [sizes sizeValue].width];
         [_qtkHeightTextField setIntValue: [sizes sizeValue].height];
         [_qtkWidthStepper setIntValue: [_qtkWidthTextField intValue]];
         [_qtkHeightStepper setIntValue: [_qtkHeightTextField intValue]];
-        _qtkCurrentDeviceUID = [[(QTCaptureDevice *)_qtkvideoDevices[selectedDevice] uniqueID] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        _qtkCurrentDeviceUID = [[(QTCaptureDevice *)[_qtkvideoDevices objectAtIndex:selectedDevice] uniqueID] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
 }
 
@@ -540,7 +673,7 @@ struct display_info_t
 {
     NSInteger selectedDevice = [_qtkAudioDevicePopup indexOfSelectedItem];
     if (_qtkaudioDevices.count >= 1) {
-        _qtkCurrentAudioDeviceUID = [[(QTCaptureDevice *)_qtkaudioDevices[selectedDevice] uniqueID] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+        _qtkCurrentAudioDeviceUID = [[(QTCaptureDevice *)[_qtkaudioDevices objectAtIndex:selectedDevice] uniqueID] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
     }
     [_screenqtkAudioPopup selectItemAtIndex: selectedDevice];
     [_qtkAudioDevicePopup selectItemAtIndex: selectedDevice];
@@ -579,7 +712,7 @@ struct display_info_t
 
 - (IBAction)expandMRLfieldAction:(id)sender
 {
-    NSRect windowRect = [self.window frame];
+    NSRect windowRect = [[self window] frame];
     NSRect viewRect = [_mrlView frame];
 
     if ([_mrlButton state] == NSOffState) {
@@ -602,10 +735,10 @@ struct display_info_t
         windowRect.size.height = windowRect.size.height + viewRect.size.height;
     }
 
-    [[self.window animator] setFrame: windowRect display:YES];
+    [[[self window] animator] setFrame: windowRect display:YES];
 
     if ([_mrlButton state] == NSOnState)
-        [[self.window contentView] addSubview: _mrlView];
+        [[[self window] contentView] addSubview: _mrlView];
 }
 
 - (void)openFileGeneric
@@ -650,12 +783,12 @@ struct display_info_t
         NSMutableArray *values = [NSMutableArray arrayWithCapacity:count];
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:count];
         for (NSUInteger i = 0; i < count; i++)
-            [values addObject: [URLs[i] path]];
+            [values addObject: [[URLs objectAtIndex:i] path]];
         [values sortUsingSelector:@selector(caseInsensitiveCompare:)];
 
         for (NSUInteger i = 0; i < count; i++) {
             NSDictionary *dictionary;
-            char *psz_uri = vlc_path2uri([values[i] UTF8String], "file");
+            char *psz_uri = vlc_path2uri([[values objectAtIndex:i] UTF8String], "file");
             if (!psz_uri)
                 continue;
             dictionary = [NSDictionary dictionaryWithObject:toNSStr(psz_uri) forKey:@"ITEM_URL"];
@@ -671,16 +804,16 @@ struct display_info_t
 
 - (IBAction)outputSettings:(id)sender
 {
-    if (sender == self.outputCheckbox) {
-        self.outputSettingsButton.enabled = self.outputCheckbox.state;
+    if (sender == [self outputCheckbox]) {
+        [[self outputSettingsButton] setEnabled:[[self outputCheckbox] state]];
         return;
     }
 
     if (!b_outputNibLoaded)
         b_outputNibLoaded = [NSBundle loadNibNamed:@"StreamOutput" owner:_output];
 
-    [NSApp beginSheet:_output.outputSheet
-       modalForWindow:self.window
+    [NSApp beginSheet:[_output outputSheet]
+       modalForWindow:[self window]
         modalDelegate:self
        didEndSelector:NULL
           contextInfo:nil];
@@ -731,12 +864,21 @@ struct display_info_t
     [openPanel setCanChooseDirectories: YES];
     [openPanel setTitle: _NS("Open File")];
     [openPanel setPrompt: _NS("Open")];
-    [openPanel beginSheetModalForWindow:[sender window] completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSFileHandlingPanelOKButton) {
-            _filePath = [[[openPanel URLs] firstObject] path];
-            [self openFilePathChanged: nil];
-        }
-    }];
+    [openPanel beginSheetForDirectory:nil
+                                 file:nil
+                                types:nil
+                       modalForWindow:[sender window]
+                        modalDelegate:self
+                       didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
+                          contextInfo:nil];
+}
+
+- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSFileHandlingPanelOKButton) {
+        _filePath = [[[panel URLs] objectAtIndex:0] path];
+        [self openFilePathChanged: nil];
+    }
 }
 
 - (IBAction)openFileStreamChanged:(id)sender
@@ -754,7 +896,7 @@ struct display_info_t
         [openPanel setCanChooseFiles: YES];
         [openPanel setCanChooseDirectories: NO];
         if ([openPanel runModal] == NSOKButton) {
-            _fileSlavePath = [[[openPanel URLs] firstObject] path];
+            _fileSlavePath = [[[openPanel URLs] objectAtIndex:0] path];
         }
     }
     if (_fileSlavePath && [_fileSlaveCheckbox state] == NSOnState) {
@@ -878,23 +1020,20 @@ struct display_info_t
 
 - (void)scanDevicesWithPaths:(NSArray *)paths
 {
-    @autoreleasepool {
         NSUInteger count = [paths count];
         NSMutableArray *o_result = [NSMutableArray array];
         for (NSUInteger i = 0; i < count; i++)
-            [o_result addObject: [self scanPath:paths[i]]];
+            [o_result addObject: [self scanPath:[paths objectAtIndex:i]]];
 
         @synchronized (self) {
             _opticalDevices = [[NSArray alloc] initWithArray: o_result];
         }
 
         [self performSelectorOnMainThread:@selector(updateMediaSelector:) withObject:nil waitUntilDone:NO];
-    }
 }
 
 - (void)scanSpecialPath:(NSString *)oPath
 {
-    @autoreleasepool {
         NSDictionary *o_dict = [self scanPath:oPath];
 
         @synchronized (self) {
@@ -902,7 +1041,6 @@ struct display_info_t
         }
 
         [self performSelectorOnMainThread:@selector(updateMediaSelector:) withObject:[NSNumber numberWithBool:YES] waitUntilDone:NO];
-    }
 }
 
 - (void)scanOpticalMedia:(NSNotification *)o_notification
@@ -923,7 +1061,7 @@ struct display_info_t
     NSUInteger count = [_allMediaDevices count];
     if (count > 0) {
         for (NSUInteger i = 0; i < count ; i++) {
-            NSDictionary *o_dict = _allMediaDevices[i];
+            NSDictionary *o_dict = [_allMediaDevices objectAtIndex:i];
             [_discSelectorPopup addItemWithTitle: [[NSFileManager defaultManager] displayNameAtPath:[o_dict objectForKey:@"path"]]];
         }
 
@@ -947,7 +1085,7 @@ struct display_info_t
 
 - (IBAction)discSelectorChanged:(id)sender
 {
-    [self showOpticalAtPath:_allMediaDevices[[_discSelectorPopup indexOfSelectedItem]]];
+    [self showOpticalAtPath:[_allMediaDevices objectAtIndex:[_discSelectorPopup indexOfSelectedItem]]];
 }
 
 - (IBAction)openSpecialMediaFolder:(id)sender
@@ -965,7 +1103,7 @@ struct display_info_t
     [openPanel setAllowedFileTypes:[NSArray arrayWithObject:@"public.directory"]];
 
     if ([openPanel runModal] == NSOKButton) {
-        NSString *oPath = [[[openPanel URLs] firstObject] path];
+        NSString *oPath = [[[openPanel URLs] objectAtIndex:0] path];
         if ([oPath length] > 0) {
             [NSThread detachNewThreadSelector:@selector(scanSpecialPath:) toTarget:self withObject:oPath];
         }
@@ -974,7 +1112,7 @@ struct display_info_t
 
 - (IBAction)dvdreadOptionChanged:(id)sender
 {
-    NSString *devicePath = [_allMediaDevices[[_discSelectorPopup indexOfSelectedItem]] objectForKey:@"devicePath"];
+    NSString *devicePath = [[_allMediaDevices objectAtIndex:[_discSelectorPopup indexOfSelectedItem]] objectForKey:@"devicePath"];
 
     if (sender == _discDVDwomenusEnableMenusButton) {
         b_nodvdmenus = NO;
@@ -1010,7 +1148,7 @@ struct display_info_t
     if (sender == _discVCDChapterStepper)
         [_discVCDChapterTextField setIntValue: [_discVCDChapterStepper intValue]];
 
-    NSString *devicePath = [_allMediaDevices[[_discSelectorPopup indexOfSelectedItem]] objectForKey:@"devicePath"];
+    NSString *devicePath = [[_allMediaDevices objectAtIndex:[_discSelectorPopup indexOfSelectedItem]] objectForKey:@"devicePath"];
     [self setMRL: [NSString stringWithFormat: @"vcd://%@@%i:%i", devicePath, [_discVCDTitleTextField intValue], [_discVCDChapterTextField intValue]]];
 }
 
@@ -1034,9 +1172,9 @@ struct display_info_t
 {
     if (sender == _netModeMatrix) {
         if ([[sender selectedCell] tag] == 0)
-            [self.window makeFirstResponder: _netUDPPortTextField];
+            [[self window] makeFirstResponder: _netUDPPortTextField];
         else if ([[sender selectedCell] tag] == 1)
-            [self.window makeFirstResponder: _netUDPMAddressTextField];
+            [[self window] makeFirstResponder: _netUDPMAddressTextField];
         else
             msg_Warn(VLCIntf, "Unknown sender tried to change UDP/RTP mode");
     }
@@ -1052,13 +1190,13 @@ struct display_info_t
         [_netUDPPortTextField setIntValue: [_netUDPPortStepper intValue]];
         [[NSNotificationCenter defaultCenter] postNotificationName: VLCOpenTextFieldWasClicked
                                                             object: _netUDPPortTextField];
-        [self.window makeFirstResponder: _netUDPPortTextField];
+        [[self window] makeFirstResponder: _netUDPPortTextField];
     }
     else if (i_tag == 1) {
         [_netUDPMPortTextField setIntValue: [_netUDPMPortStepper intValue]];
         [[NSNotificationCenter defaultCenter] postNotificationName: VLCOpenTextFieldWasClicked
                                                             object: _netUDPMPortTextField];
-        [self.window makeFirstResponder: _netUDPMPortTextField];
+        [[self window] makeFirstResponder: _netUDPMPortTextField];
     }
 
     [self openNetInfoChanged: nil];
@@ -1109,7 +1247,7 @@ struct display_info_t
 {
     if (sender == _netOpenUDPButton) {
         [NSApp beginSheet: self.netUDPPanel
-           modalForWindow: self.window
+           modalForWindow: [self window]
             modalDelegate: self
            didEndSelector: NULL
               contextInfo: nil];
@@ -1213,7 +1351,7 @@ struct display_info_t
             if (!returnedError) {
                 NSUInteger displayInfoCount = [_displayInfos count];
                 for (NSUInteger i = 0; i < displayInfoCount; i ++) {
-                    v = _displayInfos[i];
+                    v = [_displayInfos objectAtIndex:i];
                     free([v pointerValue]);
                 }
                 [_displayInfos removeAllObjects];
@@ -1399,7 +1537,7 @@ struct display_info_t
     [openPanel setPrompt: _NS("Open")];
 
     if ([openPanel runModal] == NSOKButton) {
-        _subPath = [[[openPanel URLs] firstObject] path];
+        _subPath = [[[openPanel URLs] objectAtIndex:0] path];
         [_fileSubtitlesFilenameLabel setStringValue: [[NSFileManager defaultManager] displayNameAtPath:_subPath]];
         [_fileSubPathTextField setStringValue: [_fileSubtitlesFilenameLabel stringValue]];
         [_fileSubPathLabel setHidden: YES];

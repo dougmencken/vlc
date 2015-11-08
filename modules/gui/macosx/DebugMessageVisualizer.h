@@ -24,17 +24,24 @@
  *****************************************************************************/
 
 #import <Cocoa/Cocoa.h>
+#import <vlc_common.h>
+#import "CompatibilityFixes.h"
 
-@interface VLCDebugMessageVisualizer : NSWindowController
+@interface VLCDebugMessageVisualizer : NSWindowController<NSWindowDelegate>
 {
     IBOutlet NSButton * _msgs_save_btn;
     IBOutlet NSButton * _msgs_refresh_btn;
     IBOutlet id _msgs_table;
+
+    NSMutableArray * _msg_arr;
+    NSLock * _msg_lock;
 }
 
 - (void)showWindow:(id)sender;
 
 - (IBAction)updateMessagesPanel:(id)sender;
 - (IBAction)saveDebugLog:(id)sender;
+
+- (void)processReceivedlibvlcMessage:(const vlc_log_t *) item ofType: (int)i_type withStr: (char *)str;
 
 @end

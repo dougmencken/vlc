@@ -35,30 +35,23 @@
  *  Missing extension to NSWindow
  *****************************************************************************/
 
-@interface VLCWindow()
-{
-    BOOL b_canBecomeKeyWindow;
-    BOOL b_isset_canBecomeKeyWindow;
-    BOOL b_canBecomeMainWindow;
-    BOOL b_isset_canBecomeMainWindow;
-    NSViewAnimation *o_current_animation;
-
-    /*
-     * YES when all animations are over
-     * for fullscreen window: always YES
-     */
-}
-@end
-
 @implementation VLCWindow
+
+@synthesize hasActiveVideo = _hasActiveVideo;
+@synthesize fullscreen = _fullscreen;
+
+- (void)awakeFromNib { }
 
 - (id)initWithContentRect:(NSRect)contentRect styleMask:(NSUInteger)styleMask
                   backing:(NSBackingStoreType)backingType defer:(BOOL)flag
 {
     self = [super initWithContentRect:contentRect styleMask:styleMask backing:backingType defer:flag];
     if (self) {
-        /* we don't want this window to be restored on relaunch */
-        [self setRestorable:NO];
+#ifdef MAC_OS_X_VERSION_10_7
+        /* don't want this window to be restored on relaunch */
+        if (!OSX_LEOPARD && !OSX_SNOW_LEOPARD)
+            [self setRestorable:NO];
+#endif
     }
     return self;
 }
@@ -118,7 +111,7 @@
     NSInvocation *invoc = [[NSInvocation alloc] init];
     [invoc setSelector:@selector(orderOut:)];
     [invoc setTarget: self];
-    [invoc setArgument:(__bridge void * __nonnull)sender atIndex:2];
+    [invoc setArgument:(void *)sender atIndex:2];
     [self orderOut: sender animate: animate callback: invoc];
 }
 
@@ -143,13 +136,13 @@
     [anim setAnimationBlockingMode:NSAnimationNonblocking];
     [anim setDuration:0.9];
     [anim setFrameRate:30];
-    [anim setUserInfo:(__bridge void *)callback];
+    [anim setUserInfo:(void *)callback];
     [anim setDelegate:self];
 
     @synchronized(self) {
         current_anim = self->o_current_animation;
 
-        if (!([[[current_anim viewAnimations] firstObject] objectForKey: NSViewAnimationEffectKey] == NSViewAnimationFadeOutEffect && [current_anim isAnimating])) {
+        if (!([[[current_anim viewAnimations] objectAtIndex:0] objectForKey: NSViewAnimationEffectKey] == NSViewAnimationFadeOutEffect && [current_anim isAnimating])) {
             if (current_anim) {
                 [current_anim stopAnimation];
                 [anim setCurrentProgress:1.0 - [current_anim currentProgress]];
@@ -197,7 +190,7 @@
     @synchronized(self) {
         current_anim = self->o_current_animation;
 
-        if (!([[[current_anim viewAnimations] firstObject] objectForKey: NSViewAnimationEffectKey] == NSViewAnimationFadeInEffect && [current_anim isAnimating])) {
+        if (!([[[current_anim viewAnimations] objectAtIndex:0] objectForKey: NSViewAnimationEffectKey] == NSViewAnimationFadeInEffect && [current_anim isAnimating])) {
             if (current_anim) {
                 [current_anim stopAnimation];
                 [anim setCurrentProgress:1.0 - [current_anim currentProgress]];
@@ -227,7 +220,7 @@
 {
     NSArray *o_subViews = [[self contentView] subviews];
     if ([o_subViews count] > 0) {
-        id o_vout_view = [o_subViews firstObject];
+        id o_vout_view = [o_subViews objectAtIndex:0];
 
         if ([o_vout_view class] == [VLCVoutView class])
             return (VLCVoutView *)o_vout_view;
@@ -278,30 +271,16 @@
  *  Common code for main window, detached window and extra video window
  *****************************************************************************/
 
-@interface VLCVideoWindowCommon()
-{
-    // variables for fullscreen handling
-    VLCVideoWindowCommon *o_current_video_window;
-    VLCWindow       * o_fullscreen_window;
-    NSViewAnimation * o_fullscreen_anim1;
-    NSViewAnimation * o_fullscreen_anim2;
-    NSView          * o_temp_view;
-
-    NSInteger i_originalLevel;
-
-    BOOL b_video_view_was_hidden;
-
-    NSTimer *t_hide_mouse_timer;
-
-    NSRect frameBeforeLionFullscreen;
-}
-
-- (void)customZoom:(id)sender;
-- (void)hasBecomeFullscreen;
-- (void)hasEndedFullscreen;
-@end
-
 @implementation VLCVideoWindowCommon
+
+@synthesize titlebarView = _titlebarView;
+@synthesize videoView = _videoView;
+@synthesize controlsBar = _controlsBar;
+@synthesize inFullscreenTransition = _inFullscreenTransition;
+@synthesize darkInterface = _darkInterface;
+@synthesize windowShouldExitFullscreenWhenFinished = _windowShouldExitFullscreenWhenFinished;
+@synthesize previousSavedFrame = _previousSavedFrame;
+@synthesize nativeVideoSize = _nativeVideoSize;
 
 #pragma mark -
 #pragma mark Init
@@ -312,7 +291,11 @@
     _darkInterface = config_GetInt(VLCIntf, "macosx-interfacestyle");
 
     if (_darkInterface) {
-        styleMask = NSBorderlessWindowMask | NSResizableWindowMask;
+        styleMask = NSBorderlessWindowMask;
+#ifdef MAC_OS_X_VERSION_10_7
+        if (!OSX_SNOW_LEOPARD)
+            styleMask |= NSResizableWindowMask;
+#endif
     }
 
     self = [super initWithContentRect:contentRect styleMask:styleMask
@@ -330,14 +313,21 @@
 
 - (void)awakeFromNib
 {
-    BOOL b_nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
+    BOOL b_nativeFullscreenMode = NO;
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        b_nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
 
     if (b_nativeFullscreenMode) {
         [self setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
-    } else if (OSX_EL_CAPITAN) {
+    } else
+#ifdef MAC_OS_X_VERSION_10_11
+    if (OSX_EL_CAPITAN) {
         // Native fullscreen seems to be default on El Capitan, this disables it explicitely
         [self setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
     }
+#endif
+#endif
 
     [super awakeFromNib];
 }
@@ -516,8 +506,12 @@
     NSSize windowMinSize = [self minSize];
     NSRect screenFrame = [[self screen] visibleFrame];
 
+#ifdef MAC_OS_X_VERSION_10_7
     NSRect topleftbase = NSMakeRect(0, [self frame].size.height, 0, 0);
     NSPoint topleftscreen = [self convertRectToScreen: topleftbase].origin;
+#else
+    NSPoint topleftscreen = [self convertBaseToScreen: NSMakePoint( 0, [self frame].size.height )];
+#endif
 
     CGFloat f_width = size.width;
     CGFloat f_height = size.height;
@@ -702,29 +696,29 @@
     return nil;
 }
 
-- (void)window:window startCustomAnimationToEnterFullScreenWithDuration:(NSTimeInterval)duration
-{
-    [window setStyleMask:([window styleMask] | NSFullScreenWindowMask)];
+///- (void)window:window startCustomAnimationToEnterFullScreenWithDuration:(NSTimeInterval)duration
+///{
+///    [window setStyleMask:([window styleMask] | NSFullScreenWindowMask)];
+///
+///    NSScreen *screen = [window screen];
+///    NSRect screenFrame = [screen frame];
+///
+///    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+///        [context setDuration:0.5 * duration];
+///        [[window animator] setFrame:screenFrame display:YES];
+///    } completionHandler:nil];
+///}
 
-    NSScreen *screen = [window screen];
-    NSRect screenFrame = [screen frame];
-
-    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-        [context setDuration:0.5 * duration];
-        [[window animator] setFrame:screenFrame display:YES];
-    } completionHandler:nil];
-}
-
-- (void)window:window startCustomAnimationToExitFullScreenWithDuration:(NSTimeInterval)duration
-{
-    [window setStyleMask:([window styleMask] & ~NSFullScreenWindowMask)];
-    [[window animator] setFrame:frameBeforeLionFullscreen display:YES animate:YES];
-
-    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-        [context setDuration:0.5 * duration];
-        [[window animator] setFrame:frameBeforeLionFullscreen display:YES animate:YES];
-    } completionHandler:nil];
-}
+///- (void)window:window startCustomAnimationToExitFullScreenWithDuration:(NSTimeInterval)duration
+///{
+///    [window setStyleMask:([window styleMask] & ~NSFullScreenWindowMask)];
+///    [[window animator] setFrame:frameBeforeLionFullscreen display:YES animate:YES];
+///
+///    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
+///        [context setDuration:0.5 * duration];
+///        [[window animator] setFrame:frameBeforeLionFullscreen display:YES animate:YES];
+///    } completionHandler:nil];
+///}
 
 - (void)windowWillEnterFullScreen:(NSNotification *)notification
 {
@@ -927,7 +921,10 @@
             [_videoView setFrame: [[o_fullscreen_window contentView] frame]];
             NSEnableScreenUpdates();
 
-            [screen setFullscreenPresentationOptions];
+#ifdef MAC_OS_X_VERSION_10_6
+            if (!OSX_LEOPARD)
+                [screen setFullscreenPresentationOptions];
+#endif
 
             [o_fullscreen_window setFrame:screen_rect display:YES animate:NO];
 
@@ -971,7 +968,10 @@
         [o_fullscreen_anim2 stopAnimation];
     }
 
-    [screen setFullscreenPresentationOptions];
+#ifdef MAC_OS_X_VERSION_10_6
+    if (!OSX_LEOPARD)
+        [screen setFullscreenPresentationOptions];
+#endif
 
     dict1 = [[NSMutableDictionary alloc] initWithCapacity:2];
     dict2 = [[NSMutableDictionary alloc] initWithCapacity:3];
@@ -1009,7 +1009,7 @@
 - (void)hasBecomeFullscreen
 {
     if ([[_videoView subviews] count] > 0)
-        [o_fullscreen_window makeFirstResponder: [[_videoView subviews] firstObject]];
+        [o_fullscreen_window makeFirstResponder: [[_videoView subviews] objectAtIndex:0]];
 
     [o_fullscreen_window makeKeyWindow];
     [o_fullscreen_window setAcceptsMouseMovedEvents: YES];
@@ -1046,7 +1046,11 @@
     }
 
     [[[[VLCMain sharedInstance] mainWindow] fspanel] setNonActive: nil];
-    [[o_fullscreen_window screen] setNonFullscreenPresentationOptions];
+
+#ifdef MAC_OS_X_VERSION_10_6
+    if (!OSX_LEOPARD)
+        [[o_fullscreen_window screen] setNonFullscreenPresentationOptions];
+#endif
 
     if (o_fullscreen_anim1) {
         [o_fullscreen_anim1 stopAnimation];
@@ -1135,7 +1139,7 @@
     [[o_temp_view superview] replaceSubview:o_temp_view with:_videoView];
     [_videoView setFrame:[o_temp_view frame]];
     if ([[_videoView subviews] count] > 0)
-        [self makeFirstResponder: [[_videoView subviews] firstObject]];
+        [self makeFirstResponder: [[_videoView subviews] objectAtIndex:0]];
 
     [_videoView setHidden: b_video_view_was_hidden];
 
@@ -1161,7 +1165,7 @@
     /* Fullscreen ended or started (we are a delegate only for leaveFullscreen's/enterFullscren's anim2) */
     viewAnimations = [o_fullscreen_anim2 viewAnimations];
     if ([viewAnimations count] >=1 &&
-        [[[viewAnimations firstObject] objectForKey: NSViewAnimationEffectKey] isEqualToString:NSViewAnimationFadeInEffect]) {
+        [[[viewAnimations objectAtIndex:0] objectForKey: NSViewAnimationEffectKey] isEqualToString:NSViewAnimationFadeInEffect]) {
         /* Fullscreen ended */
         [self hasEndedFullscreen];
     } else
@@ -1212,6 +1216,12 @@
     }
 
     return [super accessibilityAttributeValue: o_attribute_name];
+}
+
+- (void)toggleForwardBackward:(NSNumber *)boolVal
+{
+    BOOL val = (boolVal) ? YES : NO;
+    [[self controlsBar] toggleForwardBackwardMode:val];
 }
 
 @end

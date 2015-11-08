@@ -23,10 +23,9 @@
 
 #import "VLCScrollingClipView.h"
 
-@implementation VLCScrollingClipView {
-    NSTimer *scrollTimer;
-    NSTimeInterval startInterval;
-}
+@implementation VLCScrollingClipView
+
+@synthesize parentScrollView = _parentScrollView;
 
 - (void)startScrolling {
     // Start our timer unless running

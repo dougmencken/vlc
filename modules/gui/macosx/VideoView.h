@@ -31,10 +31,19 @@
 /*****************************************************************************
  * VLCVoutView interface
  *****************************************************************************/
-@interface VLCVoutView : NSView
+@interface VLCVoutView : NSView {
 
-@property (readwrite, assign) vout_thread_t * voutThread;
+    NSInteger i_lastScrollWheelDirection;
+    NSTimeInterval t_lastScrollEvent;
 
+    CGFloat f_cumulated_magnification;
+
+    vout_thread_t *p_vout;
+
+}
+
+- (vout_thread_t *)voutThread;
+- (void)setVoutThread:(vout_thread_t *)p_vout_thread;
 - (void)releaseVoutThread;
 
 @end

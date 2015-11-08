@@ -25,7 +25,6 @@
 
 #import "DebugMessageVisualizer.h"
 #import "intf.h"
-#import <vlc_common.h>
 
 static void MsgCallback(void *data, int type, const vlc_log_t *item, const char *format, va_list ap);
 
@@ -35,20 +34,9 @@ static void MsgCallback(void *data, int type, const vlc_log_t *item, const char 
  * of this file.
  *****************************************************************************/
 
-@interface VLCDebugMessageVisualizer () <NSWindowDelegate>
-{
-    NSMutableArray * _msg_arr;
-    NSLock * _msg_lock;
-}
-- (void)processReceivedlibvlcMessage:(const vlc_log_t *) item ofType: (int)i_type withStr: (char *)str;
-
-@end
-
 static void MsgCallback(void *data, int type, const vlc_log_t *item, const char *format, va_list ap)
 {
-    @autoreleasepool {
-
-        VLCDebugMessageVisualizer *visualizer = (__bridge VLCDebugMessageVisualizer*)data;
+        VLCDebugMessageVisualizer *visualizer = (VLCDebugMessageVisualizer*)data;
 
         int canc = vlc_savecancel();
         char *str;
@@ -62,7 +50,6 @@ static void MsgCallback(void *data, int type, const vlc_log_t *item, const char 
 
         vlc_restorecancel(canc);
         free(str);
-    }
 }
 
 @implementation VLCDebugMessageVisualizer
@@ -80,13 +67,14 @@ static void MsgCallback(void *data, int type, const vlc_log_t *item, const char 
 - (void)dealloc
 {
     vlc_LogSet( VLCIntf->p_libvlc, NULL, NULL );
+    [super dealloc];
 }
 
 - (void)windowDidLoad
 {
-    [self.window setExcludedFromWindowsMenu: YES];
-    [self.window setDelegate: self];
-    [self.window setTitle: _NS("Messages")];
+    [[self window] setExcludedFromWindowsMenu: YES];
+    [[self window] setDelegate: self];
+    [[self window] setTitle: _NS("Messages")];
     [_msgs_save_btn setTitle: _NS("Save this Log...")];
     [_msgs_refresh_btn setImage: [NSImage imageNamed: NSImageNameRefreshTemplate]];
 }
@@ -96,7 +84,7 @@ static void MsgCallback(void *data, int type, const vlc_log_t *item, const char 
 - (void)showWindow:(id)sender
 {
     /* subscribe to LibVLCCore's messages */
-    vlc_LogSet(VLCIntf->p_libvlc, MsgCallback, (__bridge void*)self);
+    vlc_LogSet(VLCIntf->p_libvlc, MsgCallback, (void*)self);
 
     [super showWindow:sender];
 }
@@ -125,22 +113,35 @@ static void MsgCallback(void *data, int type, const vlc_log_t *item, const char 
     [saveFolderPanel setCanSelectHiddenExtension: NO];
     [saveFolderPanel setCanCreateDirectories: YES];
     [saveFolderPanel setAllowedFileTypes: [NSArray arrayWithObject:@"rtf"]];
-    [saveFolderPanel setNameFieldStringValue:[NSString stringWithFormat: _NS("VLC Debug Log (%s).rtf"), VERSION_MESSAGE]];
-    [saveFolderPanel beginSheetModalForWindow: self.window completionHandler:^(NSInteger returnCode) {
-        if (returnCode == NSOKButton) {
-            NSUInteger count = [_msg_arr count];
-            NSMutableAttributedString * string = [[NSMutableAttributedString alloc] init];
-            for (NSUInteger i = 0; i < count; i++)
-                [string appendAttributedString: [_msg_arr objectAtIndex:i]];
+#ifdef MAC_OS_X_VERSION_10_6
+    if (!OSX_LEOPARD)
+        [saveFolderPanel setNameFieldStringValue:[NSString stringWithFormat: _NS("VLC Debug Log (%s).rtf"), VERSION_MESSAGE]];
+#endif
 
-            NSData *data = [string RTFFromRange:NSMakeRange(0, [string length])
-                             documentAttributes:[NSDictionary dictionaryWithObject: NSRTFTextDocumentType forKey: NSDocumentTypeDocumentAttribute]];
-
-            if ([data writeToFile: [[saveFolderPanel URL] path] atomically: YES] == NO)
-                msg_Warn(VLCIntf, "Error while saving the debug log");
-        }
-    }];
+    [saveFolderPanel beginSheetForDirectory:nil
+                                       file:nil
+                             modalForWindow:[self window]
+                              modalDelegate:self
+                             didEndSelector:@selector(saveDebugLogDidEnd:returnCode:contextInfo:)
+                                contextInfo:nil];
 }
+
+- (void)saveDebugLogDidEnd:(NSSavePanel *)panel returnCode:(int)returnCode contextInfo:(void *)contextInfo
+{
+    if (returnCode == NSOKButton) {
+        NSUInteger count = [_msg_arr count];
+        NSMutableAttributedString * string = [[NSMutableAttributedString alloc] init];
+        for (NSUInteger i = 0; i < count; i++)
+            [string appendAttributedString: [_msg_arr objectAtIndex:i]];
+
+        NSData *data = [string RTFFromRange:NSMakeRange(0, [string length])
+                         documentAttributes:[NSDictionary dictionaryWithObject: NSRTFTextDocumentType forKey: NSDocumentTypeDocumentAttribute]];
+
+        if ([data writeToFile: [[panel URL] path] atomically: YES] == NO)
+            msg_Warn(VLCIntf, "Error while saving the debug log");
+    }
+}
+
 
 #pragma mark - data handling
 

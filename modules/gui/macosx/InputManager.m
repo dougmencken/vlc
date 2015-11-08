@@ -40,10 +40,8 @@
 static int InputThreadChanged(vlc_object_t *p_this, const char *psz_var,
                               vlc_value_t oldval, vlc_value_t new_val, void *param)
 {
-    @autoreleasepool {
-        VLCInputManager *inputManager = (__bridge VLCInputManager *)param;
-        [inputManager performSelectorOnMainThread:@selector(inputThreadChanged) withObject:nil waitUntilDone:NO];
-    }
+    VLCInputManager *inputManager = (VLCInputManager *)param;
+    [inputManager performSelectorOnMainThread:@selector(inputThreadChanged) withObject:nil waitUntilDone:NO];
 
     return VLC_SUCCESS;
 }
@@ -52,8 +50,7 @@ static int InputThreadChanged(vlc_object_t *p_this, const char *psz_var,
 static int InputEvent(vlc_object_t *p_this, const char *psz_var,
                       vlc_value_t oldval, vlc_value_t new_val, void *param)
 {
-    @autoreleasepool {
-        VLCInputManager *inputManager = (__bridge VLCInputManager *)param;
+        VLCInputManager *inputManager = (VLCInputManager *)param;
 
         switch (new_val.i_int) {
             case INPUT_EVENT_STATE:
@@ -73,9 +70,7 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
                 [inputManager performSelectorOnMainThread:@selector(updateMainWindow) withObject:nil waitUntilDone:NO];
                 break;
             case INPUT_EVENT_STATISTICS:
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[VLCInfo sharedInstance] updateStatistics];
-                });
+                [[VLCInfo sharedInstance] updateStatistics];
                 break;
             case INPUT_EVENT_ES:
                 break;
@@ -94,9 +89,7 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
             case INPUT_EVENT_BOOKMARK:
                 break;
             case INPUT_EVENT_RECORD:
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [[[VLCMain sharedInstance] mainMenu] updateRecordState: var_InheritBool(p_this, "record")];
-                });
+                [[[VLCMain sharedInstance] mainMenu] updateRecordState: var_InheritBool(p_this, "record")];
                 break;
             case INPUT_EVENT_PROGRAM:
                 [inputManager performSelectorOnMainThread:@selector(updateMainMenu) withObject: nil waitUntilDone:NO];
@@ -125,29 +118,10 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
         }
 
         return VLC_SUCCESS;
-    }
 }
 
 #pragma mark -
 #pragma mark InputManager implementation
-
-@interface VLCInputManager()
-{
-    __weak VLCMain *o_main;
-
-    input_thread_t *p_current_input;
-    dispatch_queue_t informInputChangedQueue;
-
-    /* sleep management */
-    IOPMAssertionID systemSleepAssertionID;
-    IOPMAssertionID userActivityAssertionID;
-
-    /* iTunes/Spotify play/pause support */
-    BOOL b_has_itunes_paused;
-    BOOL b_has_spotify_paused;
-    NSTimer *o_itunes_play_timer;
-}
-@end
 
 @implementation VLCInputManager
 
@@ -156,7 +130,7 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
     self = [super init];
     if(self) {
         o_main = o_mainObj;
-        var_AddCallback(pl_Get(VLCIntf), "input-current", InputThreadChanged, (__bridge void *)self);
+        var_AddCallback(pl_Get(VLCIntf), "input-current", InputThreadChanged, (void *)self);
 
         informInputChangedQueue = dispatch_queue_create("org.videolan.vlc.inputChangedQueue", DISPATCH_QUEUE_SERIAL);
 
@@ -171,20 +145,22 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
         /* continue playback where you left off */
         [[o_main playlist] storePlaybackPositionForItem:p_current_input];
 
-        var_DelCallback(p_current_input, "intf-event", InputEvent, (__bridge void *)self);
+        var_DelCallback(p_current_input, "intf-event", InputEvent, (void *)self);
         vlc_object_release(p_current_input);
         p_current_input = NULL;
     }
 
-    var_DelCallback(pl_Get(VLCIntf), "input-current", InputThreadChanged, (__bridge void *)self);
+    var_DelCallback(pl_Get(VLCIntf), "input-current", InputThreadChanged, (void *)self);
 
     dispatch_release(informInputChangedQueue);
+
+    [super dealloc];
 }
 
 - (void)inputThreadChanged
 {
     if (p_current_input) {
-        var_DelCallback(p_current_input, "intf-event", InputEvent, (__bridge void *)self);
+        var_DelCallback(p_current_input, "intf-event", InputEvent, (void *)self);
         vlc_object_release(p_current_input);
         p_current_input = NULL;
 
@@ -199,7 +175,7 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
     // object is hold here and released then it is dead
     p_current_input = playlist_CurrentInput(pl_Get(VLCIntf));
     if (p_current_input) {
-        var_AddCallback(p_current_input, "intf-event", InputEvent, (__bridge void *)self);
+        var_AddCallback(p_current_input, "intf-event", InputEvent, (void *)self);
         [self playbackStatusUpdated];
         [[o_main mainMenu] setRateControlsEnabled: YES];
 
@@ -228,11 +204,9 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
      * and other issues, we need to inform the extension manager on a separate thread.
      * The serial queue ensures that changed inputs are propagated in the same order as they arrive.
      */
-    dispatch_async(informInputChangedQueue, ^{
-        [[o_main extensionsManager] inputChanged:p_input_changed];
-        if (p_input_changed)
-            vlc_object_release(p_input_changed);
-    });
+    [[o_main extensionsManager] inputChanged:p_input_changed];
+    if (p_input_changed)
+        vlc_object_release(p_input_changed);
 }
 
 - (void)playbackStatusUpdated
@@ -303,15 +277,19 @@ static int InputEvent(vlc_object_t *p_this, const char *psz_var,
         }
 
         IOReturn success;
-        /* work-around a bug in 10.7.4 and 10.7.5, so check for 10.7.x < 10.7.4 and 10.8 */
-        if ((NSAppKitVersionNumber >= 1115.2 && NSAppKitVersionNumber < 1138.45) || OSX_MOUNTAIN_LION || OSX_MAVERICKS || OSX_YOSEMITE || OSX_EL_CAPITAN) {
+
+        /* work-around a bug in 10.7.4 and 10.7.5 */
+#ifdef MAC_OS_X_VERSION_10_7
+        if ((NSAppKitVersionNumber >= 1115.2 && NSAppKitVersionNumber < 1138.45) && OSX_LION) {
             CFStringRef reasonForActivity = CFStringCreateWithCString(kCFAllocatorDefault, _("VLC media playback"), kCFStringEncodingUTF8);
             if ([o_main activeVideoPlayback])
                 success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, reasonForActivity, &systemSleepAssertionID);
             else
                 success = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoIdleSleep, kIOPMAssertionLevelOn, reasonForActivity, &systemSleepAssertionID);
             CFRelease(reasonForActivity);
-        } else {
+        } else
+#endif
+        {
             /* fall-back on the 10.5 mode, which also works on 10.7.4 and 10.7.5 */
             if ([o_main activeVideoPlayback])
                 success = IOPMAssertionCreate(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, &systemSleepAssertionID);

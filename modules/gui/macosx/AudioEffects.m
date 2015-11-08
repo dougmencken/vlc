@@ -36,19 +36,78 @@
 
 #import <math.h>
 
-@interface VLCAudioEffects ()
-{
-    NSInteger i_old_profile_index;
-}
-- (void)resetProfileSelector;
-- (void)updatePresetSelector;
-- (void)setBandSliderValuesForPreset:(NSInteger)presetID;
-@end
-
 #pragma mark -
 #pragma mark Initialization
 
 @implementation VLCAudioEffects
+
+@synthesize tabView = _tabView;
+@synthesize profilePopup = _profilePopup;
+@synthesize equalizerView = _equalizerView;
+@synthesize equalizerEnableCheckbox = _equalizerEnableCheckbox;
+@synthesize equalizerTwoPassCheckbox = _equalizerTwoPassCheckbox;
+@synthesize equalizerPreampLabel = _equalizerPreampLabel;
+@synthesize equalizerPresetsPopup = _equalizerPresetsPopup;
+@synthesize equalizerBand1Slider = _equalizerBand1Slider;
+@synthesize equalizerBand2Slider = _equalizerBand2Slider;
+@synthesize equalizerBand3Slider = _equalizerBand3Slider;
+@synthesize equalizerBand4Slider = _equalizerBand4Slider;
+@synthesize equalizerBand5Slider = _equalizerBand5Slider;
+@synthesize equalizerBand6Slider = _equalizerBand6Slider;
+@synthesize equalizerBand7Slider = _equalizerBand7Slider;
+@synthesize equalizerBand8Slider = _equalizerBand8Slider;
+@synthesize equalizerBand9Slider = _equalizerBand9Slider;
+@synthesize equalizerBand10Slider = _equalizerBand10Slider;
+@synthesize equalizerPreampSlider = _equalizerPreampSlider;
+@synthesize compressorView = _compressorView;
+@synthesize compressorEnableCheckbox = _compressorEnableCheckbox;
+@synthesize compressorResetButton = _compressorResetButton;
+@synthesize compressorBand1Slider = _compressorBand1Slider;
+@synthesize compressorBand1TextField = _compressorBand1TextField;
+@synthesize compressorBand1Label = _compressorBand1Label;
+@synthesize compressorBand2Slider = _compressorBand2Slider;
+@synthesize compressorBand2TextField = _compressorBand2TextField;
+@synthesize compressorBand2Label = _compressorBand2Label;
+@synthesize compressorBand3Slider = _compressorBand3Slider;
+@synthesize compressorBand3TextField = _compressorBand3TextField;
+@synthesize compressorBand3Label = _compressorBand3Label;
+@synthesize compressorBand4Slider = _compressorBand4Slider;
+@synthesize compressorBand4TextField = _compressorBand4TextField;
+@synthesize compressorBand4Label = _compressorBand4Label;
+@synthesize compressorBand5Slider = _compressorBand5Slider;
+@synthesize compressorBand5TextField = _compressorBand5TextField;
+@synthesize compressorBand5Label = _compressorBand5Label;
+@synthesize compressorBand6Slider = _compressorBand6Slider;
+@synthesize compressorBand6TextField = _compressorBand6TextField;
+@synthesize compressorBand6Label = _compressorBand6Label;
+@synthesize compressorBand7Slider = _compressorBand7Slider;
+@synthesize compressorBand7TextField = _compressorBand7TextField;
+@synthesize compressorBand7Label = _compressorBand7Label;
+@synthesize spatializerView = _spatializerView;
+@synthesize spatializerEnableCheckbox = _spatializerEnableCheckbox;
+@synthesize spatializerResetButton = _spatializerResetButton;
+@synthesize spatializerBand1Slider = _spatializerBand1Slider;
+@synthesize spatializerBand1TextField = _spatializerBand1TextField;
+@synthesize spatializerBand1Label = _spatializerBand1Label;
+@synthesize spatializerBand2Slider = _spatializerBand2Slider;
+@synthesize spatializerBand2TextField = _spatializerBand2TextField;
+@synthesize spatializerBand2Label = _spatializerBand2Label;
+@synthesize spatializerBand3Slider = _spatializerBand3Slider;
+@synthesize spatializerBand3TextField = _spatializerBand3TextField;
+@synthesize spatializerBand3Label = _spatializerBand3Label;
+@synthesize spatializerBand4Slider = _spatializerBand4Slider;
+@synthesize spatializerBand4TextField = _spatializerBand4TextField;
+@synthesize spatializerBand4Label = _spatializerBand4Label;
+@synthesize spatializerBand5Slider = _spatializerBand5Slider;
+@synthesize spatializerBand5TextField = _spatializerBand5TextField;
+@synthesize spatializerBand5Label = _spatializerBand5Label;
+@synthesize filterHeadPhoneCheckbox = _filterHeadPhoneCheckbox;
+@synthesize filterNormLevelCheckbox = _filterNormLevelCheckbox;
+@synthesize filterNormLevelSlider = _filterNormLevelSlider;
+@synthesize filterNormLevelLabel = _filterNormLevelLabel;
+@synthesize filterKaraokeCheckbox = _filterKaraokeCheckbox;
+@synthesize popupPanel = _popupPanel;
+@synthesize textfieldPanel = _textfieldPanel;
 
 + (void)initialize
 {
@@ -91,8 +150,8 @@
     if (self) {
         i_old_profile_index = -1;
 
-        self.popupPanel = [[VLCPopupPanelController alloc] init];
-        self.textfieldPanel = [[VLCTextfieldPanelController alloc] init];
+        _popupPanel = [[VLCPopupPanelController alloc] init];
+        _textfieldPanel = [[VLCTextfieldPanelController alloc] init];
     }
 
     return self;
@@ -138,9 +197,13 @@
     [[_tabView tabViewItemAtIndex:[_tabView indexOfTabViewItemWithIdentifier:@"compressor"]] setLabel:_NS("Compressor")];
     [[_tabView tabViewItemAtIndex:[_tabView indexOfTabViewItemWithIdentifier:@"spatializer"]] setLabel:_NS("Spatializer")];
     [[_tabView tabViewItemAtIndex:[_tabView indexOfTabViewItemWithIdentifier:@"filter"]] setLabel:_NS("Filter")];
-    [self.window setTitle:_NS("Audio Effects")];
-    [self.window setExcludedFromWindowsMenu:YES];
-    [self.window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+    [[self window] setTitle:_NS("Audio Effects")];
+    [[self window] setExcludedFromWindowsMenu:YES];
+
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_LEOPARD && !OSX_SNOW_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     [self equalizerUpdated];
     [self resetCompressor];
@@ -194,17 +257,17 @@
 #pragma mark generic code
 - (void)updateCocoaWindowLevel:(NSInteger)i_level
 {
-    if (self.window && [self.window isVisible] && [self.window level] != i_level)
-        [self.window setLevel: i_level];
+    if ([self window] && [[self window] isVisible] && [[self window] level] != i_level)
+        [[self window] setLevel: i_level];
 }
 
 - (IBAction)toggleWindow:(id)sender
 {
-    if ([self.window isKeyWindow])
-        [self.window orderOut:sender];
+    if ([[self window] isKeyWindow])
+        [[self window] orderOut:sender];
     else {
-        [self.window setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
-        [self.window makeKeyAndOrderFront:sender];
+        [[self window] setLevel: [[[VLCMain sharedInstance] voutController] currentStatusWindowLevel]];
+        [[self window] makeKeyAndOrderFront:sender];
     }
 }
 
@@ -287,7 +350,7 @@
     vlc_object_t *p_object = VLC_OBJECT(getAout());
     if (p_object == NULL)
         p_object = vlc_object_hold(pl_Get(p_intf));
-    var_SetString(p_object, "equalizer-preset", [B64DecNSStr([items firstObject]) UTF8String]);
+    var_SetString(p_object, "equalizer-preset", [B64DecNSStr([items objectAtIndex:0]) UTF8String]);
     vlc_object_release(p_object);
 
     /* filter handling */
@@ -365,50 +428,51 @@
     [_textfieldPanel setSubTitleString:_NS("Enter a name for the new profile:")];
     [_textfieldPanel setCancelButtonString:_NS("Cancel")];
     [_textfieldPanel setOkButtonString:_NS("Save")];
+    [_textfieldPanel setTarget:self];
 
-    __weak typeof(self) _self = self;
-    [_textfieldPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSString *resultingText) {
-
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if (returnCode != NSOKButton) {
-            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
-            return;
-        }
-
-        NSArray *profileNames = [defaults objectForKey:@"AudioEffectProfileNames"];
-
-        // duplicate names are not allowed in the popup control
-        if ([resultingText length] == 0 || [profileNames containsObject:resultingText]) {
-            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
-
-            NSAlert *alert = [[NSAlert alloc] init];
-            [alert setAlertStyle:NSCriticalAlertStyle];
-            [alert setMessageText:_NS("Please enter a unique name for the new profile.")];
-            [alert setInformativeText:_NS("Multiple profiles with the same name are not allowed.")];
-
-            [alert beginSheetModalForWindow:_self.window
-                              modalDelegate:nil
-                             didEndSelector:nil
-                                contextInfo:nil];
-            return;
-        }
-
-        NSString *newProfile = [_self generateProfileString];
-
-        /* add string to user defaults as well as a label */
-        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfiles"]];
-        [workArray addObject:newProfile];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfiles"];
-        [defaults setInteger:[workArray count] - 1 forKey:@"AudioEffectSelectedProfile"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfileNames"]];
-        [workArray addObject:resultingText];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfileNames"];
-
-        /* save defaults */
-        [defaults synchronize];
-        [_self resetProfileSelector];
-
-    }];
+    [_textfieldPanel runModalForWindow:[self window]];
+//    completionHandler:^(NSInteger returnCode, NSString *resultingText) {
+//
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        if (returnCode != NSOKButton) {
+//            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
+//            return;
+//        }
+//
+//        NSArray *profileNames = [defaults objectForKey:@"AudioEffectProfileNames"];
+//
+//        // duplicate names are not allowed in the popup control
+//        if ([resultingText length] == 0 || [profileNames containsObject:resultingText]) {
+//            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
+//
+//            NSAlert *alert = [[NSAlert alloc] init];
+//            [alert setAlertStyle:NSCriticalAlertStyle];
+//            [alert setMessageText:_NS("Please enter a unique name for the new profile.")];
+//            [alert setInformativeText:_NS("Multiple profiles with the same name are not allowed.")];
+//
+//            [alert beginSheetModalForWindow:[self window]
+//                              modalDelegate:nil
+//                             didEndSelector:nil
+//                                contextInfo:nil];
+//            return;
+//        }
+//
+//        NSString *newProfile = [self generateProfileString];
+//
+//        /* add string to user defaults as well as a label */
+//        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfiles"]];
+//        [workArray addObject:newProfile];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfiles"];
+//        [defaults setInteger:[workArray count] - 1 forKey:@"AudioEffectSelectedProfile"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfileNames"]];
+//        [workArray addObject:resultingText];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfileNames"];
+//
+//        /* save defaults */
+//        [defaults synchronize];
+//        [self resetProfileSelector];
+//
+//    }
 }
 
 - (void)removeAudioEffectsProfile:(id)sender
@@ -420,30 +484,30 @@
     [_popupPanel setCancelButtonString:_NS("Cancel")];
     [_popupPanel setPopupButtonContent:[[NSUserDefaults standardUserDefaults] objectForKey:@"AudioEffectProfileNames"]];
 
-    __weak typeof(self) _self = self;
-    [_popupPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
-
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        if (returnCode != NSOKButton) {
-            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
-            return;
-        }
-
-        /* remove selected profile from settings */
-        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfiles"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfiles"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfileNames"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfileNames"];
-
-        if (i_old_profile_index >= selectedIndex)
-            [defaults setInteger:i_old_profile_index - 1 forKey:@"AudioEffectSelectedProfile"];
-
-        /* save defaults */
-        [defaults synchronize];
-        [_self resetProfileSelector];
-    }];
+    [_popupPanel runModalForWindow:[self window]];
+//    completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
+//
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        if (returnCode != NSOKButton) {
+//            [_profilePopup selectItemAtIndex:[defaults integerForKey:@"AudioEffectSelectedProfile"]];
+//            return;
+//        }
+//
+//        /* remove selected profile from settings */
+//        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfiles"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfiles"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"AudioEffectProfileNames"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"AudioEffectProfileNames"];
+//
+//        if (i_old_profile_index >= selectedIndex)
+//            [defaults setInteger:i_old_profile_index - 1 forKey:@"AudioEffectSelectedProfile"];
+//
+//        /* save defaults */
+//        [defaults synchronize];
+//        [self resetProfileSelector];
+//    }
 }
 
 #pragma mark -
@@ -666,40 +730,40 @@ static bool GetEqualizerStatus(intf_thread_t *p_custom_intf,
     [_textfieldPanel setCancelButtonString:_NS("Cancel")];
     [_textfieldPanel setOkButtonString:_NS("Save")];
 
-    __weak typeof(self) _self = self;
-    [_textfieldPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSString *resultingText) {
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-
-        // EQ settings
-        if (returnCode != NSOKButton || [resultingText length] == 0)
-            return;
-
-        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQValues"]];
-        [workArray addObject:[self generatePresetString]];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQValues"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQTitles"]];
-        [workArray addObject:resultingText];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQTitles"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQPreampValues"]];
-        [workArray addObject:[NSString stringWithFormat:@"%.1f", [_equalizerPreampSlider floatValue]]];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQPreampValues"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQNames"]];
-        [workArray addObject:[resultingText decomposedStringWithCanonicalMapping]];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQNames"];
-        [defaults synchronize];
-
-        /* update VLC internals */
-        audio_output_t *p_aout = getAout();
-        if (p_aout) {
-            var_SetString(p_aout, "equalizer-preset", [[resultingText decomposedStringWithCanonicalMapping] UTF8String]);
-            vlc_object_release(p_aout);
-        }
-
-        config_PutPsz(VLCIntf, "equalizer-preset", [[resultingText decomposedStringWithCanonicalMapping] UTF8String]);
-
-        /* update UI */
-        [_self updatePresetSelector];
-    }];
+    [_textfieldPanel runModalForWindow:[self window]];
+//    completionHandler:^(NSInteger returnCode, NSString *resultingText) {
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//
+//        // EQ settings
+//        if (returnCode != NSOKButton || [resultingText length] == 0)
+//            return;
+//
+//        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQValues"]];
+//        [workArray addObject:[self generatePresetString]];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQValues"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQTitles"]];
+//        [workArray addObject:resultingText];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQTitles"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQPreampValues"]];
+//        [workArray addObject:[NSString stringWithFormat:@"%.1f", [_equalizerPreampSlider floatValue]]];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQPreampValues"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQNames"]];
+//        [workArray addObject:[resultingText decomposedStringWithCanonicalMapping]];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQNames"];
+//        [defaults synchronize];
+//
+//        /* update VLC internals */
+//        audio_output_t *p_aout = getAout();
+//        if (p_aout) {
+//            var_SetString(p_aout, "equalizer-preset", [[resultingText decomposedStringWithCanonicalMapping] UTF8String]);
+//            vlc_object_release(p_aout);
+//        }
+//
+//        config_PutPsz(VLCIntf, "equalizer-preset", [[resultingText decomposedStringWithCanonicalMapping] UTF8String]);
+//
+//        /* update UI */
+//        [self updatePresetSelector];
+//    }
 }
 
 - (IBAction)deletePresetAction:(id)sender
@@ -710,31 +774,31 @@ static bool GetEqualizerStatus(intf_thread_t *p_custom_intf,
     [_popupPanel setCancelButtonString:_NS("Cancel")];
     [_popupPanel setPopupButtonContent:[[NSUserDefaults standardUserDefaults] objectForKey:@"EQTitles"]];
 
-    __weak typeof(self) _self = self;
-    [_popupPanel runModalForWindow:self.window completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
-
-        if (returnCode != NSOKButton)
-            return;
-
-        /* remove requested profile from the arrays */
-        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQValues"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQValues"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQTitles"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQTitles"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQPreampValues"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQPreampValues"];
-        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQNames"]];
-        [workArray removeObjectAtIndex:selectedIndex];
-        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQNames"];
-        [defaults synchronize];
-
-        /* update UI */
-        [_self updatePresetSelector];
-    }];
+    [_popupPanel runModalForWindow:[self window]];
+//    completionHandler:^(NSInteger returnCode, NSInteger selectedIndex) {
+//
+//        if (returnCode != NSOKButton)
+//            return;
+//
+//        /* remove requested profile from the arrays */
+//        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+//        NSMutableArray *workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQValues"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQValues"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQTitles"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQTitles"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQPreampValues"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQPreampValues"];
+//        workArray = [[NSMutableArray alloc] initWithArray:[defaults objectForKey:@"EQNames"]];
+//        [workArray removeObjectAtIndex:selectedIndex];
+//        [defaults setObject:[NSArray arrayWithArray:workArray] forKey:@"EQNames"];
+//        [defaults synchronize];
+//
+//        /* update UI */
+//        [self updatePresetSelector];
+//    }
 }
 
 #pragma mark -

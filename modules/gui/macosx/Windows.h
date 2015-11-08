@@ -23,6 +23,7 @@
  *****************************************************************************/
 
 #import <Cocoa/Cocoa.h>
+#import "CompatibilityFixes.h"
 
 /*****************************************************************************
  * VLCWindow
@@ -32,10 +33,27 @@
 
 @class VLCVoutView;
 
-@interface VLCWindow : NSWindow <NSAnimationDelegate>
+@interface VLCWindow : NSWindow <NSAnimationDelegate> {
 
-@property (readwrite) BOOL canBecomeKeyWindow;
-@property (readwrite) BOOL canBecomeMainWindow;
+    BOOL b_canBecomeKeyWindow;
+    BOOL b_isset_canBecomeKeyWindow;
+    BOOL b_canBecomeMainWindow;
+    BOOL b_isset_canBecomeMainWindow;
+
+    BOOL _hasActiveVideo;
+    BOOL _fullscreen;
+
+    NSViewAnimation *o_current_animation;
+
+}
+
+//@property (readwrite) BOOL canBecomeKeyWindow;
+- (BOOL)canBecomeKeyWindow;
+- (void)setCanBecomeKeyWindow: (BOOL)canBecomeKey;
+
+//@property (readwrite) BOOL canBecomeMainWindow;
+- (BOOL)canBecomeMainWindow;
+- (void)setCanBecomeMainWindow: (BOOL)canBecomeMain;
 
 @property (nonatomic, readwrite) BOOL hasActiveVideo;
 @property (nonatomic, readwrite) BOOL fullscreen;
@@ -68,11 +86,37 @@ static const float f_min_video_height = 70.0;
  *  Common code for main window, detached window and extra video window
  *****************************************************************************/
 
-@interface VLCVideoWindowCommon : VLCWindow <NSWindowDelegate, NSAnimationDelegate>
+@interface VLCVideoWindowCommon : VLCWindow <NSWindowDelegate, NSAnimationDelegate> {
 
-@property (nonatomic, weak) IBOutlet VLCMainWindowTitleView *titlebarView; // only set in main or detached window
-@property (nonatomic, weak) IBOutlet VLCVoutView* videoView;
-@property (nonatomic, weak) IBOutlet VLCControlsBarCommon* controlsBar;
+    IBOutlet VLCMainWindowTitleView * _titlebarView;
+    IBOutlet VLCVoutView * _videoView;
+    IBOutlet VLCControlsBarCommon * _controlsBar;
+    BOOL _inFullscreenTransition;
+    BOOL _darkInterface;
+    BOOL _windowShouldExitFullscreenWhenFinished;
+    NSRect _previousSavedFrame;
+    NSSize _nativeVideoSize;
+
+    // variables for fullscreen handling
+    VLCVideoWindowCommon *o_current_video_window;
+    VLCWindow       * o_fullscreen_window;
+    NSViewAnimation * o_fullscreen_anim1;
+    NSViewAnimation * o_fullscreen_anim2;
+    NSView          * o_temp_view;
+
+    NSInteger i_originalLevel;
+
+    BOOL b_video_view_was_hidden;
+
+    NSTimer *t_hide_mouse_timer;
+
+    NSRect frameBeforeLionFullscreen;
+
+}
+
+@property (nonatomic, assign) IBOutlet VLCMainWindowTitleView *titlebarView; // only set in main or detached window
+@property (nonatomic, assign) IBOutlet VLCVoutView* videoView;
+@property (nonatomic, assign) IBOutlet VLCControlsBarCommon* controlsBar;
 @property (readonly) BOOL inFullscreenTransition;
 @property (readonly) BOOL darkInterface;
 @property (readonly) BOOL windowShouldExitFullscreenWhenFinished;
@@ -90,9 +134,15 @@ static const float f_min_video_height = 70.0;
 - (void)enterFullscreenWithAnimation:(BOOL)b_animation;
 - (void)leaveFullscreenWithAnimation:(BOOL)b_animation;
 
+- (void)customZoom:(id)sender;
+- (void)hasBecomeFullscreen;
+- (void)hasEndedFullscreen;
+
 /* lion fullscreen handling */
 - (void)windowWillEnterFullScreen:(NSNotification *)notification;
 - (void)windowDidEnterFullScreen:(NSNotification *)notification;
 - (void)windowWillExitFullScreen:(NSNotification *)notification;
+
+- (void)toggleForwardBackward:(NSNumber *)boolVal;
 
 @end

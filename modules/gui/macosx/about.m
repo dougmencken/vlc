@@ -31,18 +31,11 @@
 #import <vlc_about.h>
 #import "CompatibilityFixes.h"
 
-/* this is a bit weird, but we should be confident that there will be more than
- * one arch to support again one day */
-#define PLATFORM "Intel 64bit"
+#define PLATFORM "PowerPC"
 
 /*****************************************************************************
  * AboutWindowController implementation
  *****************************************************************************/
-@interface AboutWindowController ()
-{
-    NSString *o_authors;
-}
-@end
 
 @implementation AboutWindowController
 
@@ -60,6 +53,7 @@
 - (void) dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [super dealloc];
 }
 
 /*****************************************************************************
@@ -84,7 +78,10 @@
 
 - (void)windowDidLoad
 {
-    [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
+        [[self window] setCollectionBehavior: NSWindowCollectionBehaviorFullScreenAuxiliary];
+#endif
 
     /* Get the localized info dictionary (InfoPlist.strings) */
     NSDictionary *o_local_dict;
@@ -111,7 +108,7 @@
 #ifdef __clang__
     compiler = [NSString stringWithFormat:@"clang %s", __clang_version__];
 #else
-    compiler = [NSString stringWithFormat:@"llvm-gcc %s", __VERSION__];
+    compiler = [NSString stringWithFormat:@"gcc %s", __VERSION__];
 #endif
     [o_revision_field setStringValue: [NSString stringWithFormat: _NS("Compiled by %s with %@"), VLC_CompileBy(), compiler]];
 

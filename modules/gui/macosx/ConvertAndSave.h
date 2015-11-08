@@ -28,109 +28,222 @@
 @class VLCPopupPanelController;
 @class VLCTextfieldPanelController;
 
-@interface VLCConvertAndSave : NSWindowController
+@interface VLCConvertAndSave : NSWindowController {
+
+    NSArray *_videoCodecs;
+    NSArray *_audioCodecs;
+    NSArray *_subsCodecs;
+    BOOL b_streaming;
+
+    // ivars of properties
+
+    IBOutlet VLCDragDropView * _dropBox;
+    IBOutlet NSTextField * _dropLabel;
+
+    IBOutlet VLCDropDisabledImageView * _dropImage;
+    IBOutlet NSButton * _dropButton;
+    IBOutlet NSTextField * _profileLabel;
+    IBOutlet NSPopUpButton * _profilePopup;
+    IBOutlet NSButton * _customizeButton;
+
+    IBOutlet NSTextField * _destinationLabel;
+    IBOutlet NSBox * _destinationBox;
+
+    IBOutlet NSButton * _destinationCancelBtn;
+    IBOutlet NSButton * _destinationStreamButton;
+    IBOutlet NSButton * _destinationFileButton;
+
+    IBOutlet NSButton * _okButton;
+
+    IBOutlet NSView * _dropinView;
+    IBOutlet VLCDropDisabledImageView * _dropinIcon;
+    IBOutlet NSTextField * _dropinMediaLabel;
+    IBOutlet NSView * _fileDestinationView;
+    IBOutlet NSImageView * _fileDestinationIcon;
+    IBOutlet NSTextField * _fileDestinationFileName;
+    IBOutlet NSTextField * _fileDestinationFileNameStub;
+    IBOutlet NSButton * _fileDestinationBrowseButton;
+    IBOutlet NSView * _streamDestinationView;
+    IBOutlet NSTextField * _streamDestinationURLLabel;
+    IBOutlet NSButton * _streamDestinationButton;
+
+    IBOutlet NSWindow * _customizePanel;
+    IBOutlet NSButton * _customizeNewProfileButton;
+    IBOutlet NSButton * _customizeCancelButton;
+    IBOutlet NSButton * _customizeOkButton;
+    IBOutlet NSTabView * _customizeTabView;
+    IBOutlet NSMatrix * _customizeEncapMatrix;
+
+    IBOutlet NSButton * _customizeVidCheckbox;
+    IBOutlet NSButton * _customizeVidKeepCheckbox;
+    IBOutlet NSBox * _customizeVidSettingsBox;
+    IBOutlet NSTextField * _customizeVidCodecLabel;
+    IBOutlet NSTextField * _customizeVidBitrateLabel;
+    IBOutlet NSTextField * _customizeVidFramerateLabel;
+    IBOutlet NSBox * _customizeVidResolutionBox;
+    IBOutlet NSTextField * _customizeVidWidthLabel;
+    IBOutlet NSTextField * _customizeVidHeightLabel;
+    IBOutlet NSTextField * _customizeVidScaleLabel;
+    IBOutlet NSTextField * _customizeVidResLabel;
+    IBOutlet NSPopUpButton * _customizeVidCodecPopup;
+    IBOutlet NSTextField * _customizeVidBitrateField;
+    IBOutlet NSTextField * _customizeVidFramerateField;
+    IBOutlet NSTextField * _customizeVidWidthField;
+    IBOutlet NSTextField * _customizeVidHeightField;
+    IBOutlet NSPopUpButton * _customizeVidScalePopup;
+
+    IBOutlet NSButton * _customizeAudCheckbox;
+    IBOutlet NSButton * _customizeAudKeepCheckbox;
+    IBOutlet NSBox * _customizeAudSettingsBox;
+    IBOutlet NSTextField * _customizeAudCodecLabel;
+    IBOutlet NSTextField * _customizeAudBitrateLabel;
+    IBOutlet NSTextField * _customizeAudChannelsLabel;
+    IBOutlet NSTextField * _customizeAudSamplerateLabel;
+    IBOutlet NSPopUpButton * _customizeAudCodecPopup;
+    IBOutlet NSTextField * _customizeAudBitrateField;
+    IBOutlet NSTextField * _customizeAudChannelsField;
+    IBOutlet NSPopUpButton * _customizeAudSampleratePopup;
+
+    IBOutlet NSButton * _customizeSubsCheckbox;
+    IBOutlet NSButton * _customizeSubsOverlayCheckbox;
+    IBOutlet NSPopUpButton * _customizeSubsPopup;
+
+    IBOutlet NSWindow * _streamPanel;
+    IBOutlet NSTextField * _streamDestinationLabel;
+    IBOutlet NSTextField * _streamTypeLabel;
+    IBOutlet NSTextField * _streamAddressLabel;
+    IBOutlet NSPopUpButton * _streamTypePopup;
+    IBOutlet NSTextField * _streamAddressField;
+    IBOutlet NSTextField * _streamTTLLabel;
+    IBOutlet NSTextField * _streamTTLField;
+    IBOutlet NSStepper * _streamTTLStepper;
+    IBOutlet NSTextField * _streamPortLabel;
+    IBOutlet NSTextField * _streamPortField;
+    IBOutlet NSTextField * _streamAnnouncementLabel;
+    IBOutlet NSButton * _streamSAPCheckbox;
+    IBOutlet NSTextField * _streamChannelField;
+    IBOutlet NSMatrix * _streamSDPMatrix;
+    IBOutlet NSButton * _streamSDPFileBrowseButton;
+    IBOutlet NSTextField * _streamSDPField;
+    IBOutlet NSButton * _streamCancelButton;
+    IBOutlet NSButton * _streamOkButton;
+
+    VLCPopupPanelController * _popupPanel;
+    VLCTextfieldPanelController * _textfieldPanel;
+
+    NSString * _MRL;
+    NSString * _outputDestination;
+    NSArray * _profileNames;
+    NSArray * _profileValueList;
+    NSMutableArray * _currentProfile;
+
+    int _vidBitrate;
+    int _vidFramerate;
+    int _audBitrate;
+    int _audChannels;
+
+}
 
 // main panel
-@property (weak) IBOutlet VLCDragDropView *dropBox;
-@property (weak) IBOutlet NSTextField *dropLabel;
+@property (assign) IBOutlet VLCDragDropView *dropBox;
+@property (assign) IBOutlet NSTextField *dropLabel;
 
-@property (weak) IBOutlet VLCDropDisabledImageView *dropImage;
-@property (weak) IBOutlet NSButton *dropButton;
-@property (weak) IBOutlet NSTextField *profileLabel;
-@property (weak) IBOutlet NSPopUpButton *profilePopup;
-@property (weak) IBOutlet NSButton *customizeButton;
+@property (assign) IBOutlet VLCDropDisabledImageView *dropImage;
+@property (assign) IBOutlet NSButton *dropButton;
+@property (assign) IBOutlet NSTextField *profileLabel;
+@property (assign) IBOutlet NSPopUpButton *profilePopup;
+@property (assign) IBOutlet NSButton *customizeButton;
 
-@property (weak) IBOutlet NSTextField *destinationLabel;
-@property (weak) IBOutlet NSBox *destinationBox;
+@property (assign) IBOutlet NSTextField *destinationLabel;
+@property (assign) IBOutlet NSBox *destinationBox;
 
-@property (weak) IBOutlet NSButton *destinationCancelBtn;
-@property (weak) IBOutlet NSButton *destinationStreamButton;
-@property (weak) IBOutlet NSButton *destinationFileButton;
+@property (assign) IBOutlet NSButton *destinationCancelBtn;
+@property (assign) IBOutlet NSButton *destinationStreamButton;
+@property (assign) IBOutlet NSButton *destinationFileButton;
 
-@property (weak) IBOutlet NSButton *okButton;
+@property (assign) IBOutlet NSButton *okButton;
 
-@property (weak) IBOutlet NSView *dropinView;
-@property (weak) IBOutlet VLCDropDisabledImageView *dropinIcon;
-@property (weak) IBOutlet NSTextField *dropinMediaLabel;
-@property (weak) IBOutlet NSView *fileDestinationView;
-@property (weak) IBOutlet NSImageView *fileDestinationIcon;
-@property (weak) IBOutlet NSTextField *fileDestinationFileName;
-@property (weak) IBOutlet NSTextField *fileDestinationFileNameStub;
-@property (weak) IBOutlet NSButton *fileDestinationBrowseButton;
-@property (weak) IBOutlet NSView *streamDestinationView;
-@property (weak) IBOutlet NSTextField *streamDestinationURLLabel;
-@property (weak) IBOutlet NSButton *streamDestinationButton;
+@property (assign) IBOutlet NSView *dropinView;
+@property (assign) IBOutlet VLCDropDisabledImageView *dropinIcon;
+@property (assign) IBOutlet NSTextField *dropinMediaLabel;
+@property (assign) IBOutlet NSView *fileDestinationView;
+@property (assign) IBOutlet NSImageView *fileDestinationIcon;
+@property (assign) IBOutlet NSTextField *fileDestinationFileName;
+@property (assign) IBOutlet NSTextField *fileDestinationFileNameStub;
+@property (assign) IBOutlet NSButton *fileDestinationBrowseButton;
+@property (assign) IBOutlet NSView *streamDestinationView;
+@property (assign) IBOutlet NSTextField *streamDestinationURLLabel;
+@property (assign) IBOutlet NSButton *streamDestinationButton;
 
 // customize panel
-@property (weak) IBOutlet NSWindow *customizePanel;
-@property (weak) IBOutlet NSButton *customizeNewProfileButton;
-@property (weak) IBOutlet NSButton *customizeCancelButton;
-@property (weak) IBOutlet NSButton *customizeOkButton;
-@property (weak) IBOutlet NSTabView *customizeTabView;
-@property (weak) IBOutlet NSMatrix *customizeEncapMatrix;
+@property (assign) IBOutlet NSWindow *customizePanel;
+@property (assign) IBOutlet NSButton *customizeNewProfileButton;
+@property (assign) IBOutlet NSButton *customizeCancelButton;
+@property (assign) IBOutlet NSButton *customizeOkButton;
+@property (assign) IBOutlet NSTabView *customizeTabView;
+@property (assign) IBOutlet NSMatrix *customizeEncapMatrix;
 
 // customize panel: video
-@property (weak) IBOutlet NSButton *customizeVidCheckbox;
-@property (weak) IBOutlet NSButton *customizeVidKeepCheckbox;
-@property (weak) IBOutlet NSBox *customizeVidSettingsBox;
-@property (weak) IBOutlet NSTextField *customizeVidCodecLabel;
-@property (weak) IBOutlet NSTextField *customizeVidBitrateLabel;
-@property (weak) IBOutlet NSTextField *customizeVidFramerateLabel;
-@property (weak) IBOutlet NSBox *customizeVidResolutionBox;
-@property (weak) IBOutlet NSTextField *customizeVidWidthLabel;
-@property (weak) IBOutlet NSTextField *customizeVidHeightLabel;
-@property (weak) IBOutlet NSTextField *customizeVidScaleLabel;
-@property (weak) IBOutlet NSTextField *customizeVidResLabel;
-@property (weak) IBOutlet NSPopUpButton *customizeVidCodecPopup;
-@property (weak) IBOutlet NSTextField *customizeVidBitrateField;
-@property (weak) IBOutlet NSTextField *customizeVidFramerateField;
-@property (weak) IBOutlet NSTextField *customizeVidWidthField;
-@property (weak) IBOutlet NSTextField *customizeVidHeightField;
-@property (weak) IBOutlet NSPopUpButton *customizeVidScalePopup;
+@property (assign) IBOutlet NSButton *customizeVidCheckbox;
+@property (assign) IBOutlet NSButton *customizeVidKeepCheckbox;
+@property (assign) IBOutlet NSBox *customizeVidSettingsBox;
+@property (assign) IBOutlet NSTextField *customizeVidCodecLabel;
+@property (assign) IBOutlet NSTextField *customizeVidBitrateLabel;
+@property (assign) IBOutlet NSTextField *customizeVidFramerateLabel;
+@property (assign) IBOutlet NSBox *customizeVidResolutionBox;
+@property (assign) IBOutlet NSTextField *customizeVidWidthLabel;
+@property (assign) IBOutlet NSTextField *customizeVidHeightLabel;
+@property (assign) IBOutlet NSTextField *customizeVidScaleLabel;
+@property (assign) IBOutlet NSTextField *customizeVidResLabel;
+@property (assign) IBOutlet NSPopUpButton *customizeVidCodecPopup;
+@property (assign) IBOutlet NSTextField *customizeVidBitrateField;
+@property (assign) IBOutlet NSTextField *customizeVidFramerateField;
+@property (assign) IBOutlet NSTextField *customizeVidWidthField;
+@property (assign) IBOutlet NSTextField *customizeVidHeightField;
+@property (assign) IBOutlet NSPopUpButton *customizeVidScalePopup;
 
 // customize panel: audio
-@property (weak) IBOutlet NSButton *customizeAudCheckbox;
-@property (weak) IBOutlet NSButton *customizeAudKeepCheckbox;
-@property (weak) IBOutlet NSBox *customizeAudSettingsBox;
-@property (weak) IBOutlet NSTextField *customizeAudCodecLabel;
-@property (weak) IBOutlet NSTextField *customizeAudBitrateLabel;
-@property (weak) IBOutlet NSTextField *customizeAudChannelsLabel;
-@property (weak) IBOutlet NSTextField *customizeAudSamplerateLabel;
-@property (weak) IBOutlet NSPopUpButton *customizeAudCodecPopup;
-@property (weak) IBOutlet NSTextField *customizeAudBitrateField;
-@property (weak) IBOutlet NSTextField *customizeAudChannelsField;
-@property (weak) IBOutlet NSPopUpButton *customizeAudSampleratePopup;
+@property (assign) IBOutlet NSButton *customizeAudCheckbox;
+@property (assign) IBOutlet NSButton *customizeAudKeepCheckbox;
+@property (assign) IBOutlet NSBox *customizeAudSettingsBox;
+@property (assign) IBOutlet NSTextField *customizeAudCodecLabel;
+@property (assign) IBOutlet NSTextField *customizeAudBitrateLabel;
+@property (assign) IBOutlet NSTextField *customizeAudChannelsLabel;
+@property (assign) IBOutlet NSTextField *customizeAudSamplerateLabel;
+@property (assign) IBOutlet NSPopUpButton *customizeAudCodecPopup;
+@property (assign) IBOutlet NSTextField *customizeAudBitrateField;
+@property (assign) IBOutlet NSTextField *customizeAudChannelsField;
+@property (assign) IBOutlet NSPopUpButton *customizeAudSampleratePopup;
 
 // customize panel: subs
-@property (weak) IBOutlet NSButton *customizeSubsCheckbox;
-@property (weak) IBOutlet NSButton *customizeSubsOverlayCheckbox;
-@property (weak) IBOutlet NSPopUpButton *customizeSubsPopup;
+@property (assign) IBOutlet NSButton *customizeSubsCheckbox;
+@property (assign) IBOutlet NSButton *customizeSubsOverlayCheckbox;
+@property (assign) IBOutlet NSPopUpButton *customizeSubsPopup;
 
 // stream panel
-@property (weak) IBOutlet NSWindow *streamPanel;
-@property (weak) IBOutlet NSTextField *streamDestinationLabel;
-@property (weak) IBOutlet NSTextField *streamTypeLabel;
-@property (weak) IBOutlet NSTextField *streamAddressLabel;
-@property (weak) IBOutlet NSPopUpButton *streamTypePopup;
-@property (weak) IBOutlet NSTextField *streamAddressField;
-@property (weak) IBOutlet NSTextField *streamTTLLabel;
-@property (weak) IBOutlet NSTextField *streamTTLField;
-@property (weak) IBOutlet NSStepper *streamTTLStepper;
-@property (weak) IBOutlet NSTextField *streamPortLabel;
-@property (weak) IBOutlet NSTextField *streamPortField;
-@property (weak) IBOutlet NSTextField *streamAnnouncementLabel;
-@property (weak) IBOutlet NSButton *streamSAPCheckbox;
-@property (weak) IBOutlet NSTextField *streamChannelField;
-@property (weak) IBOutlet NSMatrix *streamSDPMatrix;
-@property (weak) IBOutlet NSButton *streamSDPFileBrowseButton;
-@property (weak) IBOutlet NSTextField *streamSDPField;
-@property (weak) IBOutlet NSButton *streamCancelButton;
-@property (weak) IBOutlet NSButton *streamOkButton;
+@property (assign) IBOutlet NSWindow *streamPanel;
+@property (assign) IBOutlet NSTextField *streamDestinationLabel;
+@property (assign) IBOutlet NSTextField *streamTypeLabel;
+@property (assign) IBOutlet NSTextField *streamAddressLabel;
+@property (assign) IBOutlet NSPopUpButton *streamTypePopup;
+@property (assign) IBOutlet NSTextField *streamAddressField;
+@property (assign) IBOutlet NSTextField *streamTTLLabel;
+@property (assign) IBOutlet NSTextField *streamTTLField;
+@property (assign) IBOutlet NSStepper *streamTTLStepper;
+@property (assign) IBOutlet NSTextField *streamPortLabel;
+@property (assign) IBOutlet NSTextField *streamPortField;
+@property (assign) IBOutlet NSTextField *streamAnnouncementLabel;
+@property (assign) IBOutlet NSButton *streamSAPCheckbox;
+@property (assign) IBOutlet NSTextField *streamChannelField;
+@property (assign) IBOutlet NSMatrix *streamSDPMatrix;
+@property (assign) IBOutlet NSButton *streamSDPFileBrowseButton;
+@property (assign) IBOutlet NSTextField *streamSDPField;
+@property (assign) IBOutlet NSButton *streamCancelButton;
+@property (assign) IBOutlet NSButton *streamOkButton;
 
 // other properties
-@property (strong) VLCPopupPanelController *popupPanel;
-@property (strong) VLCTextfieldPanelController *textfieldPanel;
-
+@property (retain) VLCPopupPanelController *popupPanel;
+@property (retain) VLCTextfieldPanelController *textfieldPanel;
 
 @property (readwrite, nonatomic, retain) NSString * MRL;
 @property (readwrite, nonatomic, retain) NSString * outputDestination;
@@ -165,5 +278,15 @@
 - (IBAction)streamTypeToggle:(id)sender;
 - (IBAction)streamAnnouncementToggle:(id)sender;
 - (IBAction)sdpFileLocationSelector:(id)sender;
+
+- (void)updateDropView;
+- (void)updateOKButton;
+- (void)resetCustomizationSheetBasedOnProfile:(NSString *)profileString;
+- (void)selectCellByEncapsulationFormat:(NSString *)format;
+- (NSString *)currentEncapsulationFormatAsFileExtension:(BOOL)b_extension;
+- (NSString *)composedOptions;
+- (void)updateCurrentProfile;
+- (void)storeProfilesOnDisk;
+- (void)recreateProfilePopup;
 
 @end

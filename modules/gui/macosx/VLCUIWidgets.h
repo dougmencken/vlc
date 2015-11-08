@@ -27,30 +27,47 @@
 
 @class VLCDialogGridView;
 
-@interface VLCDialogButton : NSButton
+@interface VLCDialogButton : NSButton {
+    extension_widget_t *_widget;
+}
 @property (readwrite) extension_widget_t *widget;
 @end
 
-@interface VLCDialogPopUpButton : NSPopUpButton
+@interface VLCDialogPopUpButton : NSPopUpButton {
+    extension_widget_t *_widget;
+}
 @property (readwrite) extension_widget_t *widget;
 @end
 
-@interface VLCDialogTextField : NSTextField
+@interface VLCDialogTextField : NSTextField {
+    extension_widget_t *_widget;
+}
 @property (readwrite) extension_widget_t *widget;
 @end
 
-@interface VLCDialogWindow : NSWindow
+@interface VLCDialogWindow : NSWindow {
+    extension_dialog_t *_dialog;
+    BOOL _has_lock;
+}
 @property (readwrite) extension_dialog_t *dialog;
 @property (readwrite) BOOL has_lock;
 @end
 
 
-@interface VLCDialogList : NSTableView <NSTableViewDataSource>
+@interface VLCDialogList : NSTableView <NSTableViewDataSource> {
+    extension_widget_t *_widget;
+    NSMutableArray *_contentArray;
+}
 @property (readwrite) extension_widget_t *widget;
 @property (readwrite, retain) NSMutableArray *contentArray;
 @end
 
-@interface VLCDialogGridView : NSView
+@interface VLCDialogGridView : NSView {
+    NSUInteger _numViews;
+
+    NSUInteger _rowCount, _colCount;
+    NSMutableArray *_griddedViews;
+}
 
 - (void)addSubview:(NSView *)view atRow:(NSUInteger)row column:(NSUInteger)column rowSpan:(NSUInteger)rowSpan colSpan:(NSUInteger)colSpan;
 - (NSSize)flexSize:(NSSize)size;

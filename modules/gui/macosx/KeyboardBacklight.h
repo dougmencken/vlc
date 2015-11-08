@@ -23,7 +23,15 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KeyboardBacklight : NSObject
+@interface KeyboardBacklight : NSObject {
+
+    io_connect_t dataPort;
+
+}
+
+- (io_connect_t)getDataPort;
+- (float)getBrightness;
+- (void)setBrightness:(float)brightness;
 
 /*!
  *  Initialize an instance of KeyboardBacklight.

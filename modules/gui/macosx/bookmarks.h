@@ -24,25 +24,45 @@
 #import <Cocoa/Cocoa.h>
 #import "intf.h"
 #import <vlc_common.h>
+#import "CompatibilityFixes.h"
 
-@interface VLCBookmarks : NSWindowController
+@interface VLCBookmarks : NSWindowController <NSTableViewDataSource, NSTableViewDelegate> {
+
+    IBOutlet NSButton * _addButton;
+    IBOutlet NSButton * _clearButton;
+    IBOutlet NSButton * _editButton;
+    IBOutlet NSButton * _extractButton;
+    IBOutlet NSButton * _removeButton;
+    IBOutlet NSTableView * _dataTable;
+
+    IBOutlet NSWindow * _editBookmarksWindow;
+    IBOutlet NSButton * _editOKButton;
+    IBOutlet NSButton * _editCancelButton;
+    IBOutlet NSTextField * _editNameLabel;
+    IBOutlet NSTextField * _editTimeLabel;
+    IBOutlet NSTextField * _editNameTextField;
+    IBOutlet NSTextField * _editTimeTextField;
+
+    input_thread_t *p_old_input;
+
+}
 
 /* main window */
-@property (readwrite, weak) IBOutlet NSButton *addButton;
-@property (readwrite, weak) IBOutlet NSButton *clearButton;
-@property (readwrite, weak) IBOutlet NSButton *editButton;
-@property (readwrite, weak) IBOutlet NSButton *extractButton;
-@property (readwrite, weak) IBOutlet NSButton *removeButton;
-@property (readwrite, weak) IBOutlet NSTableView *dataTable;
+@property (readwrite, assign) IBOutlet NSButton *addButton;
+@property (readwrite, assign) IBOutlet NSButton *clearButton;
+@property (readwrite, assign) IBOutlet NSButton *editButton;
+@property (readwrite, assign) IBOutlet NSButton *extractButton;
+@property (readwrite, assign) IBOutlet NSButton *removeButton;
+@property (readwrite, assign) IBOutlet NSTableView *dataTable;
 
 /* edit window */
-@property (readwrite, weak) IBOutlet NSWindow *editBookmarksWindow;
-@property (readwrite, weak) IBOutlet NSButton *editOKButton;
-@property (readwrite, weak) IBOutlet NSButton *editCancelButton;
-@property (readwrite, weak) IBOutlet NSTextField *editNameLabel;
-@property (readwrite, weak) IBOutlet NSTextField *editTimeLabel;
-@property (readwrite, weak) IBOutlet NSTextField *editNameTextField;
-@property (readwrite, weak) IBOutlet NSTextField *editTimeTextField;
+@property (readwrite, assign) IBOutlet NSWindow *editBookmarksWindow;
+@property (readwrite, assign) IBOutlet NSButton *editOKButton;
+@property (readwrite, assign) IBOutlet NSButton *editCancelButton;
+@property (readwrite, assign) IBOutlet NSTextField *editNameLabel;
+@property (readwrite, assign) IBOutlet NSTextField *editTimeLabel;
+@property (readwrite, assign) IBOutlet NSTextField *editNameTextField;
+@property (readwrite, assign) IBOutlet NSTextField *editTimeTextField;
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level;
 

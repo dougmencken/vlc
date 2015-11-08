@@ -33,20 +33,10 @@
 #define MENU_GET_ACTION(a) ((uint16_t)(((uint32_t)a) >> 16))
 #define MENU_GET_EXTENSION(a) ((uint16_t)(((uint32_t)a) & 0xFFFF))
 
-@interface ExtensionsManager()
-{
-    extensions_manager_t *p_extensions_manager;
-    ExtensionsDialogProvider *_extensionDialogProvider;
-
-    NSMutableDictionary *p_extDict;
-
-    BOOL b_failed; ///< Flag set to true if we could not load the module
-
-    id <ExtensionsDelegate> delegate;
-}
-@end
 
 @implementation ExtensionsManager
+
+@synthesize isUnloading = _isUnloading;
 
 - (id)init
 {
@@ -308,6 +298,8 @@
     _extensionDialogProvider = nil;
     if (p_extensions_manager)
         vlc_object_release(p_extensions_manager);
+
+    [super dealloc];
 }
 
 - (BOOL)isLoaded

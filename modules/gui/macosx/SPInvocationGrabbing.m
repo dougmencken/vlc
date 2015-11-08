@@ -13,13 +13,15 @@
 #import <execinfo.h>
 
 #pragma mark Invocation grabbing
-@interface SPInvocationGrabber ()
-@property (readwrite, retain, nonatomic) id object;
-@property (readwrite, retain, nonatomic) NSInvocation *invocation;
-
-@end
 
 @implementation SPInvocationGrabber
+
+@synthesize object = _object;
+@synthesize invocation = _invocation;
+@synthesize backgroundAfterForward = _backgroundAfterForward;
+@synthesize onMainAfterForward = _onMainAfterForward;
+@synthesize waitUntilDone = _waitUntilDone;
+
 - (id)initWithObject:(id)obj;
 {
     return [self initWithObject:obj stacktraceSaving:YES];
@@ -27,7 +29,7 @@
 
 -(id)initWithObject:(id)obj stacktraceSaving:(BOOL)saveStack;
 {
-    self.object = obj;
+    _object = obj;
     if(saveStack)
         [self saveBacktrace];
 
@@ -37,27 +39,21 @@
 -(void)dealloc;
 {
     free(frameStrings);
-    self.object = nil;
-    self.invocation = nil;
+    _object = nil;
+    _invocation = nil;
+    [super dealloc];
 }
 
 - (void)runInBackground;
 {
-    @autoreleasepool {
-        @try {
-            [self invoke];
-        }
-        @finally {
-            ;
-        }
-    }
+    [self invoke];
 }
 
 
 - (void)forwardInvocation:(NSInvocation *)anInvocation {
     [anInvocation retainArguments];
-    anInvocation.target = _object;
-    self.invocation = anInvocation;
+    [anInvocation setTarget:_object];
+    _invocation = anInvocation;
 
     if(_backgroundAfterForward)
         [NSThread detachNewThreadSelector:@selector(runInBackground) toTarget:self withObject:nil];
@@ -78,7 +74,6 @@
     @try {
         [_invocation invoke];
     }
-
     @catch (NSException * e) {
         NSLog(@"SPInvocationGrabber's target raised %@:\n\t%@\nInvocation was originally scheduled at:", e.name, e);
         [self printBacktrace];
@@ -86,8 +81,8 @@
         [e raise];
     }
 
-    self.invocation = nil;
-    self.object = nil;
+    _invocation = nil;
+    _object = nil;
 }
 
 -(void)saveBacktrace;

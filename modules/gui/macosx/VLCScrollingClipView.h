@@ -23,7 +23,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface VLCScrollingClipView : NSClipView
+@interface VLCScrollingClipView : NSClipView {
+    /* Outlet to the parent NSScrollView */
+    IBOutlet NSScrollView *_parentScrollView;
+
+    NSTimer *scrollTimer;
+    NSTimeInterval startInterval;
+}
+
+@property (readwrite, assign) IBOutlet NSScrollView *parentScrollView;
 
 /* Start scrolling. Does nothing if already scrolling. */
 - (void)startScrolling;
@@ -33,8 +41,5 @@
 
 /* Resets scrolling position to the top */
 - (void)resetScrolling;
-
-/* Outlet to the parent NSScrollView */
-@property IBOutlet NSScrollView *parentScrollView;
 
 @end

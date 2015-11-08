@@ -27,13 +27,6 @@
 #import "intf.h"
 #import "StringUtility.h"
 
-@interface ResumeDialogController()
-{
-    int currentResumeTimeout;
-    CompletionBlock completionBlock;
-}
-@end
-
 @implementation ResumeDialogController
 
 - (id)init
@@ -51,7 +44,7 @@
     [o_always_resume_btn setTitle:_NS("Always continue")];
 }
 
-- (void)showWindowWithItem:(input_item_t *)p_item withLastPosition:(NSInteger)pos completionBlock:(CompletionBlock)block
+- (void)showWindowWithItem:(input_item_t *)p_item withLastPosition:(NSInteger)pos target:(id)aObj selector:(SEL)aSel
 {
     NSWindow *w = [self window];
 
@@ -61,8 +54,8 @@
     }
 
     currentResumeTimeout = 10;
-    completionBlock = [block copy];
-
+    o_target = aObj;
+    o_selector = aSel;
 
     NSString *o_restartButtonLabel = _NS("Restart playback");
     o_restartButtonLabel = [o_restartButtonLabel stringByAppendingFormat:@" (%d)", currentResumeTimeout];
@@ -86,6 +79,19 @@
     [w makeKeyAndOrderFront:nil];
 }
 
+- (void)doContinuePlayback
+{
+    if (m_resumeResult == RESUME_RESTART)
+        return;
+
+    ///mtime_t lastPos = (mtime_t)lastPosition.intValue * 1000000;
+    ///msg_Dbg(VLCIntf, "continuing playback at %lld", lastPos);
+    ///var_SetInteger(p_input_thread, "time", lastPos);
+
+    if (m_resumeResult == RESUME_ALWAYS)
+        config_PutInt(VLCIntf, "macosx-continue-playback", 1);
+}
+
 - (void)updateAlertWindow:(NSTimer *)timer
 {
     --currentResumeTimeout;
@@ -103,27 +109,30 @@
 
 - (IBAction)buttonClicked:(id)sender
 {
-    enum ResumeResult resumeResult;
-
     if (sender == o_restart_btn)
-        resumeResult = RESUME_RESTART;
+        m_resumeResult = RESUME_RESTART;
     else if (sender == o_resume_btn)
-        resumeResult = RESUME_NOW;
+        m_resumeResult = RESUME_NOW;
     else
-        resumeResult = RESUME_ALWAYS;
+        m_resumeResult = RESUME_ALWAYS;
 
     [[self window] close];
 
-    if (completionBlock) {
-        completionBlock(resumeResult);
-        completionBlock = nil;
+    if (o_target && o_selector) {
+        [o_target performSelector:o_selector];
+        o_selector = nil; o_target = nil;
     }
+}
+
+- (void)setResumeResult:(int)result
+{
+    m_resumeResult = result;
 }
 
 - (void)updateCocoaWindowLevel:(NSInteger)i_level
 {
-    if (self.window && [self.window isVisible] && [self.window level] != i_level)
-        [self.window setLevel: i_level];
+    if ([self window] && [[self window] isVisible] && [[self window] level] != i_level)
+        [[self window] setLevel: i_level];
 }
 
 @end

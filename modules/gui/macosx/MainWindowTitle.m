@@ -36,41 +36,18 @@
  * states, since we can't capture the mouse-moved events here correctly
  *****************************************************************************/
 
-@interface VLCMainWindowTitleView()
-{
-    NSImage * o_red_img;
-    NSImage * o_red_over_img;
-    NSImage * o_red_on_img;
-    NSImage * o_yellow_img;
-    NSImage * o_yellow_over_img;
-    NSImage * o_yellow_on_img;
-    NSImage * o_green_img;
-    NSImage * o_green_over_img;
-    NSImage * o_green_on_img;
-    // yosemite fullscreen images
-    NSImage * o_fullscreen_img;
-    NSImage * o_fullscreen_over_img;
-    NSImage * o_fullscreen_on_img;
-    // old native fullscreen images
-    NSImage * o_old_fullscreen_img;
-    NSImage * o_old_fullscreen_over_img;
-    NSImage * o_old_fullscreen_on_img;
-
-    NSShadow * o_window_title_shadow;
-    NSDictionary * o_window_title_attributes_dict;
-
-    BOOL b_nativeFullscreenMode;
-
-    // state to determine correct image for green bubble
-    BOOL b_alt_pressed;
-    BOOL b_mouse_over;
-}
-@end
-
 @implementation VLCMainWindowTitleView
+
+@synthesize closeButton = _closeButton;
+@synthesize minimizeButton = _minimizeButton;
+@synthesize zoomButton = _zoomButton;
+
 - (id)init
 {
-    o_window_title_attributes_dict = [NSDictionary dictionaryWithObjectsAndKeys: [NSColor whiteColor], NSForegroundColorAttributeName, [NSFont titleBarFontOfSize:12.0], NSFontAttributeName, nil];
+    o_window_title_attributes_dict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                             [NSColor whiteColor], NSForegroundColorAttributeName,
+                                             [NSFont titleBarFontOfSize:12.0], NSFontAttributeName,
+                                             nil];
 
     return [super init];
 }
@@ -78,11 +55,16 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver: self];
+    [super dealloc];
 }
 
 - (void)awakeFromNib
 {
-    b_nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
+    b_nativeFullscreenMode = NO;
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD)
+        b_nativeFullscreenMode = var_InheritBool(VLCIntf, "macosx-nativefullscreenmode");
+#endif
 
     if (!b_nativeFullscreenMode || OSX_YOSEMITE || OSX_EL_CAPITAN) {
         [o_fullscreen_btn setHidden: YES];
@@ -118,7 +100,9 @@
 - (NSImage *)getButtonImage:(NSString *)o_id
 {
     NSString *o_name = @"";
-    if (OSX_YOSEMITE || OSX_EL_CAPITAN) {
+    if (OSX_SNOW_LEOPARD) {
+        o_name = @"snowleo-";
+    } else if (OSX_YOSEMITE || OSX_EL_CAPITAN) {
         o_name = @"yosemite-";
     } else { // OSX_LION, OSX_MOUNTAIN_LION, OSX_MAVERICKS
         o_name = @"lion-";
@@ -214,15 +198,19 @@
     else if (sender == o_yellow_btn)
         [[self window] miniaturize: sender];
     else if (sender == o_green_btn) {
+#ifdef MAC_OS_X_VERSION_10_10
         if ((OSX_YOSEMITE || OSX_EL_CAPITAN) && b_nativeFullscreenMode && !b_alt_pressed) {
             [[self window] toggleFullScreen:self];
-        } else {
+        } else
+#endif
+        {
             [[self window] performZoom: sender];
         }
     } else if (sender == o_fullscreen_btn) {
+#ifdef MAC_OS_X_VERSION_10_10
         // same action as native fs button
         [[self window] toggleFullScreen:self];
-
+#endif
     } else
         msg_Err(VLCIntf, "unknown button action sender");
 
@@ -498,12 +486,6 @@
 @end
 
 
-@interface VLCWindowTitleTextField()
-{
-    NSMenu *_contextMenu;
-}
-@end
-
 @implementation VLCWindowTitleTextField
 
 - (void)showRightClickMenuWithEvent:(NSEvent *)o_event
@@ -512,9 +494,7 @@
     if (!representedURL)
         return;
 
-    NSArray * pathComponents;
-    pathComponents = [representedURL pathComponents];
-
+    NSArray * pathComponents = [[representedURL path] pathComponents];
     if (!pathComponents)
         return;
 
@@ -555,7 +535,7 @@
     }
 
     /* add the computer item */
-    [_contextMenu addItemWithTitle:(NSString*)CFBridgingRelease(SCDynamicStoreCopyComputerName(NULL, NULL)) action:@selector(revealInFinder:) keyEquivalent:@""];
+    [_contextMenu addItemWithTitle:(NSString*)SCDynamicStoreCopyComputerName(NULL, NULL) action:@selector(revealInFinder:) keyEquivalent:@""];
     currentItem = [_contextMenu itemAtIndex: [_contextMenu numberOfItems] - 1];
     icon = [NSImage imageNamed: NSImageNameComputer];
     [icon setSize: iconSize];
@@ -563,7 +543,10 @@
     [currentItem setTarget: self];
 
     // center the context menu similar to the white interface
-    CGFloat menuWidth = [_contextMenu size].width;
+    CGFloat menuWidth = 240.0;
+#ifdef MAC_OS_X_VERSION_10_6
+    menuWidth = [_contextMenu size].width;
+#endif
     NSRect windowFrame = [[self window] frame];
     NSPoint point;
 
@@ -608,8 +591,7 @@
         return;
     }
 
-    NSArray * pathComponents;
-    pathComponents = [representedURL pathComponents];
+    NSArray * pathComponents = [[representedURL path] pathComponents];
     if (!pathComponents)
         return;
 

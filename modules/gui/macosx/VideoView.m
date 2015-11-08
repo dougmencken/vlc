@@ -45,16 +45,6 @@
 /*****************************************************************************
  * VLCVoutView implementation
  *****************************************************************************/
-@interface VLCVoutView()
-{
-    NSInteger i_lastScrollWheelDirection;
-    NSTimeInterval t_lastScrollEvent;
-
-    CGFloat f_cumulated_magnification;
-
-    vout_thread_t *p_vout;
-}
-@end
 
 @implementation VLCVoutView
 
@@ -67,6 +57,8 @@
         vlc_object_release(p_vout);
 
     [self unregisterDraggedTypes];
+
+    [super dealloc];
 }
 
 -(id)initWithFrame:(NSRect)frameRect
@@ -239,10 +231,13 @@
     CGFloat f_deltaX = [theEvent deltaX];
     CGFloat f_deltaY = [theEvent deltaY];
 
+#ifdef MAC_OS_X_VERSION_10_7
+    if (!OSX_SNOW_LEOPARD && !OSX_LEOPARD)
     if ([theEvent isDirectionInvertedFromDevice]) {
         f_deltaX = -f_deltaX;
         f_deltaY = -f_deltaY;
     }
+#endif
 
     CGFloat f_yabsvalue = f_deltaY > 0.0f ? f_deltaY : -f_deltaY;
     CGFloat f_xabsvalue = f_deltaX > 0.0f ? f_deltaX : -f_deltaX;
@@ -349,8 +344,11 @@
 
 - (void)magnifyWithEvent:(NSEvent *)event
 {
+#ifndef MAC_OS_X_VERSION_10_6
+    f_cumulated_magnification += [event deltaZ];
+#else
     f_cumulated_magnification += [event magnification];
-
+#endif
     // This is the result of [NSEvent standardMagnificationThreshold].
     // Unfortunately, this is a private API, currently.
     CGFloat f_threshold = 0.3;

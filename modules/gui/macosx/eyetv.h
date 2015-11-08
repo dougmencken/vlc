@@ -24,7 +24,13 @@
 #import <Cocoa/Cocoa.h>
 
 
-@interface VLCEyeTVController : NSObject
+@interface VLCEyeTVController : NSObject {
+
+    BOOL _eyeTVRunning;
+    BOOL _deviceConnected;
+    int _channel;
+
+}
 
 @property (readonly) BOOL eyeTVRunning;
 @property (readonly) BOOL deviceConnected;
