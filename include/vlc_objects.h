@@ -45,7 +45,7 @@ struct vlc_object_t
  * Prototypes
  *****************************************************************************/
 VLC_API void *vlc_object_create( vlc_object_t *, size_t ) VLC_MALLOC VLC_USED;
-VLC_API vlc_object_t *vlc_object_find_name( vlc_object_t *, const char * ) VLC_USED VLC_DEPRECATED;
+VLC_API vlc_object_t *vlc_object_find_name( vlc_object_t *, const char * ) VLC_USED /*VLC_DEPRECATED*/;
 VLC_API void * vlc_object_hold( vlc_object_t * );
 VLC_API void vlc_object_release( vlc_object_t * );
 VLC_API vlc_list_t *vlc_list_children( vlc_object_t * ) VLC_USED;
