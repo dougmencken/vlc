@@ -37,6 +37,7 @@ if HAVE_DARWIN
 vlc_osx_SOURCES = darwinvlc.m
 vlc_osx_LDFLAGS = $(LDFLAGS_vlc) -Wl,-framework,CoreFoundation,-framework,Cocoa
 vlc_osx_LDADD = ../lib/libvlc.la
+vlc_osx_LIBTOOLFLAGS = --tag=CC
 
 vlc_osx_static_SOURCES = $(vlc_osx_SOURCES)
 vlc_osx_static_OBJCFLAGS = $(AM_OBJCFLAGS) \
@@ -45,6 +46,7 @@ vlc_osx_static_OBJCFLAGS = $(AM_OBJCFLAGS) \
 	$(NULL)
 vlc_osx_static_LDFLAGS = $(vlc_osx_LDFLAGS) -static
 vlc_osx_static_LDADD = $(vlc_osx_LDADD)
+vlc_osx_static_LIBTOOLFLAGS = --tag=CC
 endif
 
 vlc_wrapper_SOURCES = rootwrap.c

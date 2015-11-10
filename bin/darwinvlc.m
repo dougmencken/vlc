@@ -41,9 +41,8 @@
  */
 static void vlc_terminate(void *data)
 {
-    (void)data;
+        (void)data;
 
-    dispatch_async(dispatch_get_main_queue(), ^{
         /*
          * Stop the main loop. When using the CoreFoundation mainloop, simply
          * CFRunLoopStop can be used.
@@ -71,8 +70,6 @@ static void vlc_terminate(void *data)
                                                    data2:0];
             [NSApp postEvent:event atStart:YES];
         }
-
-    });
 }
 
 /*****************************************************************************
@@ -155,31 +152,31 @@ int main(int i_argc, const char *ppsz_argv[])
     /* Block all these signals */
     pthread_sigmask(SIG_SETMASK, &set, NULL);
 
-    /* Handle signals with GCD */
-    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
-    dispatch_source_t sigIntSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGINT, 0, queue);
-    dispatch_source_t sigTermSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGTERM, 0, queue);
-    dispatch_source_t sigChldSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGCHLD, 0, queue);
-
-    if (!sigIntSource || !sigTermSource || !sigChldSource)
-        abort();
-
-    dispatch_source_set_event_handler(sigIntSource, ^{
-        vlc_terminate(nil);
-    });
-    dispatch_source_set_event_handler(sigTermSource, ^{
-        vlc_terminate(nil);
-    });
-
-    dispatch_source_set_event_handler(sigChldSource, ^{
-        int status;
-        while(waitpid(-1, &status, WNOHANG) > 0)
-            ;
-    });
-
-    dispatch_resume(sigIntSource);
-    dispatch_resume(sigTermSource);
-    dispatch_resume(sigChldSource);
+///    /* Handle signals with GCD */
+///    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+///    dispatch_source_t sigIntSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGINT, 0, queue);
+///    dispatch_source_t sigTermSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGTERM, 0, queue);
+///    dispatch_source_t sigChldSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_SIGNAL, SIGCHLD, 0, queue);
+///
+///    if (!sigIntSource || !sigTermSource || !sigChldSource)
+///        abort();
+///
+///    dispatch_source_set_event_handler(sigIntSource, ^{
+///        vlc_terminate(nil);
+///    });
+///    dispatch_source_set_event_handler(sigTermSource, ^{
+///        vlc_terminate(nil);
+///    });
+///
+///    dispatch_source_set_event_handler(sigChldSource, ^{
+///        int status;
+///        while(waitpid(-1, &status, WNOHANG) > 0)
+///            ;
+///    });
+///
+///    dispatch_resume(sigIntSource);
+///    dispatch_resume(sigTermSource);
+///    dispatch_resume(sigChldSource);
 
 
     /* Handle parameters */
@@ -259,21 +256,20 @@ int main(int i_argc, const char *ppsz_argv[])
      * runloop is used. Otherwise, [NSApp run] needs to be called, which setups more stuff
      * before actually starting the loop.
      */
-    @autoreleasepool {
-        if(NSApp == nil) {
-            CFRunLoopRun();
-
-        } else {
-            [NSApp run];
-        }
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    if(NSApp == nil) {
+        CFRunLoopRun();
+    } else {
+        [NSApp run];
     }
+    [pool drain];
 
     ret = 0;
     /* Cleanup */
 out:
-    dispatch_release(sigIntSource);
-    dispatch_release(sigTermSource);
-    dispatch_release(sigChldSource);
+///    dispatch_release(sigIntSource);
+///    dispatch_release(sigTermSource);
+///    dispatch_release(sigChldSource);
 
     libvlc_release(vlc);
 
