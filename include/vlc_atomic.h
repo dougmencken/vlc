@@ -33,7 +33,7 @@
 # endif
 #endif
 
-# ifndef __cplusplus
+///# ifndef __cplusplus
 #  if (__STDC_VERSION__ >= 201112L) && !defined (__STDC_NO_ATOMICS__)
 /*** Native C11 atomics ***/
 #   include <stdatomic.h>
@@ -218,9 +218,9 @@ static inline void vlc_atomic_store_float(vlc_atomic_float *atom, float f)
     atomic_store(atom, u.i);
 }
 
-# else /* C++ */
+///# else /* C++ */
 /*** Native C++11 atomics ***/
-#   include <atomic>
-# endif /* C++ */
+///#   include <atomic>
+///# endif /* C++ */
 
 #endif
