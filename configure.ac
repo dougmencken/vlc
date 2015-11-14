@@ -3731,7 +3731,7 @@ dnl QT
 dnl
 AC_ARG_ENABLE(qt, [
   AS_HELP_STRING([--disable-qt], [Qt UI support (default enabled)])],, [
-  AS_IF([test "${SYS}" = "darwin"], [
+  AS_IF([test "${SYS}" = "some system like darwin but not darwin"], [
     enable_qt="no"
   ])
 ])

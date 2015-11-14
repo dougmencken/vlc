@@ -4,7 +4,7 @@ QT_VERSION = 5.3.0
 QT_URL := http://download.qt-project.org/official_releases/qt/5.3/$(QT_VERSION)/submodules/qtbase-opensource-src-$(QT_VERSION).tar.xz
 
 ifdef HAVE_MACOSX
-#PKGS += qt
+PKGS += qt
 endif
 ifdef HAVE_WIN32
 PKGS += qt
@@ -25,17 +25,19 @@ qt: qt-$(QT_VERSION).tar.xz .sum-qt
 	$(UNPACK)
 	mv qtbase-opensource-src-$(QT_VERSION) qt-$(QT_VERSION)
 	$(APPLY) $(SRC)/qt/Win32-AOT.patch
+	$(APPLY) $(SRC)/qt/qt-macosx-leopard.patch
+	$(APPLY) $(SRC)/qt/qt-no-c++11-fix.patch
 	$(MOVE)
 
 ifdef HAVE_MACOSX
-QT_PLATFORM := -platform darwin-g++
+QT_PLATFORM := -platform macx-g++42
 endif
 ifdef HAVE_WIN32
 QT_PLATFORM := -xplatform win32-g++ -device-option CROSS_COMPILE=$(HOST)-
 endif
 
 .qt: qt
-	cd $< && ./configure $(QT_PLATFORM) -static -release -no-sql-sqlite -no-gif -qt-libjpeg -no-openssl -no-opengl -opensource -confirm-license
+	cd $< && ./configure $(QT_PLATFORM) -static -release -no-pch -no-sql-sqlite -no-gif -qt-libjpeg -no-openssl -no-opengl -opensource -confirm-license
 	cd $< && $(MAKE) sub-src
 	# INSTALLING LIBRARIES
 	for lib in Widgets Gui Core; \

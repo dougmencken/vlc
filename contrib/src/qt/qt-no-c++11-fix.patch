@@ -1,0 +1,48 @@
+commit d88b976858437f081ef9f8150b3697586a5bf73a
+Author: Thiago Macieira <thiago.macieira@intel.com>
+Date:   Wed Jun 18 15:30:35 2014 -0700
+
+    Fix compilation in under -no-c++11 mode
+    
+    IndexSetter can't be passed to QObject::connect() since C++98 templates
+    require global types (they can't be function-local).
+    
+    Change-Id: I099322f835661d4679140b7810b50dbeb0e4b9e0
+    Reviewed-by: Gabriel de Dietrich <gabriel.dedietrich@digia.com>
+    Reviewed-by: Olivier Goffart <ogoffart@woboq.com>
+
+diff --git a/src/widgets/widgets/qcombobox.cpp b/src/widgets/widgets/qcombobox.cpp
+index f857f4e..3718f09 100644
+--- a/src/widgets/widgets/qcombobox.cpp
++++ b/src/widgets/widgets/qcombobox.cpp
+@@ -2377,6 +2377,16 @@ QSize QComboBox::sizeHint() const
+ }
+ 
+ #ifdef Q_OS_OSX
++
++namespace {
++struct IndexSetter {
++    int index;
++    QComboBox *cb;
++
++    void operator()(void) { cb->setCurrentIndex(index); }
++};
++}
++
+ /*!
+  * \internal
+  *
+@@ -2391,13 +2401,6 @@ bool QComboBoxPrivate::showNativePopup()
+     if (QPlatformMenu *menu = theme->createPlatformMenu()) {
+         int itemsCount = q->count();
+ 
+-        struct IndexSetter {
+-            int index;
+-            QComboBox *cb;
+-
+-            void operator()(void) { cb->setCurrentIndex(index); }
+-        };
+-
+         QList<QPlatformMenuItem *> items;
+         items.reserve(itemsCount);
+         QPlatformMenuItem *currentItem = 0;

@@ -1,0 +1,281 @@
+--- qt/mkspecs/macx-g++42/qmake.conf
++++ qt/mkspecs/macx-g++42/qmake.conf
+@@ -14,7 +14,7 @@
+ include(../common/gcc-base-mac.conf)
+ include(../common/g++-macx.conf)
+ 
+-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.6
++QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
+ 
+ QMAKE_CC                = gcc-4.2
+ QMAKE_CXX               = g++-4.2
+--- qt/src/corelib/global/qglobal.h
++++ qt/src/corelib/global/qglobal.h
+@@ -196,12 +196,8 @@
+ #ifndef QT_POINTER_SIZE
+ #  if defined(Q_OS_WIN64) || (defined(Q_OS_WINRT) && defined(_M_X64))
+ #   define QT_POINTER_SIZE 8
+-#  elif defined(Q_OS_WIN32) || defined(Q_OS_WINCE) || defined(Q_OS_WINRT)
+-#   define QT_POINTER_SIZE 4
+-#  elif defined(Q_OS_ANDROID)
+-#   define QT_POINTER_SIZE 4 // ### Add auto-detection to Windows configure
+-#  elif !defined(QT_BOOTSTRAPPED)
+-#   error could not determine QT_POINTER_SIZE
++#  else
++#   define QT_POINTER_SIZE 4
+ #  endif
+ #endif
+ 
+--- qt/src/corelib/io/qsettings_mac.cpp
++++ qt/src/corelib/io/qsettings_mac.cpp
+@@ -693,8 +693,7 @@
+                                &kCFTypeDictionaryKeyCallBacks,
+                                &kCFTypeDictionaryValueCallBacks);
+ 
+-    QCFType<CFDataRef> xmlData = CFPropertyListCreateData(
+-                 kCFAllocatorDefault, propertyList, kCFPropertyListXMLFormat_v1_0, 0, 0);
++    QCFType<CFDataRef> xmlData = CFPropertyListCreateXMLData(kCFAllocatorDefault, propertyList);
+ 
+     SInt32 code;
+     return CFURLWriteDataAndPropertiesToResource(urlFromFileName(fileName), xmlData, 0, &code);
+--- qt/mkspecs/features/mac/default_post.prf
++++ qt/mkspecs/features/mac/default_post.prf
+@@ -25,15 +25,6 @@
+             warning("Qt was not built with C++11 enabled, disabling feature")
+             CONFIG -= c++11
+         }
+-
+-        !c++11 {
+-            # Explicitly use libstdc++ if C++11 support is not enabled,
+-            # as otherwise the compiler will choose the standard library
+-            # based on the deployment target, which for iOS 7 and OS X 10.9
+-            # is libc++, and we can't mix and match the two.
+-            QMAKE_CXXFLAGS += -stdlib=libstdc++
+-            QMAKE_LFLAGS   += -stdlib=libstdc++
+-        }
+     }
+ }
+ 
+--- qt/src/corelib/tools/qlocale_mac.mm
++++ qt/src/corelib/tools/qlocale_mac.mm
+@@ -392,23 +392,6 @@
+ 
+ static QVariant macQuoteString(QSystemLocale::QueryType type, const QStringRef &str)
+ {
+-    if (QSysInfo::MacintoshVersion < QSysInfo::MV_10_6)
+-        return QVariant();
+-
+-    QString begin, end;
+-    QCFType<CFLocaleRef> locale = CFLocaleCopyCurrent();
+-    switch (type) {
+-    case QSystemLocale::StringToStandardQuotation:
+-        begin = QCFString::toQString(static_cast<CFStringRef>(CFLocaleGetValue(locale, kCFLocaleQuotationBeginDelimiterKey)));
+-        end = QCFString::toQString(static_cast<CFStringRef>(CFLocaleGetValue(locale, kCFLocaleQuotationEndDelimiterKey)));
+-        return QString(begin % str % end);
+-    case QSystemLocale::StringToAlternateQuotation:
+-        begin = QCFString::toQString(static_cast<CFStringRef>(CFLocaleGetValue(locale, kCFLocaleAlternateQuotationBeginDelimiterKey)));
+-        end = QCFString::toQString(static_cast<CFStringRef>(CFLocaleGetValue(locale, kCFLocaleAlternateQuotationEndDelimiterKey)));
+-        return QString(begin % str % end);
+-     default:
+-        break;
+-    }
+     return QVariant();
+ }
+ #endif //QT_NO_SYSTEMLOCALE
+--- qt/src/corelib/tools/qtimezoneprivate_mac.mm
++++ qt/src/corelib/tools/qtimezoneprivate_mac.mm
+@@ -120,8 +120,6 @@
+     case QTimeZone::ShortName :
+         if (timeType == QTimeZone::DaylightTime)
+             style = NSTimeZoneNameStyleShortDaylightSaving;
+-        else if (timeType == QTimeZone::GenericTime)
+-            style = NSTimeZoneNameStyleShortGeneric;
+         else
+             style = NSTimeZoneNameStyleShortStandard;
+         break;
+@@ -129,8 +127,6 @@
+     case QTimeZone::LongName :
+         if (timeType == QTimeZone::DaylightTime)
+             style = NSTimeZoneNameStyleDaylightSaving;
+-        else if (timeType == QTimeZone::GenericTime)
+-            style = NSTimeZoneNameStyleGeneric;
+         else
+             style = NSTimeZoneNameStyleStandard;
+         break;
+--- qt/src/corelib/global/qsystemdetection.h
++++ qt/src/corelib/global/qsystemdetection.h
+@@ -212,20 +212,14 @@
+ #  include <Availability.h>
+ #  include <AvailabilityMacros.h>
+ #
+-#  ifdef Q_OS_OSX
+-#    if !defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_6
+-#       undef __MAC_OS_X_VERSION_MIN_REQUIRED
+-#       define __MAC_OS_X_VERSION_MIN_REQUIRED __MAC_10_6
+-#    endif
+-#    if !defined(MAC_OS_X_VERSION_MIN_REQUIRED) || MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_6
+-#       undef MAC_OS_X_VERSION_MIN_REQUIRED
+-#       define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_6
+-#    endif
+-#  endif
+-#
+ #  // Numerical checks are preferred to named checks, but to be safe
+ #  // we define the missing version names in case Qt uses them.
+-#
++#  if !defined(__MAC_10_5)
++#       define __MAC_10_5 1050
++#  endif
++#  if !defined(__MAC_10_6)
++#       define __MAC_10_6 1060
++#  endif
+ #  if !defined(__MAC_10_7)
+ #       define __MAC_10_7 1070
+ #  endif
+@@ -235,6 +229,12 @@
+ #  if !defined(__MAC_10_9)
+ #       define __MAC_10_9 1090
+ #  endif
++#  if !defined(MAC_OS_X_VERSION_10_5)
++#       define MAC_OS_X_VERSION_10_5 1050
++#  endif
++#  if !defined(MAC_OS_X_VERSION_10_6)
++#       define MAC_OS_X_VERSION_10_6 1060
++#  endif
+ #  if !defined(MAC_OS_X_VERSION_10_7)
+ #       define MAC_OS_X_VERSION_10_7 1070
+ #  endif
+@@ -263,6 +263,15 @@
+ #  if !defined(__IPHONE_7_0)
+ #       define __IPHONE_7_0 70000
+ #  endif
++#
++#  ifdef Q_OS_OSX
++#    if !defined(__MAC_OS_X_VERSION_MIN_REQUIRED)
++#       define __MAC_OS_X_VERSION_MIN_REQUIRED __MAC_10_5
++#    endif
++#    if !defined(MAC_OS_X_VERSION_MIN_REQUIRED)
++#       define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_5
++#    endif
++#  endif
+ #endif
+ 
+ #ifdef __LSB_VERSION__
+--- qt/src/corelib/io/io.pri
++++ qt/src/corelib/io/io.pri
+@@ -135,10 +135,6 @@
+             OBJECTIVE_SOURCES += io/qurl_mac.mm
+         }
+         mac {
+-            osx {
+-                OBJECTIVE_SOURCES += io/qfilesystemwatcher_fsevents.mm
+-                HEADERS += io/qfilesystemwatcher_fsevents_p.h
+-            }
+             macx {
+                 SOURCES += io/qstandardpaths_mac.cpp
+             } else:ios {
+--- qt/src/corelib/io/qfilesystemwatcher.cpp
++++ qt/src/corelib/io/qfilesystemwatcher.cpp
+@@ -60,10 +60,8 @@
+ #  include "qfilesystemwatcher_win_p.h"
+ #elif defined(USE_INOTIFY)
+ #  include "qfilesystemwatcher_inotify_p.h"
+-#elif defined(Q_OS_FREEBSD) || defined(Q_OS_IOS) || (defined(Q_OS_OSX) && MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_7)
++#elif defined(Q_OS_FREEBSD) || defined(Q_OS_IOS) || defined(Q_OS_OSX)
+ #  include "qfilesystemwatcher_kqueue_p.h"
+-#elif defined(Q_OS_OSX) && MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_6
+-#  include "qfilesystemwatcher_fsevents_p.h"
+ #endif
+ 
+ QT_BEGIN_NAMESPACE
+--- qt/src/corelib/thread/qthread_unix.cpp
++++ qt/src/corelib/thread/qthread_unix.cpp
+@@ -289,7 +289,9 @@
+     prctl(PR_SET_NAME, (unsigned long)name, 0, 0, 0);
+ #  elif defined(Q_OS_MAC)
+     Q_UNUSED(threadId);
+-    pthread_setname_np(name);
++    Q_UNUSED(name);
++    // the pthread_setname_np API doesn't exist until 10.6
++    /*pthread_setname_np(name);*/
+ #  elif defined(Q_OS_QNX)
+     pthread_setname_np(threadId, name);
+ #  endif
+--- qt/src/testlib/qtestcase.cpp
++++ qt/src/testlib/qtestcase.cpp
+@@ -2405,8 +2405,7 @@
+ 
+ #if defined(Q_OS_MACX)
+     if (macNeedsActivate) {
+-        CFStringRef reasonForActivity= CFSTR("No Display Sleep");
+-        IOReturn ok = IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, reasonForActivity, &powerID);
++        IOReturn ok = IOPMAssertionCreate(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn, &powerID);
+ 
+         if (ok != kIOReturnSuccess)
+             macNeedsActivate = false; // no need to release the assertion on exit.
+--- qt/src/platformsupport/fontdatabases/mac/qcoretextfontdatabase.mm
++++ qt/src/platformsupport/fontdatabases/mac/qcoretextfontdatabase.mm
+@@ -181,7 +181,7 @@
+ static CFArrayRef availableFamilyNames()
+ {
+ #if defined(Q_OS_OSX)
+-    return CTFontManagerCopyAvailableFontFamilyNames();
++    return CFArrayCreate(nil, nil, 0, nil);
+ #elif defined(Q_OS_IOS)
+     return (CFArrayRef) [[UIFont familyNames] retain];
+ #endif
+@@ -193,6 +193,24 @@
+     // to make sure that any previously registered app fonts become invisible.
+     removeApplicationFonts();
+ 
++#if defined(Q_OS_OSX)
++    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
++
++    QCFType<CTFontCollectionRef> collection = CTFontCollectionCreateFromAvailableFonts(nil);
++    if (! collection)
++        return;
++    QCFType<CFArrayRef> fonts = CTFontCollectionCreateMatchingFontDescriptors(collection);
++    if (! fonts)
++        return;
++
++    const int numFonts = CFArrayGetCount(fonts);
++    for (int i = 0; i < numFonts; ++i) {
++        CTFontDescriptorRef font = (CTFontDescriptorRef) CFArrayGetValueAtIndex(fonts, i);
++        populateFromDescriptor(font);
++    }
++
++    [pool release];
++#elif defined(Q_OS_IOS)
+     QCFType<CFArrayRef> familyNames = availableFamilyNames();
+     const int numberOfFamilies = CFArrayGetCount(familyNames);
+     for (int i = 0; i < numberOfFamilies; ++i) {
+@@ -204,6 +221,7 @@
+ 
+         QPlatformFontDatabase::registerFontFamily(familyName);
+     }
++#endif
+ }
+ 
+ void QCoreTextFontDatabase::populateFamily(const QString &familyName)
+--- qt/src/widgets/styles/qmacstyle_mac_p.h
++++ qt/src/widgets/styles/qmacstyle_mac_p.h
+@@ -46,6 +46,20 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++//#if (MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_5)
++enum {
++    kThemePushButtonTextured = 31,
++    kThemePushButtonTexturedSmall = 32,
++    kThemePushButtonTexturedMini = 33
++};
++
++/* Search fields */
++enum {
++    kHIThemeFrameTextFieldRound = 1000,
++    kHIThemeFrameTextFieldRoundSmall = 1001,
++    kHIThemeFrameTextFieldRoundMini = 1002
++};
++//#endif
+ 
+ #if defined(Q_OS_MAC) && !defined(QT_NO_STYLE_MAC)
+ 

@@ -18,9 +18,12 @@ case "${ARCH}" in
         ;;
 esac
 
+##--enable-macosx
+##--enable-minimal-macosx
 OPTIONS="
         --prefix=`pwd`/vlc_install_dir
-        --enable-macosx
+        --disable-macosx
+        --enable-qt
         --enable-merge-ffmpeg
         --enable-osx-notifications
         --enable-faad
