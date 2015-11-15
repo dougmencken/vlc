@@ -1,0 +1,455 @@
+--- qt/src/plugins/platforms/cocoa/qcocoawindow.h
++++ qt/src/plugins/platforms/cocoa/qcocoawindow.h
+@@ -211,7 +211,10 @@
+ 
+     void setWindowCursor(NSCursor *cursor);
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     void registerTouch(bool enable);
++#endif
++
+     void setContentBorderThickness(int topThickness, int bottomThickness);
+     void registerContentBorderArea(quintptr identifier, int upper, int lower);
+     void setContentBorderAreaEnabled(quintptr identifier, bool enable);
+@@ -281,14 +281,19 @@
+     bool m_isExposed;
+     QRect m_exposedGeometry;
+     qreal m_exposedDevicePixelRatio;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     int m_registerTouchCount;
++#endif
+     bool m_resizableTransientParent;
+     bool m_hiddenByClipping;
+     bool m_hiddenByAncestor;
+ 
+     static const int NoAlertRequest;
+     NSInteger m_alertRequest;
++
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     id monitor;
++#endif
+ 
+     bool m_drawContentBorderGradient;
+     int m_topContentBorderThickness;
+@@ -297,7 +302,9 @@
+     // used by showFullScreen in fake mode
+     QRect m_normalGeometry;
+     Qt::WindowFlags m_oldWindowFlags;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     NSApplicationPresentationOptions m_presentationOptions;
++#endif
+ 
+     struct BorderRange {
+         BorderRange(quintptr i, int u, int l) : identifier(i), upper(u), lower(l) { }
+--- qt/src/plugins/platforms/cocoa/qcocoawindow.mm
++++ qt/src/plugins/platforms/cocoa/qcocoawindow.mm
+@@ -100,6 +100,13 @@
+     return self;
+ }
+ 
++- (void)detachFromPlatformWindow
++{
++    _platformWindow = 0;
++    [self.window.delegate release];
++    self.window.delegate = nil;
++}
++
+ - (void)handleWindowEvent:(NSEvent *)theEvent
+ {
+     QCocoaWindow *pw = self.platformWindow;
+@@ -144,7 +151,14 @@
+ 
+     if (pw && pw->frameStrutEventsEnabled() && isMouseEvent(theEvent)) {
+         NSPoint loc = [theEvent locationInWindow];
+-        NSRect windowFrame = [self.window convertRectFromScreen:[self.window frame]];
++        NSRect windowFrameInScreenCoords = [self.window frame];
++        NSRect windowFrame;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        windowFrame = [self.window convertRectFromScreen:windowFrameInScreenCoords];
++#else
++        windowFrame.origin = [self.window convertScreenToBase:windowFrameInScreenCoords.origin];
++        windowFrame.size = windowFrameInScreenCoords.size;
++#endif
+         NSRect contentFrame = [[self.window contentView] frame];
+         if (NSMouseInRect(loc, windowFrame, NO) &&
+             !NSMouseInRect(loc, contentFrame, NO))
+@@ -155,13 +169,6 @@
+     }
+ }
+ 
+-- (void)detachFromPlatformWindow
+-{
+-    _platformWindow = 0;
+-    [self.window.delegate release];
+-    self.window.delegate = nil;
+-}
+-
+ - (void)clearWindow
+ {
+     if (_window) {
+@@ -359,12 +366,16 @@
+     , m_frameStrutEventsEnabled(false)
+     , m_geometryUpdateExposeAllowed(false)
+     , m_isExposed(false)
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     , m_registerTouchCount(0)
++#endif
+     , m_resizableTransientParent(false)
+     , m_hiddenByClipping(false)
+     , m_hiddenByAncestor(false)
+     , m_alertRequest(NoAlertRequest)
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     , monitor(nil)
++#endif
+     , m_drawContentBorderGradient(false)
+     , m_topContentBorderThickness(0)
+     , m_bottomContentBorderThickness(0)
+@@ -381,16 +392,21 @@
+     } else {
+         m_qtView = [[QNSView alloc] initWithQWindow:tlw platformWindow:this];
+         m_contentView = m_qtView;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+         // Enable high-dpi OpenGL for retina displays. Enabling has the side
+         // effect that Cocoa will start calling glViewport(0, 0, width, height),
+         // overriding any glViewport calls in application code. This is usually not a
+         // problem, except if the appilcation wants to have a "custom" viewport.
+         // (like the hellogl example)
+-        if (tlw->supportsOpenGL()) {
+-            BOOL enable = qt_mac_resolveOption(YES, tlw, "_q_mac_wantsBestResolutionOpenGLSurface",
+-                                                          "QT_MAC_WANTS_BEST_RESOLUTION_OPENGL_SURFACE");
+-            [m_contentView setWantsBestResolutionOpenGLSurface:enable];
++        if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7 && tlw->supportsOpenGL()) {
++            if ( [m_contentView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:) ] )
++            {
++                BOOL enable = qt_mac_resolveOption(YES, tlw, "_q_mac_wantsBestResolutionOpenGLSurface",
++                                                             "QT_MAC_WANTS_BEST_RESOLUTION_OPENGL_SURFACE");
++                [m_contentView setWantsBestResolutionOpenGLSurface:enable];
++            }
+         }
++#endif
+         BOOL enable = qt_mac_resolveOption(NO, tlw, "_q_mac_wantsLayer",
+                                                      "QT_MAC_WANTS_LAYER");
+         [m_contentView setWantsLayer:enable];
+@@ -487,8 +503,12 @@
+     // of view. Embedded QWindows get global (screen) geometry.
+     if (m_contentViewIsEmbedded) {
+         NSPoint windowPoint = [m_contentView convertPoint:NSMakePoint(0, 0) toView:nil];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+         NSRect screenRect = [[m_contentView window] convertRectToScreen:NSMakeRect(windowPoint.x, windowPoint.y, 1, 1)];
+         NSPoint screenPoint = screenRect.origin;
++#else
++        NSPoint screenPoint = [[m_contentView window] convertBaseToScreen:NSMakePoint(windowPoint.x, windowPoint.y)];
++#endif
+         QPoint position = qt_mac_flipPoint(screenPoint).toPoint();
+         QSize size = qt_mac_toQRect([m_contentView bounds]).size();
+         return QRect(position, size);
+@@ -650,8 +670,17 @@
+                 // Since this isn't a native popup, the window manager doesn't close the popup when you click outside
+                 NSUInteger parentStyleMask = [parentCocoaWindow->m_nsWindow styleMask];
+                 if ((m_resizableTransientParent = (parentStyleMask & NSResizableWindowMask))
+-                    && !([parentCocoaWindow->m_nsWindow styleMask] & NSFullScreenWindowMask))
+-                    [parentCocoaWindow->m_nsWindow setStyleMask:parentStyleMask & ~NSResizableWindowMask];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++                    && QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7
++                    && !([parentCocoaWindow->m_nsWindow styleMask] & NSFullScreenWindowMask)
++#endif
++                    )
++                {
++                    if ([parentCocoaWindow->m_nsWindow respondsToSelector: @selector(setStyleMask:)]) {
++                        [parentCocoaWindow->m_nsWindow performSelector: @selector(setStyleMask:)
++                                                            withObject: (id)(parentStyleMask & ~NSResizableWindowMask)];
++                    }
++                }
+             }
+ 
+         }
+@@ -695,6 +724,8 @@
+                 if ((window()->type() == Qt::Popup || window()->type() == Qt::Dialog || window()->type() == Qt::Tool)
+                     && [m_nsWindow isKindOfClass:[NSPanel class]]) {
+                     [(NSPanel *)m_nsWindow setWorksWhenModal:YES];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++                    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_6)
+                     if (!(parentCocoaWindow && window()->transientParent()->isActive()) && window()->type() == Qt::Popup) {
+                         monitor = [NSEvent addGlobalMonitorForEventsMatchingMask:NSLeftMouseDownMask|NSRightMouseDownMask|NSOtherMouseDownMask|NSMouseMovedMask handler:^(NSEvent *e) {
+                             QPointF localPoint = qt_mac_flipPoint([NSEvent mouseLocation]);
+@@ -702,6 +733,7 @@
+                                                                      cocoaButton2QtButton([e buttonNumber]));
+                         }];
+                     }
++#endif
+                 }
+             }
+         }
+@@ -744,19 +776,31 @@
+         } else {
+             [m_contentView setHidden:YES];
+         }
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_6)
+         if (monitor && window()->type() == Qt::Popup) {
+             [NSEvent removeMonitor:monitor];
+             monitor = nil;
+         }
++#endif
+ 
+         if (window()->type() == Qt::Popup || window()->type() == Qt::ToolTip)
+             QCocoaIntegration::instance()->popupWindowStack()->removeAll(this);
+ 
+         if (parentCocoaWindow && window()->type() == Qt::Popup) {
+             if (m_resizableTransientParent
+-                && !([parentCocoaWindow->m_nsWindow styleMask] & NSFullScreenWindowMask))
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++                && QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7
++                && !([parentCocoaWindow->m_nsWindow styleMask] & NSFullScreenWindowMask)
++#endif
++            )
++            {
+                 // QTBUG-30266: a window should not be resizable while a transient popup is open
+-                [parentCocoaWindow->m_nsWindow setStyleMask:[parentCocoaWindow->m_nsWindow styleMask] | NSResizableWindowMask];
++                if ([parentCocoaWindow->m_nsWindow respondsToSelector: @selector(setStyleMask:)]) {
++                    [parentCocoaWindow->m_nsWindow performSelector: @selector(setStyleMask:)
++                                                        withObject: (id)([parentCocoaWindow->m_nsWindow styleMask] | NSResizableWindowMask)];
++                }
++            }
+         }
+     }
+ 
+@@ -875,13 +919,16 @@
+     if (m_nsWindow && !m_isNSWindowChild) {
+         NSUInteger styleMask = windowStyleMask(flags);
+         NSInteger level = this->windowLevel(flags);
+-        [m_nsWindow setStyleMask:styleMask];
++        if ([m_nsWindow respondsToSelector: @selector(setStyleMask:)])
++            [m_nsWindow performSelector: @selector(setStyleMask:) withObject: (id)styleMask];
+         [m_nsWindow setLevel:level];
+         setWindowShadow(flags);
+         if (!(styleMask & NSBorderlessWindowMask)) {
+             setWindowTitle(window()->title());
+         }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
+         Qt::WindowType type = window()->type();
+         if ((type & Qt::Popup) != Qt::Popup && (type & Qt::Dialog) != Qt::Dialog) {
+             NSWindowCollectionBehavior behavior = [m_nsWindow collectionBehavior];
+@@ -892,6 +939,8 @@
+             [m_nsWindow setCollectionBehavior:behavior];
+         }
+         setWindowZoomButton(flags);
++        }
++#endif
+     }
+ 
+     m_windowFlags = flags;
+@@ -1315,14 +1364,21 @@
+         setWindowTitle(window()->title());
+         setWindowState(window()->windowState());
+     } else if (m_isNSWindowChild) {
+-        m_nsWindow.styleMask = NSBorderlessWindowMask;
++        if ([m_nsWindow respondsToSelector: @selector(setStyleMask:)])
++            [m_nsWindow performSelector: @selector(setStyleMask:) withObject: (id)NSBorderlessWindowMask];
+         m_nsWindow.hasShadow = NO;
+         m_nsWindow.level = NSNormalWindowLevel;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         NSWindowCollectionBehavior collectionBehavior =
+-                NSWindowCollectionBehaviorManaged | NSWindowCollectionBehaviorIgnoresCycle
+-                | NSWindowCollectionBehaviorFullScreenAuxiliary;
+-        m_nsWindow.animationBehavior = NSWindowAnimationBehaviorNone;
+-        m_nsWindow.collectionBehavior = collectionBehavior;
++                NSWindowCollectionBehaviorManaged | NSWindowCollectionBehaviorIgnoresCycle;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
++            collectionBehavior |= NSWindowCollectionBehaviorFullScreenAuxiliary;
++            m_nsWindow.animationBehavior = NSWindowAnimationBehaviorNone;
++        }
++#endif
++        [m_nsWindow setCollectionBehavior: collectionBehavior];
++#endif
+         setCocoaGeometry(window()->geometry());
+ 
+         QList<QCocoaWindow *> &siblings = m_parentCocoaWindow->m_childWindows;
+@@ -1419,11 +1475,14 @@
+                                       !(showWithoutActivating.isValid() && showWithoutActivating.toBool());
+         [window setHidesOnDeactivate: shouldHideOnDeactivate];
+ 
+-        // Make popup windows show on the same desktop as the parent full-screen window.
+-        [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
+-        if ((type & Qt::Popup) == Qt::Popup)
+-            [window setAnimationBehavior:NSWindowAnimationBehaviorUtilityWindow];
+-
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
++            // Make popup windows show on the same desktop as the parent full-screen window.
++            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
++            if ((type & Qt::Popup) == Qt::Popup)
++                [window setAnimationBehavior:NSWindowAnimationBehaviorUtilityWindow];
++        }
++#endif
+         createdWindow = window;
+     } else {
+         QNSWindow *window;
+@@ -1433,8 +1492,11 @@
+         createdWindow = window;
+     }
+ 
+-    if ([createdWindow respondsToSelector:@selector(setRestorable:)])
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7) {
+         [createdWindow setRestorable: NO];
++    }
++#endif
+ 
+     NSInteger level = windowLevel(flags);
+     [createdWindow setLevel:level];
+@@ -1516,12 +1578,16 @@
+     if ((m_synchedWindowState & Qt::WindowMaximized) != (newState & Qt::WindowMaximized)) {
+         const int styleMask = [m_nsWindow styleMask];
+         const bool usePerform = styleMask & NSResizableWindowMask;
+-        [m_nsWindow setStyleMask:styleMask | NSResizableWindowMask];
++        if ([m_nsWindow respondsToSelector: @selector(setStyleMask:)]) {
++            [m_nsWindow performSelector: @selector(setStyleMask:) withObject: (id)(styleMask | NSResizableWindowMask)];
++        }
+         if (usePerform)
+             [m_nsWindow performZoom : m_nsWindow]; // toggles
+         else
+             [m_nsWindow zoom : m_nsWindow]; // toggles
+-        [m_nsWindow setStyleMask:styleMask];
++        if ([m_nsWindow respondsToSelector: @selector(setStyleMask:)]) {
++            [m_nsWindow performSelector: @selector(setStyleMask:) withObject: (id)styleMask];
++        }
+     }
+ 
+     if ((m_synchedWindowState & Qt::WindowMinimized) != (newState & Qt::WindowMinimized)) {
+@@ -1549,11 +1615,15 @@
+     }
+ 
+     if ((m_synchedWindowState & Qt::WindowFullScreen) != (newState & Qt::WindowFullScreen)) {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+         if (window()->flags() & Qt::WindowFullscreenButtonHint) {
+             if (m_effectivelyMaximized && m_synchedWindowState == Qt::WindowFullScreen)
+                 predictedState = Qt::WindowMaximized;
+-            [m_nsWindow toggleFullScreen : m_nsWindow];
+-        } else {
++            if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7)
++                [m_nsWindow toggleFullScreen : m_nsWindow];
++        } else
++#endif
++        {
+             if (newState & Qt::WindowFullScreen) {
+                 QScreen *screen = window()->screen();
+                 if (screen) {
+@@ -1562,15 +1632,22 @@
+                         window()->setFlags(window()->flags() | Qt::FramelessWindowHint);
+                         m_normalGeometry = windowGeometry();
+                         setGeometry(screen->geometry());
+-                        m_presentationOptions = [NSApp presentationOptions];
+-                        [NSApp setPresentationOptions : m_presentationOptions | NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationAutoHideDock];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++                        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_6) {
++                            m_presentationOptions = [NSApp presentationOptions];
++                            [NSApp setPresentationOptions : m_presentationOptions | NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationAutoHideDock];
++                        }
++#endif
+                     }
+                 }
+             } else {
+                 window()->setFlags(m_oldWindowFlags);
+                 setGeometry(m_normalGeometry);
+                 m_normalGeometry.setRect(0, 0, -1, -1);
+-                [NSApp setPresentationOptions : m_presentationOptions];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++                if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_6)
++                    [NSApp setPresentationOptions : m_presentationOptions];
++#endif
+             }
+         }
+     }
+@@ -1626,14 +1703,18 @@
+     }
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+ void QCocoaWindow::registerTouch(bool enable)
+ {
+     m_registerTouchCount += enable ? 1 : -1;
+-    if (enable && m_registerTouchCount == 1)
+-        [m_contentView setAcceptsTouchEvents:YES];
+-    else if (m_registerTouchCount == 0)
+-        [m_contentView setAcceptsTouchEvents:NO];
++    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_6) {
++        if (enable && m_registerTouchCount == 1)
++            [m_contentView setAcceptsTouchEvents:YES];
++        else if (m_registerTouchCount == 0)
++            [m_contentView setAcceptsTouchEvents:NO];
++    }
+ }
++#endif
+ 
+ void QCocoaWindow::setContentBorderThickness(int topThickness, int bottomThickness)
+ {
+@@ -1669,7 +1750,9 @@
+         return;
+ 
+     if (!m_drawContentBorderGradient) {
+-        [window setStyleMask:[window styleMask] & ~NSTexturedBackgroundWindowMask];
++        if ([window respondsToSelector: @selector(setStyleMask:)]) {
++            [window performSelector: @selector(setStyleMask:) withObject: (id)([window styleMask] & ~NSTexturedBackgroundWindowMask)];
++        }
+         [[[window contentView] superview] setNeedsDisplay:YES];
+         return;
+     }
+@@ -1694,7 +1777,8 @@
+ 
+     int effectiveBottomContentBorderThickness = m_bottomContentBorderThickness;
+ 
+-    [window setStyleMask:[window styleMask] | NSTexturedBackgroundWindowMask];
++    if ([window respondsToSelector: @selector(setStyleMask:)])
++        [window performSelector: @selector(setStyleMask:) withObject: (id)([window styleMask] | NSTexturedBackgroundWindowMask)];
+ 
+     [window setContentBorderThickness:effectiveTopContentBorderThickness forEdge:NSMaxYEdge];
+     [window setAutorecalculatesContentBorderThickness:NO forEdge:NSMaxYEdge];
+@@ -1727,12 +1811,16 @@
+ 
+ qreal QCocoaWindow::devicePixelRatio() const
+ {
++    NSSize backingSize = NSMakeSize(1.0, 1.0);
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+     // The documented way to observe the relationship between device-independent
+     // and device pixels is to use one for the convertToBacking functions. Other
+     // methods such as [NSWindow backingScaleFacor] might not give the correct
+     // result, for example if setWantsBestResolutionOpenGLSurface is not set or
+     // or ignored by the OpenGL driver.
+-    NSSize backingSize = [m_contentView convertSizeToBacking:NSMakeSize(1.0, 1.0)];
++    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7)
++        backingSize = [m_contentView convertSizeToBacking: backingSize];
++#endif
+     return backingSize.height;
+ }
+ 
+--- qt/src/plugins/platforms/cocoa/qcocoawindow.mm
++++ qt/src/plugins/platforms/cocoa/qcocoawindow.mm
+@@ -1780,11 +1780,21 @@
+     if ([window respondsToSelector: @selector(setStyleMask:)])
+         [window performSelector: @selector(setStyleMask:) withObject: (id)([window styleMask] | NSTexturedBackgroundWindowMask)];
+ 
+-    [window setContentBorderThickness:effectiveTopContentBorderThickness forEdge:NSMaxYEdge];
+-    [window setAutorecalculatesContentBorderThickness:NO forEdge:NSMaxYEdge];
++    @try {
++        [window setContentBorderThickness:effectiveTopContentBorderThickness forEdge:NSMaxYEdge];
++        if ([window autorecalculatesContentBorderThicknessForEdge:NSMaxYEdge]) {
++            [window setAutorecalculatesContentBorderThickness:NO forEdge:NSMaxYEdge];
++        }
++    } @catch ( NSException * e ) {
++        /* NSInvalidArgumentException */
++        // in a nontextured window, it’s only valid to set thickness of the bottom edge:
++        // doing it for NSMaxYEdge will raise an exception
++    }
+ 
+     [window setContentBorderThickness:effectiveBottomContentBorderThickness forEdge:NSMinYEdge];
+-    [window setAutorecalculatesContentBorderThickness:NO forEdge:NSMinYEdge];
++    if ([window autorecalculatesContentBorderThicknessForEdge:NSMinYEdge]) {
++        [window setAutorecalculatesContentBorderThickness:NO forEdge:NSMinYEdge];
++    }
+ 
+     [[[window contentView] superview] setNeedsDisplay:YES];
+ }

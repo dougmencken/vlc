@@ -1,0 +1,1144 @@
+--- qt/src/corelib/global/qglobal.cpp
++++ qt/src/corelib/global/qglobal.cpp
+@@ -1122,7 +1122,7 @@
+     \value MV_10_2     Mac OS X 10.2 (unsupported)
+     \value MV_10_3     Mac OS X 10.3 (unsupported)
+     \value MV_10_4     Mac OS X 10.4 (unsupported)
+-    \value MV_10_5     Mac OS X 10.5 (unsupported)
++    \value MV_10_5     Mac OS X 10.5
+     \value MV_10_6     Mac OS X 10.6
+     \value MV_10_7     Mac OS X 10.7
+     \value MV_10_8     OS X 10.8
+--- qt/mkspecs/features/mac/sdk.prf
++++ qt/mkspecs/features/mac/sdk.prf
+@@ -13,14 +13,6 @@
+     QMAKE_MAC_SDK_PATH = $$eval(QMAKE_MAC_SDK.$${QMAKE_MAC_SDK}.path)
+ }
+ 
+-isEmpty(QMAKE_MAC_SDK.$${QMAKE_MAC_SDK}.platform_path) {
+-    QMAKE_MAC_SDK_PLATFORM_PATH = $$system("/usr/bin/xcodebuild -sdk $$QMAKE_MAC_SDK -version PlatformPath 2>/dev/null")
+-    isEmpty(QMAKE_MAC_SDK_PLATFORM_PATH): error("Could not resolve SDK platform path for \'$$QMAKE_MAC_SDK\'")
+-    cache(QMAKE_MAC_SDK.$${QMAKE_MAC_SDK}.platform_path, set stash, QMAKE_MAC_SDK_PLATFORM_PATH)
+-} else {
+-    QMAKE_MAC_SDK_PLATFORM_PATH = $$eval(QMAKE_MAC_SDK.$${QMAKE_MAC_SDK}.platform_path)
+-}
+-
+ isEmpty(QMAKE_MAC_SDK.$${QMAKE_MAC_SDK}.version) {
+     QMAKE_MAC_SDK_VERSION = $$system("/usr/bin/xcodebuild -sdk $$QMAKE_MAC_SDK -version SDKVersion 2>/dev/null")
+     isEmpty(QMAKE_MAC_SDK_VERSION): error("Could not resolve SDK version for \'$$QMAKE_MAC_SDK\'")
+--- qt/src/corelib/io/qstandardpaths_mac.mm
++++ qt/src/corelib/io/qstandardpaths_mac.mm
+@@ -113,15 +113,6 @@
+ 
+ static QString macLocation(QStandardPaths::StandardLocation type, short domain)
+ {
+-    // https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSFileManager_Class/index.html
+-    if (type == QStandardPaths::DownloadLocation) {
+-        NSFileManager *fileManager = [NSFileManager defaultManager];
+-        NSURL *url = [fileManager URLForDirectory:NSDownloadsDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
+-        if (!url)
+-            return QString();
+-        return QString::fromNSString([url path]);
+-    }
+-
+     // http://developer.apple.com/documentation/Carbon/Reference/Folder_Manager/Reference/reference.html
+     FSRef ref;
+     OSErr err = FSFindFolder(domain, translateLocation(type), false, &ref);
+--- qt/src/corelib/global/qlogging.cpp
++++ qt/src/corelib/global/qlogging.cpp
+@@ -99,15 +99,6 @@
+     // this syscall has existed since Linux 2.4.11 and cannot fail
+     return syscall(SYS_gettid);
+ }
+-#elif defined(Q_OS_DARWIN)
+-#  include <pthread.h>
+-static int qt_gettid()
+-{
+-    // no error handling: this call cannot fail
+-    __uint64_t tid;
+-    pthread_threadid_np(NULL, &tid);
+-    return tid;
+-}
+ #elif defined(Q_OS_FREEBSD_KERNEL) && defined(__FreeBSD_version) && __FreeBSD_version >= 900031
+ #  include <pthread_np.h>
+ static int qt_gettid()
+--- qt/src/3rdparty/harfbuzz-ng/src/hb-coretext.cc
++++ qt/src/3rdparty/harfbuzz-ng/src/hb-coretext.cc
+@@ -784,6 +784,8 @@
+ 
+       int level = HB_DIRECTION_IS_FORWARD (buffer->props.direction) ? 0 : 1;
+       CFNumberRef level_number = CFNumberCreate (kCFAllocatorDefault, kCFNumberIntType, &level);
++      /* Marked as available in version 10.5 and later, but not in the header until SDK 10.6 */
++      extern const CFStringRef kCTTypesetterOptionForcedEmbeddingLevel;
+       CFDictionaryRef options = CFDictionaryCreate (kCFAllocatorDefault,
+ 						    (const void **) &kCTTypesetterOptionForcedEmbeddingLevel,
+ 						    (const void **) &level_number,
+--- qt/src/platformsupport/clipboard/qmacmime.mm
++++ qt/src/platformsupport/clipboard/qmacmime.mm
+@@ -608,10 +608,13 @@
+                                                  encoding:NSUTF8StringEncoding freeWhenDone:NO] autorelease];
+         NSURL *nsurl = [NSURL URLWithString:urlString];
+         QUrl url;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_10
+         // OS X 10.10 sends file references instead of file paths
+         if ([nsurl isFileReferenceURL]) {
+             url = QUrl::fromNSURL([nsurl filePathURL]);
+-        } else {
++        } else
++#endif
++        {
+             url = QUrl::fromNSURL(nsurl);
+         }
+ 
+--- qt/src/platformsupport/cfsocketnotifier/qcfsocketnotifier.cpp
++++ qt/src/platformsupport/cfsocketnotifier/qcfsocketnotifier.cpp
+@@ -176,7 +176,7 @@
+     if (!enableNotifiersObserver) {
+         // Create a run loop observer which enables the socket notifiers on each
+         // pass of the run loop, before any sources are processed.
+-        CFRunLoopObserverContext context = {};
++        CFRunLoopObserverContext context;
+         context.info = this;
+         enableNotifiersObserver = CFRunLoopObserverCreate(kCFAllocatorDefault, kCFRunLoopBeforeSources,
+                                                           true, 0, enableSocketNotifiers, &context);
+--- qt/src/plugins/platforms/cocoa/qcocoaapplicationdelegate.h
++++ qt/src/plugins/platforms/cocoa/qcocoaapplicationdelegate.h
+@@ -86,6 +86,10 @@
+ 
+ @class QT_MANGLE_NAMESPACE(QCocoaMenuLoader);
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSApplicationDelegate <NSObject> @end
++#endif
++
+ @interface QT_MANGLE_NAMESPACE(QCocoaApplicationDelegate) : NSObject <NSApplicationDelegate> {
+     bool startedQuit;
+     NSMenu *dockMenu;
+--- qt/src/plugins/platforms/cocoa/qcocoaintegration.mm
++++ qt/src/plugins/platforms/cocoa/qcocoaintegration.mm
+@@ -117,11 +117,11 @@
+     m_physicalSize = QSizeF(size.width, size.height);
+     m_logicalDpi.first = 72;
+     m_logicalDpi.second = 72;
+-    CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(dpy);
+-    float refresh = CGDisplayModeGetRefreshRate(displayMode);
+-    CGDisplayModeRelease(displayMode);
+-    if (refresh > 0)
+-        m_refreshRate = refresh;
++///    CGDisplayModeRef displayMode = CGDisplayCopyDisplayMode(dpy);
++///    float refresh = CGDisplayModeGetRefreshRate(displayMode);
++///    CGDisplayModeRelease(displayMode);
++///    if (refresh > 0)
++///        m_refreshRate = refresh;
+ 
+     // Get m_name (brand/model of the monitor)
+     NSDictionary *deviceInfo = (NSDictionary *)IODisplayCreateInfoDictionary(CGDisplayIOServicePort(dpy), kIODisplayOnlyPreferredName);
+@@ -139,11 +139,19 @@
+ {
+     QCocoaAutoReleasePool pool;
+     NSScreen * screen = osScreen();
+-    return qreal(screen ? [screen backingScaleFactor] : 1.0);
++    CGFloat scaleFactor = 1.0;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    scaleFactor = [screen backingScaleFactor];
++#else
++    scaleFactor = [screen userSpaceScaleFactor];
++#endif
++
++    return qreal(screen ? scaleFactor : 1.0);
+ }
+ 
+ QWindow *QCocoaScreen::topLevelAt(const QPoint &point) const
+ {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     NSPoint screenPoint = qt_mac_flipPoint(point);
+ 
+     // Search (hit test) for the top-level window. [NSWidow windowNumberAtPoint:
+@@ -180,6 +188,25 @@
+     } while (topWindowNumber > 0);
+ 
+     return window;
++#else
++    // Get a z-ordered list of windows. Iterate through it until
++    // we find a (Qt) window which contains the point.
++    for (NSWindow *nsWindow in [NSApp orderedWindows]) {
++        if (![nsWindow isKindOfClass:[QNSWindow class]])
++            continue;
++        QNSWindow *qnsWindow = static_cast<QNSWindow *>(nsWindow);
++        QCocoaWindow *cocoaWindow = qnsWindow.helper.platformWindow;
++        if (!cocoaWindow)
++            continue;
++        QWindow *window = cocoaWindow->window();
++        if (!window->isTopLevel())
++             continue;
++        if (window->geometry().contains(point))
++            return window;
++    }
++
++    return QPlatformScreen::topLevelAt(point);
++#endif
+ }
+ 
+ extern CGContextRef qt_mac_cg_context(const QPaintDevice *pdev);
+@@ -229,8 +256,35 @@
+         int h = (height < 0 ? bounds.size.height : height) * devicePixelRatio();
+         QRect displayRect = QRect(x, y, w, h);
+         displayRect = displayRect.translated(qRound(-bounds.origin.x), qRound(-bounds.origin.y));
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         QCFType<CGImageRef> image = CGDisplayCreateImageForRect(displays[i],
+             CGRectMake(displayRect.x(), displayRect.y(), displayRect.width(), displayRect.height()));
++#else
++        const size_t dstWidth = displayRect.width();
++        const size_t dstHeight = displayRect.height();
++        const size_t dpyRowBytes = CGDisplayBytesPerRow(displays[i]);
++        const size_t dstRowBytes = ((dstWidth * 4) + 32) & ~31;
++        char* pDpy = (char*)CGDisplayAddressForPosition(displays[i], displayRect.x(), displayRect.y());
++        void* data = calloc(1, (dstHeight + 1) * dstRowBytes);
++        char* pDst = (char*)data;
++        for (size_t i = 0;  i < dstHeight;  i++) {
++                memcpy(pDst, pDpy, dstWidth * 4);
++                pDst += dstRowBytes;
++                pDpy += dpyRowBytes;
++        }
++        CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, data, (dstHeight + 1) * dstRowBytes, NULL);
++        CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
++        CGImageRef image = CGImageCreate(dstWidth, dstHeight,
++                                         8 /* bitsPerComponent */, 32 /* bitsPerPixel */, dstRowBytes,
++                                         space,
++                                         kCGBitmapByteOrderDefault,
++                                         provider,
++                                         NULL /* decode array */,
++                                         NO /* shouldInterpolate */,
++                                         kCGRenderingIntentDefault);
++        CGColorSpaceRelease(space);
++        CGDataProviderRelease(provider);
++#endif
+         QPixmap pix(w, h);
+         pix.fill(Qt::transparent);
+         CGRect rect = CGRectMake(0, 0, w, h);
+--- qt/src/plugins/platforms/cocoa/qcocoatheme.mm
++++ qt/src/plugins/platforms/cocoa/qcocoatheme.mm
+@@ -267,7 +267,7 @@
+     NSGraphicsContext *gc = [NSGraphicsContext graphicsContextWithGraphicsPort:ctx flipped:YES];
+     [NSGraphicsContext saveGraphicsState];
+     [NSGraphicsContext setCurrentContext:gc];
+-    [iconImage drawInRect:iconRect fromRect:iconRect operation:NSCompositeSourceOver fraction:1.0 respectFlipped:YES hints:nil];
++    [iconImage drawInRect:iconRect fromRect:iconRect operation:NSCompositeSourceOver fraction:1.0];
+     [NSGraphicsContext restoreGraphicsState];
+     return pixmap;
+ }
+@@ -282,8 +282,13 @@
+     case KeyboardScheme:
+         return QVariant(int(MacKeyboardScheme));
+     case TabFocusBehavior:
+-        return QVariant([[NSApplication sharedApplication] isFullKeyboardAccessEnabled] ?
+-                    int(Qt::TabFocusAllControls) : int(Qt::TabFocusTextControls | Qt::TabFocusListControls));
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        return QVariant( [[NSApplication sharedApplication] isFullKeyboardAccessEnabled] ?
++                             int(Qt::TabFocusAllControls) :
++                             int(Qt::TabFocusTextControls | Qt::TabFocusListControls) );
++#else
++        return QVariant(int(Qt::TabFocusAllControls));
++#endif
+     case IconPixmapSizes: {
+         qreal devicePixelRatio = qGuiApp->devicePixelRatio();
+         QList<int> sizes;
+--- qt/src/plugins/platforms/cocoa/qnswindowdelegate.h
++++ qt/src/plugins/platforms/cocoa/qnswindowdelegate.h
+@@ -38,6 +38,10 @@
+ 
+ #include "qcocoawindow.h"
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSWindowDelegate <NSObject> @end
++#endif
++
+ @interface QT_MANGLE_NAMESPACE(QNSWindowDelegate) : NSObject <NSWindowDelegate>
+ {
+     QCocoaWindow *m_cocoaWindow;
+--- qt/src/plugins/platforms/cocoa/qmultitouch_mac_p.h
++++ qt/src/plugins/platforms/cocoa/qmultitouch_mac_p.h
+@@ -55,6 +55,8 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++
+ class QCocoaTouch
+ {
+     public:
+@@ -80,6 +82,8 @@
+         static Qt::TouchPointState toTouchPointState(NSTouchPhase nsState);
+ };
+ 
++#endif
++
+ QT_END_NAMESPACE
+ 
+ #endif // QMULTITOUCH_MAC_P_H
+--- qt/src/plugins/platforms/cocoa/qmultitouch_mac.mm
++++ qt/src/plugins/platforms/cocoa/qmultitouch_mac.mm
+@@ -36,6 +36,8 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++
+ QHash<qint64, QCocoaTouch*> QCocoaTouch::_currentTouches;
+ QPointF QCocoaTouch::_screenReferencePos;
+ QPointF QCocoaTouch::_trackpadReferencePos;
+@@ -203,4 +205,6 @@
+     return touchPoints.values();
+ }
+ 
++#endif
++
+ QT_END_NAMESPACE
+--- qt/src/plugins/platforms/cocoa/qnsview.mm
++++ qt/src/plugins/platforms/cocoa/qnsview.mm
+@@ -425,7 +425,10 @@
+ QT_WARNING_DISABLE_CLANG("-Wobjc-method-access")
+         enum { NSWindowOcclusionStateVisible = 1UL << 1 };
+ #endif
+-        if ((NSUInteger)[self.window occlusionState] & NSWindowOcclusionStateVisible) {
++        NSUInteger iOcclusion = NSWindowOcclusionStateVisible;
++        if ([self.window respondsToSelector: @selector(occlusionState)])
++            iOcclusion = (NSUInteger)[self.window performSelector:@selector(occlusionState) withObject:nil];
++        if (iOcclusion & NSWindowOcclusionStateVisible) {
+             m_platformWindow->exposeWindow();
+         } else {
+             // Send Obscure events on window occlusion to stop animations. Several
+@@ -448,12 +451,15 @@
+                 m_platformWindow->updateExposedGeometry();
+             }
+         }
+-    } else if (notificationName == NSWindowDidEnterFullScreenNotification
++    }
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    else if (notificationName == NSWindowDidEnterFullScreenNotification
+                || notificationName == NSWindowDidExitFullScreenNotification) {
+         Qt::WindowState newState = notificationName == NSWindowDidEnterFullScreenNotification ?
+                                    Qt::WindowFullScreen : Qt::WindowNoState;
+         [self notifyWindowStateChanged:newState];
+     }
++#endif
+ }
+ 
+ - (void)notifyWindowWillZoom:(BOOL)willZoom
+@@ -661,8 +667,13 @@
+ 
+     NSWindow *window = [self window];
+     NSPoint nsWindowPoint;
+-    NSRect windowRect = [window convertRectFromScreen:NSMakeRect(mouseLocation.x, mouseLocation.y, 1, 1)];
+-    nsWindowPoint = windowRect.origin;                    // NSWindow coordinates
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if ( [window respondsToSelector:@selector(convertRectFromScreen)] ) {
++       NSRect windowRect = [window convertRectFromScreen: NSMakeRect(mouseLocation.x, mouseLocation.y, 1, 1)];
++       nsWindowPoint = windowRect.origin;                    // NSWindow coordinates
++    } else
++#endif
++        nsWindowPoint = [window convertScreenToBase: NSMakePoint(mouseLocation.x, mouseLocation.y)];
+     NSPoint nsViewPoint = [self convertPoint: nsWindowPoint fromView: nil]; // NSView/QWindow coordinates
+     *qtWindowPoint = QPointF(nsViewPoint.x, nsViewPoint.y);                     // NSView/QWindow coordinates
+ 
+@@ -680,8 +691,14 @@
+     NSPoint screenPoint;
+     if (theEvent) {
+         NSPoint windowPoint = [theEvent locationInWindow];
+-        NSRect screenRect = [[theEvent window] convertRectToScreen:NSMakeRect(windowPoint.x, windowPoint.y, 1, 1)];
+-        screenPoint = screenRect.origin;
++        NSRect baseRect = NSMakeRect(windowPoint.x, windowPoint.y, 1, 1);
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        if ( [[theEvent window] respondsToSelector:@selector(convertRectToScreen)] ) {
++            NSRect screenRect = [[theEvent window] convertRectToScreen: baseRect];
++            screenPoint = screenRect.origin;
++        } else
++#endif
++            screenPoint = [[theEvent window] convertBaseToScreen: baseRect.origin];
+     } else {
+         screenPoint = [NSEvent mouseLocation];
+     }
+@@ -763,12 +780,24 @@
+ 
+     int windowScreenY = [window frame].origin.y + [window frame].size.height;
+     NSPoint windowCoord = [self convertPoint:[self frame].origin toView:nil];
+-    int viewScreenY = [window convertRectToScreen:NSMakeRect(windowCoord.x, windowCoord.y, 0, 0)].origin.y;
++    int viewScreenY;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if ( [window respondsToSelector:@selector(convertRectToScreen)] )
++        viewScreenY = [window convertRectToScreen: NSMakeRect(windowCoord.x, windowCoord.y, 0, 0)].origin.y;
++    else
++#endif
++        viewScreenY = [window convertBaseToScreen: NSMakePoint(windowCoord.x, windowCoord.y)].y;
+     int titleBarHeight = windowScreenY - viewScreenY;
+ 
+     NSPoint nsViewPoint = [self convertPoint: windowPoint fromView: nil];
+     QPoint qtWindowPoint = QPoint(nsViewPoint.x, titleBarHeight + nsViewPoint.y);
+-    NSPoint screenPoint = [window convertRectToScreen:NSMakeRect(windowPoint.x, windowPoint.y, 0, 0)].origin;
++    NSPoint screenPoint;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if ( [window respondsToSelector:@selector(convertRectToScreen)] )
++        screenPoint = [window convertRectToScreen: NSMakeRect(windowPoint.x, windowPoint.y, 0, 0)].origin;
++    else
++#endif
++        screenPoint = [window convertBaseToScreen: NSMakePoint(windowPoint.x, windowPoint.y)];
+     QPoint qtScreenPoint = QPoint(screenPoint.x, qt_mac_flipYCoordinate(screenPoint.y));
+ 
+     ulong timestamp = [theEvent timestamp] * 1000;
+@@ -814,7 +843,14 @@
+     }
+ 
+     if ([self hasMarkedText]) {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         [[NSTextInputContext currentInputContext] handleEvent:theEvent];
++#else
++        NSInputManager* inputManager = [NSInputManager currentInputManager];
++        if ([inputManager wantsToHandleMouseEvents]) {
++            [inputManager handleMouseEvent:theEvent];
++        }
++#endif
+     } else {
+         if ([QNSView convertKeyModifiers:[theEvent modifierFlags]] & Qt::MetaModifier) {
+             m_buttons |= Qt::RightButton;
+@@ -1186,45 +1222,61 @@
+ - (void)touchesBeganWithEvent:(NSEvent *)event
+ {
+     const NSTimeInterval timestamp = [event timestamp];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     const QList<QWindowSystemInterface::TouchPoint> points = QCocoaTouch::getCurrentTouchPointList(event, [self shouldSendSingleTouch]);
+     qCDebug(lcQpaTouch) << "touchesBeganWithEvent" << points;
+     QWindowSystemInterface::handleTouchEvent(m_window, timestamp * 1000, touchDevice, points);
++#else
++    (void)timestamp;
++#endif
+ }
+ 
+ - (void)touchesMovedWithEvent:(NSEvent *)event
+ {
+     const NSTimeInterval timestamp = [event timestamp];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     const QList<QWindowSystemInterface::TouchPoint> points = QCocoaTouch::getCurrentTouchPointList(event, [self shouldSendSingleTouch]);
+     qCDebug(lcQpaTouch) << "touchesMovedWithEvent" << points;
+     QWindowSystemInterface::handleTouchEvent(m_window, timestamp * 1000, touchDevice, points);
++#else
++    (void)timestamp;
++#endif
+ }
+ 
+ - (void)touchesEndedWithEvent:(NSEvent *)event
+ {
+     const NSTimeInterval timestamp = [event timestamp];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     const QList<QWindowSystemInterface::TouchPoint> points = QCocoaTouch::getCurrentTouchPointList(event, [self shouldSendSingleTouch]);
+     qCDebug(lcQpaTouch) << "touchesEndedWithEvent" << points;
+     QWindowSystemInterface::handleTouchEvent(m_window, timestamp * 1000, touchDevice, points);
++#else
++    (void)timestamp;
++#endif
+ }
+ 
+ - (void)touchesCancelledWithEvent:(NSEvent *)event
+ {
+     const NSTimeInterval timestamp = [event timestamp];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     const QList<QWindowSystemInterface::TouchPoint> points = QCocoaTouch::getCurrentTouchPointList(event, [self shouldSendSingleTouch]);
+     qCDebug(lcQpaTouch) << "touchesCancelledWithEvent" << points;
+     QWindowSystemInterface::handleTouchEvent(m_window, timestamp * 1000, touchDevice, points);
++#else
++    (void)timestamp;
++#endif
+ }
+ 
+ #ifndef QT_NO_GESTURES
+ - (void)magnifyWithEvent:(NSEvent *)event
+ {
+-    qCDebug(lcQpaGestures) << "magnifyWithEvent" << [event magnification];
++    qCDebug(lcQpaGestures) << "magnifyWithEvent" << [event deltaZ];
+     const NSTimeInterval timestamp = [event timestamp];
+     QPointF windowPoint;
+     QPointF screenPoint;
+     [self convertFromScreen:[NSEvent mouseLocation] toWindowPoint:&windowPoint andScreenPoint:&screenPoint];
+     QWindowSystemInterface::handleGestureEventWithRealValue(m_window, timestamp, Qt::ZoomNativeGesture,
+-                                                            [event magnification], windowPoint, screenPoint);
++                                                            [event deltaZ], windowPoint, screenPoint);
+ }
+ 
+ #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
+@@ -1339,8 +1339,18 @@
+         // It looks like 1/4 degrees per pixel behaves most native.
+         // (NB: Qt expects the unit for delta to be 8 per degree):
+         const int pixelsToDegrees = 2; // 8 * 1/4
+-        angleDelta.setX([theEvent scrollingDeltaX] * pixelsToDegrees);
+-        angleDelta.setY([theEvent scrollingDeltaY] * pixelsToDegrees);
++
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++        if ([theEvent respondsToSelector:@selector(scrollingDeltaX)]) {
++            angleDelta.setX([theEvent scrollingDeltaX] * pixelsToDegrees);
++            angleDelta.setY([theEvent scrollingDeltaY] * pixelsToDegrees);
++        } else
++#endif
++        {
++            angleDelta.setX([theEvent deviceDeltaX] * pixelsToDegrees);
++            angleDelta.setY([theEvent deviceDeltaY] * pixelsToDegrees);
++        }
++
+         source = Qt::MouseEventSynthesizedBySystem;
+     } else {
+         // Remove acceleration, and use either -120 or 120 as delta:
+@@ -1349,16 +1359,20 @@
+     }
+ 
+     QPoint pixelDelta;
+-    if ([theEvent hasPreciseScrollingDeltas]) {
+-        pixelDelta.setX([theEvent scrollingDeltaX]);
+-        pixelDelta.setY([theEvent scrollingDeltaY]);
+-    } else {
+-        // docs: "In the case of !hasPreciseScrollingDeltas, multiply the delta with the line width."
+-        // scrollingDeltaX seems to return a minimum value of 0.1 in this case, map that to two pixels.
+-        const CGFloat lineWithEstimate = 20.0;
+-        pixelDelta.setX([theEvent scrollingDeltaX] * lineWithEstimate);
+-        pixelDelta.setY([theEvent scrollingDeltaY] * lineWithEstimate);
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if ([theEvent respondsToSelector:@selector(scrollingDeltaX)]) {
++        if ([theEvent hasPreciseScrollingDeltas]) {
++            pixelDelta.setX([theEvent scrollingDeltaX]);
++            pixelDelta.setY([theEvent scrollingDeltaY]);
++        } else {
++            // docs: "In the case of !hasPreciseScrollingDeltas, multiply the delta with the line width."
++            // scrollingDeltaX seems to return a minimum value of 0.1 in this case, map that to two pixels.
++            const CGFloat lineWithEstimate = 20.0;
++            pixelDelta.setX([theEvent scrollingDeltaX] * lineWithEstimate);
++            pixelDelta.setY([theEvent scrollingDeltaY] * lineWithEstimate);
++        }
+     }
++#endif
+ 
+     QPointF qt_windowPoint;
+     QPointF qt_screenPoint;
+@@ -1366,41 +1380,49 @@
+     NSTimeInterval timestamp = [theEvent timestamp];
+     ulong qt_timestamp = timestamp * 1000;
+ 
+-    // Prevent keyboard modifier state from changing during scroll event streams.
+-    // A two-finger trackpad flick generates a stream of scroll events. We want
+-    // the keyboard modifier state to be the state at the beginning of the
+-    // flick in order to avoid changing the interpretation of the events
+-    // mid-stream. One example of this happening would be when pressing cmd
+-    // after scrolling in Qt Creator: not taking the phase into account causes
+-    // the end of the event stream to be interpreted as font size changes.
+-    NSEventPhase momentumPhase = [theEvent momentumPhase];
+-    if (momentumPhase == NSEventPhaseNone) {
+-        currentWheelModifiers = [QNSView convertKeyModifiers:[theEvent modifierFlags]];
+-    }
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if ([theEvent respondsToSelector:@selector(scrollingDeltaX)]) {
++        // Prevent keyboard modifier state from changing during scroll event streams.
++        // A two-finger trackpad flick generates a stream of scroll events. We want
++        // the keyboard modifier state to be the state at the beginning of the
++        // flick in order to avoid changing the interpretation of the events
++        // mid-stream. One example of this happening would be when pressing cmd
++        // after scrolling in Qt Creator: not taking the phase into account causes
++        // the end of the event stream to be interpreted as font size changes.
++        NSEventPhase momentumPhase = [theEvent momentumPhase];
++        if (momentumPhase == NSEventPhaseNone) {
++            currentWheelModifiers = [QNSView convertKeyModifiers:[theEvent modifierFlags]];
++        }
+ 
+-    NSEventPhase phase = [theEvent phase];
+-    Qt::ScrollPhase ph = Qt::ScrollUpdate;
++        NSEventPhase phase = [theEvent phase];
++        Qt::ScrollPhase ph = Qt::ScrollUpdate;
+ #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
+-    if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_8) {
+-        // On 10.8 and above, MayBegin is likely to happen.  We treat it the same as an actual begin.
+-        if (phase == NSEventPhaseMayBegin) {
++        if (QSysInfo::QSysInfo::MacintoshVersion >= QSysInfo::MV_10_8) {
++            // On 10.8 and above, MayBegin is likely to happen.  We treat it the same as an actual begin.
++            if (phase == NSEventPhaseMayBegin) {
++                m_scrolling = true;
++                ph = Qt::ScrollBegin;
++            }
++        } else
++#endif
++        if (phase == NSEventPhaseBegan) {
++            // On 10.7, MayBegin will not happen, so Began is the actual beginning.
++            if (!m_scrolling)
++                ph = Qt::ScrollBegin;
+             m_scrolling = true;
+-            ph = Qt::ScrollBegin;
++        } else if (phase == NSEventPhaseEnded || phase == NSEventPhaseCancelled ||
++                   momentumPhase == NSEventPhaseEnded || momentumPhase == NSEventPhaseCancelled) {
++            ph = Qt::ScrollEnd;
++            m_scrolling = false;
+         }
+-    }
++
++        QWindowSystemInterface::handleWheelEvent(m_window, qt_timestamp, qt_windowPoint, qt_screenPoint, pixelDelta, angleDelta, currentWheelModifiers, ph, source);
++    } else
+ #endif
+-    if (phase == NSEventPhaseBegan) {
+-        // If MayBegin did not happen, Began is the actual beginning.
+-        if (!m_scrolling)
+-            ph = Qt::ScrollBegin;
+-        m_scrolling = true;
+-    } else if (phase == NSEventPhaseEnded || phase == NSEventPhaseCancelled ||
+-               momentumPhase == NSEventPhaseEnded || momentumPhase == NSEventPhaseCancelled) {
+-        ph = Qt::ScrollEnd;
+-        m_scrolling = false;
++    {
++        QWindowSystemInterface::handleWheelEvent(m_window, qt_timestamp, qt_windowPoint, qt_screenPoint, pixelDelta, angleDelta,
++                                                 [QNSView convertKeyModifiers:[theEvent modifierFlags]]);
+     }
+-
+-    QWindowSystemInterface::handleWheelEvent(m_window, qt_timestamp, qt_windowPoint, qt_screenPoint, pixelDelta, angleDelta, currentWheelModifiers, ph, source);
+ }
+ #endif //QT_NO_WHEELEVENT
+ 
+@@ -1865,14 +1919,17 @@
+     if (pixmapCursor.isNull()) {
+         switch (response.acceptedAction()) {
+             case Qt::CopyAction:
+-                nativeCursor = [NSCursor dragCopyCursor];
++                //nativeCursor = [NSCursor dragCopyCursor];
++                SetThemeCursor(kThemeCopyArrowCursor);
+                 break;
+             case Qt::LinkAction:
+-                nativeCursor = [NSCursor dragLinkCursor];
++                //nativeCursor = [NSCursor dragLinkCursor];
++                SetThemeCursor(kThemeAliasArrowCursor);
+                 break;
+             case Qt::IgnoreAction:
+                 // Uncomment the next lines if forbiden cursor wanted on non droppable targets.
+                 /*nativeCursor = [NSCursor operationNotAllowedCursor];
++                SetThemeCursor(kThemeNotAllowedCursor);
+                 break;*/
+             case Qt::MoveAction:
+             default:
+@@ -1887,7 +1944,8 @@
+     }
+ 
+     // change the cursor
+-    [nativeCursor set];
++    if (nativeCursor)
++        [nativeCursor set];
+ 
+     // Make sure the cursor is updated correctly if the mouse does not move and window is under cursor
+     // by creating a fake move event
+@@ -1995,7 +2053,11 @@
+     QPoint qtWindowPoint(windowPoint.x, windowPoint.y);
+ 
+     NSWindow *window = [self window];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+     NSPoint screenPoint = [window convertRectToScreen:NSMakeRect(point.x, point.y, 0, 0)].origin;
++#else
++    NSPoint screenPoint = [window convertBaseToScreen:NSMakePoint(point.x, point.y)];
++#endif
+     QPoint qtScreenPoint = QPoint(screenPoint.x, qt_mac_flipYCoordinate(screenPoint.y));
+ 
+     QWindowSystemInterface::handleMouseEvent(target, mapWindowCoordinates(m_window, target, qtWindowPoint), qtScreenPoint, m_buttons);
+--- qt/src/plugins/platforms/cocoa/qcocoaeventdispatcher.mm
++++ qt/src/plugins/platforms/cocoa/qcocoaeventdispatcher.mm
+@@ -311,12 +311,14 @@
+         case NSOtherMouseUp:
+         case NSOtherMouseDragged:
+ #ifndef QT_NO_GESTURES
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         case NSEventTypeGesture: // touch events
+         case NSEventTypeMagnify:
+         case NSEventTypeSwipe:
+         case NSEventTypeRotate:
+         case NSEventTypeBeginGesture:
+         case NSEventTypeEndGesture:
++#endif
+ #endif // QT_NO_GESTURES
+             result    = true;
+         break;
+--- qt/src/plugins/platforms/cocoa/qcocoamenu.mm
++++ qt/src/plugins/platforms/cocoa/qcocoamenu.mm
+@@ -76,6 +76,10 @@
+ 
+ QT_END_NAMESPACE
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSMenuDelegate <NSObject> @end
++#endif
++
+ @interface QT_MANGLE_NAMESPACE(QCocoaMenuDelegate) : NSObject <NSMenuDelegate> {
+     QCocoaMenu *m_menu;
+ }
+@@ -124,7 +128,12 @@
+ {
+     QCocoaMenuItem *cocoaItem = reinterpret_cast<QCocoaMenuItem *>([item tag]);
+     QScopedLoopLevelCounter loopLevelCounter(QGuiApplicationPrivate::instance()->threadData);
+-    QGuiApplicationPrivate::modifier_buttons = [QNSView convertKeyModifiers:[NSEvent modifierFlags]];
++    /* get modifier flags */
++    //QGuiApplicationPrivate::modifier_buttons = [QNSView convertKeyModifiers:[NSEvent modifierFlags]];
++    CGEventRef event = CGEventCreate(NULL /*default event source*/);
++    CGEventFlags mods = CGEventGetFlags(event);
++    QGuiApplicationPrivate::modifier_buttons = [QNSView convertKeyModifiers:mods];
++    
+     static QMetaMethod activatedSignal = QMetaMethod::fromSignal(&QCocoaMenuItem::activated);
+     activatedSignal.invoke(cocoaItem, Qt::QueuedConnection);
+ }
+@@ -272,15 +281,21 @@
+ 
+ void QCocoaMenu::setMinimumWidth(int width)
+ {
+-    m_nativeMenu.minimumWidth = width;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++    [m_nativeMenu setMinimumWidth: width];
++#else
++    (void)width;
++#endif
+ }
+ 
+ void QCocoaMenu::setFont(const QFont &font)
+ {
+     if (font.resolve()) {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         NSFont *customMenuFont = [NSFont fontWithName:QCFString::toNSString(font.family())
+                                   size:font.pointSize()];
+-        m_nativeMenu.font = customMenuFont;
++        [m_nativeMenu setFont: customMenuFont];
++#endif
+     }
+ }
+ 
+@@ -490,7 +505,7 @@
+ 
+         int availableHeight = screen->availableSize().height();
+         const QPoint &globalPos = parentWindow->mapToGlobal(pos);
+-        int menuHeight = m_nativeMenu.size.height;
++        int menuHeight = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
+         if (globalPos.y() + menuHeight > availableHeight) {
+             // Maybe we need to fix the vertical popup position but we don't know the
+             // exact popup height at the moment (and Cocoa is just guessing) nor its
+@@ -502,7 +517,11 @@
+                 pos.setY(pos.y() - globalPos.y() + availableHeight - heightBelowPos);
+         }
+ 
+-        NSRect cellFrame = NSMakeRect(pos.x(), pos.y(), m_nativeMenu.minimumWidth, 10);
++        CGFloat menuMinimumWidth = 0;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        menuMinimumWidth = [m_nativeMenu minimumWidth];
++#endif
++        NSRect cellFrame = NSMakeRect(pos.x(), pos.y(), menuMinimumWidth, 10);
+         [popupCell performClickWithFrame:cellFrame inView:view];
+     } else {
+         // Else, we need to transform 'pos' to window or screen coordinates.
+@@ -514,7 +533,9 @@
+             nsPos.y = screen->availableVirtualSize().height() - nsPos.y;
+         }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         if (view) {
++#endif
+             // Finally, we need to synthesize an event.
+             NSEvent *menuEvent = [NSEvent mouseEventWithType:NSRightMouseDown
+                                           location:nsPos
+@@ -526,9 +547,11 @@
+                                           clickCount:1
+                                           pressure:1.0];
+             [NSMenu popUpContextMenu:m_nativeMenu withEvent:menuEvent forView:view];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         } else {
+             [m_nativeMenu popUpMenuPositioningItem:nsItem atLocation:nsPos inView:0];
+         }
++#endif
+     }
+ 
+     // The calls above block, and also swallow any mouse release event,
+--- qt/src/plugins/platforms/cocoa/qcocoahelpers.mm
++++ qt/src/plugins/platforms/cocoa/qcocoahelpers.mm
+@@ -136,7 +136,20 @@
+ 
+ NSImage *qt_mac_cgimage_to_nsimage(CGImageRef image)
+ {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     NSImage *newImage = [[NSImage alloc] initWithCGImage:image size:NSZeroSize];
++#else
++    QCocoaAutoReleasePool pool;
++    NSImage *newImage = 0;
++    NSRect imageRect = NSMakeRect(0.0, 0.0, CGImageGetWidth(image), CGImageGetHeight(image));
++    newImage = [[NSImage alloc] initWithSize:imageRect.size];
++    [newImage lockFocus];
++    {
++        CGContextRef imageContext = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
++        CGContextDrawImage(imageContext, *(CGRect*)&imageRect, image);
++    }
++    [newImage unlockFocus];
++#endif
+     return newImage;
+ }
+ 
+@@ -631,10 +644,14 @@
+ int qt_mac_mainScreenHeight()
+ {
+     QCocoaAutoReleasePool pool;
+-    // The first screen in the screens array is documented
+-    // to have the (0,0) origin.
+-    NSRect screenFrame = [[[NSScreen screens] firstObject] frame];
+-    return screenFrame.size.height;
++    NSArray *screens = [NSScreen screens];
++    if ([screens count] > 0) {
++        // The first screen in the screens array is documented
++        // to have the (0,0) origin.
++        NSRect screenFrame = [[screens objectAtIndex: 0] frame];
++        return screenFrame.size.height;
++    }
++    return 0;
+ }
+ 
+ int qt_mac_flipYCoordinate(int y)
+--- qt/src/plugins/platforms/cocoa/qcocoacolordialoghelper.mm
++++ qt/src/plugins/platforms/cocoa/qcocoacolordialoghelper.mm
+@@ -59,6 +59,10 @@
+     return button;
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSWindowDelegate <NSObject> @end
++#endif
++
+ @class QT_MANGLE_NAMESPACE(QNSColorPanelDelegate);
+ 
+ @interface QT_MANGLE_NAMESPACE(QNSColorPanelDelegate) : NSObject<NSWindowDelegate>
+@@ -98,7 +102,10 @@
+     mResultSet = false;
+     mClosingDueToKnownButton = false;
+ 
+-    [mColorPanel setRestorable:NO];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7)
++        [mColorPanel setRestorable:NO];
++#endif
+ 
+     [[NSNotificationCenter defaultCenter] addObserver:self
+         selector:@selector(colorChanged:)
+--- qt/src/plugins/platforms/cocoa/qcocoafiledialoghelper.mm
++++ qt/src/plugins/platforms/cocoa/qcocoafiledialoghelper.mm
+@@ -67,6 +67,10 @@
+ QT_FORWARD_DECLARE_CLASS(QWindow)
+ QT_USE_NAMESPACE
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSOpenSavePanelDelegate <NSObject> @end
++#endif
++
+ typedef QSharedPointer<QFileDialogOptions> SharedPointerFileDialogOptions;
+ 
+ @interface QT_MANGLE_NAMESPACE(QNSOpenSavePanelDelegate)
+@@ -202,39 +206,60 @@
+ {
+     if (mOpenPanel){
+         QFileInfo info(*mCurrentSelection);
++        NSString *filename = QCFString::toNSString(info.fileName());
+         NSString *filepath = QCFString::toNSString(info.filePath());
+         bool selectable = (mOptions->acceptMode() == QFileDialogOptions::AcceptSave)
+             || [self panel:nil shouldShowFilename:filepath];
+ 
+         [self updateProperties];
+         QCocoaMenuBar::redirectKnownMenuItemsToFirstResponder();
++
+         [mOpenPanel setAllowedFileTypes:nil];
+-        [mSavePanel setNameFieldStringValue:selectable ? QT_PREPEND_NAMESPACE(QCFString::toNSString)(info.fileName()) : @""];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        [mSavePanel setNameFieldStringValue:selectable ? filename : @""];
+ 
+         [mOpenPanel beginWithCompletionHandler:^(NSInteger result){
+             mReturnCode = result;
+             if (mHelper)
+                 mHelper->QNSOpenSavePanelDelegate_panelClosed(result == NSOKButton);
+         }];
++#else
++        [mOpenPanel
++            beginForDirectory:mCurrentDir
++            file:selectable ? filename : nil
++            types:nil
++            modelessDelegate:self
++            didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
++            contextInfo:nil];
++#endif
+     }
+ }
+ 
+ - (BOOL)runApplicationModalPanel
+ {
+     QFileInfo info(*mCurrentSelection);
++    NSString *filename = QCFString::toNSString(info.fileName());
+     NSString *filepath = QCFString::toNSString(info.filePath());
+     bool selectable = (mOptions->acceptMode() == QFileDialogOptions::AcceptSave)
+         || [self panel:nil shouldShowFilename:filepath];
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     [mSavePanel setDirectoryURL: [NSURL fileURLWithPath:mCurrentDir]];
+-    [mSavePanel setNameFieldStringValue:selectable ? QCFString::toNSString(info.fileName()) : @""];
++    [mSavePanel setNameFieldStringValue:selectable ? filename : @""];
++#endif
+ 
+     // Call processEvents in case the event dispatcher has been interrupted, and needs to do
+     // cleanup of modal sessions. Do this before showing the native dialog, otherwise it will
+     // close down during the cleanup.
+     qApp->processEvents(QEventLoop::ExcludeUserInputEvents | QEventLoop::ExcludeSocketNotifiers);
+     QCocoaMenuBar::redirectKnownMenuItemsToFirstResponder();
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     mReturnCode = [mSavePanel runModal];
++#else
++    mReturnCode = [mSavePanel
++        runModalForDirectory:mCurrentDir
++        file:selectable ? filename : nil];
++#endif
+     QCocoaMenuBar::resetKnownMenuItemsToQt();
+ 
+     QAbstractEventDispatcher::instance()->interrupt();
+@@ -250,14 +275,16 @@
+ {
+     QFileInfo info(*mCurrentSelection);
+     NSString *filepath = QCFString::toNSString(info.filePath());
++    NSString *filename = QCFString::toNSString(info.fileName());
+     bool selectable = (mOptions->acceptMode() == QFileDialogOptions::AcceptSave)
+         || [self panel:nil shouldShowFilename:filepath];
+ 
+     [self updateProperties];
+     QCocoaMenuBar::redirectKnownMenuItemsToFirstResponder();
+-    [mSavePanel setDirectoryURL: [NSURL fileURLWithPath:mCurrentDir]];
+ 
+-    [mSavePanel setNameFieldStringValue:selectable ? QCFString::toNSString(info.fileName()) : @""];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++    [mSavePanel setDirectoryURL: [NSURL fileURLWithPath:mCurrentDir]];
++    [mSavePanel setNameFieldStringValue:selectable ? filename : @""];
+     NSWindow *nsparent = static_cast<NSWindow *>(qGuiApp->platformNativeInterface()->nativeResourceForWindow("nswindow", parent));
+ 
+     [mSavePanel beginSheetModalForWindow:nsparent completionHandler:^(NSInteger result){
+@@ -265,8 +292,20 @@
+         if (mHelper)
+             mHelper->QNSOpenSavePanelDelegate_panelClosed(result == NSOKButton);
+     }];
++#else
++    Q_UNUSED(parent);
++
++    [mSavePanel
++        beginSheetForDirectory:mCurrentDir
++        file:selectable ? filename : nil
++        modalForWindow:nil
++        modalDelegate:self
++        didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:)
++        contextInfo:nil];
++#endif
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+ - (BOOL)isHiddenFile:(NSString *)filename isDir:(BOOL)isDir
+ {
+     CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)filename, kCFURLPOSIXPathStyle, isDir);
+@@ -282,6 +321,7 @@
+     CFRelease(url);
+     return errorOrHidden;
+ }
++#endif
+ 
+ - (BOOL)panel:(id)sender shouldShowFilename:(NSString *)filename
+ {
+@@ -329,8 +369,12 @@
+             || (!(filter & QDir::Executable) && [fm isExecutableFileAtPath:filename]))
+             return NO;
+     }
+-    if (!(filter & QDir::Hidden)
+-        && (qtFileName.startsWith(QLatin1Char('.')) || [self isHiddenFile:filename isDir:isDir]))
++    if ( !(filter & QDir::Hidden)
++        && (qtFileName.startsWith(QLatin1Char('.'))
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        || [self isHiddenFile:filename isDir:isDir]
++#endif
++        ) )
+             return NO;
+ 
+     return YES;
+@@ -447,6 +491,15 @@
+     }
+ }
+ 
++- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode  contextInfo:(void *)contextInfo
++{
++    Q_UNUSED(panel);
++    Q_UNUSED(contextInfo);
++    mReturnCode = returnCode;
++    if (mHelper)
++        mHelper->QNSOpenSavePanelDelegate_panelClosed(returnCode == NSOKButton);
++}
++
+ - (void)panel:(id)sender directoryDidChange:(NSString *)path
+ {
+     Q_UNUSED(sender);
+@@ -594,8 +647,13 @@
+ 
+ void QCocoaFileDialogHelper::setDirectory(const QUrl &directory)
+ {
+-    if (mDelegate)
++    if (mDelegate) {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+         [mDelegate->mSavePanel setDirectoryURL:[NSURL fileURLWithPath:QCFString::toNSString(directory.toLocalFile())]];
++#else
++        [mDelegate->mSavePanel setDirectory: QCFString::toNSString(directory.toLocalFile())];
++#endif
++    }
+     else
+         mDir = directory;
+ }
+@@ -603,7 +661,12 @@
+ QUrl QCocoaFileDialogHelper::directory() const
+ {
+     if (mDelegate) {
+-        QString path = QCFString::toQString([[mDelegate->mSavePanel directoryURL] path]).normalized(QString::NormalizationForm_C);
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++        NSString * directoryString = [[mDelegate->mSavePanel directoryURL] path];
++#else
++        NSString * directoryString = [mDelegate->mSavePanel directory];
++#endif
++        QString path = QCFString::toQString(directoryString).normalized(QString::NormalizationForm_C);
+         return QUrl::fromLocalFile(path);
+     }
+     return mDir;
+--- qt/src/plugins/platforms/cocoa/qcocoafontdialoghelper.mm
++++ qt/src/plugins/platforms/cocoa/qcocoafontdialoghelper.mm
+@@ -95,6 +95,10 @@
+     return newFont;
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSWindowDelegate <NSObject> @end
++#endif
++
+ @class QT_MANGLE_NAMESPACE(QNSFontPanelDelegate);
+ 
+ @interface QT_MANGLE_NAMESPACE(QNSFontPanelDelegate) : NSObject<NSWindowDelegate>
+@@ -134,7 +138,10 @@
+     mDialogIsExecuting = false;
+     mResultSet = false;
+ 
+-    [mFontPanel setRestorable:NO];
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
++    if (QSysInfo::MacintoshVersion >= QSysInfo::MV_10_7)
++        [mFontPanel setRestorable:NO];
++#endif
+     [mFontPanel setDelegate:self];
+     [[NSFontManager sharedFontManager] setDelegate:self];
+ 
+--- qt/src/plugins/platforms/cocoa/qcocoacursor.mm
++++ qt/src/plugins/platforms/cocoa/qcocoacursor.mm
+@@ -116,9 +116,11 @@
+     case Qt::DragCopyCursor:
+         cocoaCursor = [NSCursor crosshairCursor];
+         break;
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     case Qt::DragLinkCursor:
+         cocoaCursor = [NSCursor dragLinkCursor];
+         break;
++#endif
+     default : {
+         // No suitable OS cursor exist, use cursors provided
+         // by Qt for the rest. Check for a cached cursor:
+--- qt/src/plugins/platforms/cocoa/qcocoainputcontext.mm
++++ qt/src/plugins/platforms/cocoa/qcocoainputcontext.mm
+@@ -99,8 +99,15 @@
+         return;
+ 
+     QCocoaAutoReleasePool pool;
+-    if (NSTextInputContext *ctxt = [NSTextInputContext currentInputContext]) {
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++    NSTextInputContext *ctxt = [NSTextInputContext currentInputContext];
++    if (ctxt) {
+         [ctxt discardMarkedText];
++#else
++    NSInputManager *currentIManager = [NSInputManager currentInputManager];
++    if (currentIManager) {
++        [currentIManager markedTextAbandoned:view];
++#endif
+         [view unmarkText];
+     }
+ }
+--- qt/src/plugins/platforms/cocoa/qcocoasystemtrayicon.mm.orig	2015-11-17 16:44:14.000000000 -0500
++++ qt/src/plugins/platforms/cocoa/qcocoasystemtrayicon.mm	2015-11-17 16:45:35.000000000 -0500
+@@ -119,7 +119,11 @@
+ -(void)mousePressed:(NSEvent *)mouseEvent button:(Qt::MouseButton)mouseButton;
+ @end
+ 
+-@interface QT_MANGLE_NAMESPACE(QNSMenu) : NSMenu <NSMenuDelegate> {
++@interface QT_MANGLE_NAMESPACE(QNSMenu) : NSMenu
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
++    <NSMenuDelegate>
++#endif
++    {
+     QPlatformMenu *qmenu;
+ }
+ -(QPlatformMenu*)menu;
+--- qt/src/plugins/platforms/cocoa/qcocoaprintdevice.mm
++++ qt/src/plugins/platforms/cocoa/qcocoaprintdevice.mm
+@@ -35,6 +35,7 @@
+ 
+ #include <QtCore/qmimedatabase.h>
+ #include <qdebug.h>
++#include <sys/param.h> // for MAXPATHLEN definition
+ 
+ QT_BEGIN_NAMESPACE
+ 
+--- qt/src/plugins/platforms/cocoa/qcocoanativeinterface.h
++++ qt/src/plugins/platforms/cocoa/qcocoanativeinterface.h
+@@ -120,6 +120,7 @@
+     // Set a QWindow as a "guest" (subwindow) of a non-QWindow
+     static void setEmbeddedInForeignView(QPlatformWindow *window, bool embedded);
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     // Register if a window should deliver touch events. Enabling
+     // touch events has implications for delivery of other events,
+     // for example by causing scrolling event lag.
+@@ -128,6 +129,7 @@
+     // touch events, which then will be delivered until the widget
+     // deregisters.
+     static void registerTouchWindow(QWindow *window,  bool enable);
++#endif
+ 
+     // Enable the unified title and toolbar area for a window.
+     static void setContentBorderEnabled(QWindow *window, bool enable);
+--- qt/src/plugins/platforms/cocoa/qcocoanativeinterface.mm
++++ qt/src/plugins/platforms/cocoa/qcocoanativeinterface.mm
+@@ -117,8 +117,10 @@
+         return NativeResourceForIntegrationFunction(QCocoaNativeInterface::cgImageToQImage);
+     if (resource.toLower() == "setwindowcontentview")
+         return NativeResourceForIntegrationFunction(QCocoaNativeInterface::setWindowContentView);
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+     if (resource.toLower() == "registertouchwindow")
+         return NativeResourceForIntegrationFunction(QCocoaNativeInterface::registerTouchWindow);
++#endif
+     if (resource.toLower() == "setembeddedinforeignview")
+         return NativeResourceForIntegrationFunction(QCocoaNativeInterface::setEmbeddedInForeignView);
+     if (resource.toLower() == "setcontentborderthickness")
+@@ -276,6 +278,7 @@
+     cocoaPlatformWindow->setEmbeddedInForeignView(embedded);
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+ void QCocoaNativeInterface::registerTouchWindow(QWindow *window,  bool enable)
+ {
+     if (!window)
+@@ -285,6 +288,7 @@
+     if (cocoaWindow)
+         cocoaWindow->registerTouch(enable);
+ }
++#endif
+ 
+ void QCocoaNativeInterface::setContentBorderThickness(QWindow *window, int topThickness, int bottomThickness)
+ {
+--- qt/examples/widgets/mac/qmacnativewidget/main.mm
++++ qt/examples/widgets/mac/qmacnativewidget/main.mm
+@@ -71,6 +71,10 @@
+ QApplication *qtApp = 0;
+ }
+ 
++#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
++@protocol NSApplicationDelegate <NSObject> @end
++#endif
++
+ @interface WindowCreator : NSObject <NSApplicationDelegate>
+ @end
+ 

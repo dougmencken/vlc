@@ -1,0 +1,178 @@
+--- qt/src/corelib/io/qstorageinfo_mac.cpp
++++ qt/src/corelib/io/qstorageinfo_mac.cpp
+@@ -37,9 +37,9 @@
+ #include <QtCore/private/qcore_mac_p.h>
+ 
+ #include <CoreFoundation/CoreFoundation.h>
+-#include <CoreFoundation/CFURLEnumerator.h>
+ 
+ #include <sys/mount.h>
++#include <sys/param.h>
+ 
+ #define QT_STATFSBUF struct statfs
+ #define QT_STATFS    ::statfs
+@@ -53,19 +53,19 @@
+     if (rootPath.isEmpty())
+         return;
+ 
+-    retrieveUrlProperties(true);
++    valid = true;
++    ready = true;
+ }
+ 
+ void QStorageInfoPrivate::doStat()
+ {
+     initRootPath();
+-
+     if (rootPath.isEmpty())
+         return;
+ 
+     retrieveLabel();
+     retrievePosixInfo();
+-    retrieveUrlProperties();
++    retrieveProperties();
+ }
+ 
+ void QStorageInfoPrivate::retrievePosixInfo()
+@@ -79,88 +79,36 @@
+     }
+ }
+ 
+-static inline qint64 CFDictionaryGetInt64(CFDictionaryRef dictionary, const void *key)
++void QStorageInfoPrivate::retrieveProperties()
+ {
+-    CFNumberRef cfNumber = (CFNumberRef)CFDictionaryGetValue(dictionary, key);
+-    if (!cfNumber)
+-        return -1;
+-    qint64 result;
+-    bool ok = CFNumberGetValue(cfNumber, kCFNumberSInt64Type, &result);
+-    if (!ok)
+-        return -1;
+-    return result;
+-}
+-
+-void QStorageInfoPrivate::retrieveUrlProperties(bool initRootPath)
+-{
+-    static const void *rootPathKeys[] = { kCFURLVolumeURLKey };
+-    static const void *propertyKeys[] = {
+-        // kCFURLVolumeNameKey, // 10.7
+-        // kCFURLVolumeLocalizedNameKey, // 10.7
+-        kCFURLVolumeTotalCapacityKey,
+-        kCFURLVolumeAvailableCapacityKey,
+-        // kCFURLVolumeIsReadOnlyKey // 10.7
+-    };
+-    size_t size = (initRootPath ? sizeof(rootPathKeys) : sizeof(propertyKeys)) / sizeof(void*);
+-    QCFType<CFArrayRef> keys = CFArrayCreate(kCFAllocatorDefault,
+-                                             initRootPath ? rootPathKeys : propertyKeys,
+-                                             size,
+-                                             Q_NULLPTR);
+-
+-    if (!keys)
+-        return;
+-
+-    const QCFString cfPath = rootPath;
+-    if (initRootPath)
+-        rootPath.clear();
+-
+-    QCFType<CFURLRef> url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
+-                                                          cfPath,
+-                                                          kCFURLPOSIXPathStyle,
+-                                                          true);
+-    if (!url)
+-        return;
+-
+-    CFErrorRef error;
+-    QCFType<CFDictionaryRef> map = CFURLCopyResourcePropertiesForKeys(url, keys, &error);
+-
+-    if (!map)
+-        return;
+-
+-    if (initRootPath) {
+-        const CFURLRef rootUrl = (CFURLRef)CFDictionaryGetValue(map, kCFURLVolumeURLKey);
+-        if (!rootUrl)
+-            return;
+-
+-        rootPath = QCFString(CFURLCopyFileSystemPath(rootUrl, kCFURLPOSIXPathStyle));
+-        valid = true;
+-        ready = true;
++    QT_STATFSBUF statfs_buf;
++    int result = QT_STATFS(QFile::encodeName(rootPath).constData(), &statfs_buf);
++    if (result == 0) {
++        device = QByteArray(statfs_buf.f_mntfromname);
++        readOnly = (statfs_buf.f_flags & MNT_RDONLY) != 0;
++        fileSystemType = QByteArray(statfs_buf.f_fstypename);
+ 
+-        return;
++        qint64 blockSize = statfs_buf.f_bsize;
++        bytesTotal = statfs_buf.f_blocks * blockSize;
++        bytesFree = statfs_buf.f_bfree * blockSize;
++        bytesAvailable = bytesFree;
+     }
+-
+-    bytesTotal = CFDictionaryGetInt64(map, kCFURLVolumeTotalCapacityKey);
+-    bytesAvailable = CFDictionaryGetInt64(map, kCFURLVolumeAvailableCapacityKey);
+-    bytesFree = bytesAvailable;
+ }
+ 
+ void QStorageInfoPrivate::retrieveLabel()
+ {
+ #if !defined(Q_OS_IOS)
+-    // deprecated since 10.8
+     FSRef ref;
+     FSPathMakeRef(reinterpret_cast<const UInt8*>(QFile::encodeName(rootPath).constData()),
+                   &ref,
+                   Q_NULLPTR);
+ 
+-    // deprecated since 10.8
+     FSCatalogInfo catalogInfo;
+     OSErr error;
+     error = FSGetCatalogInfo(&ref, kFSCatInfoVolume, &catalogInfo, Q_NULLPTR, Q_NULLPTR, Q_NULLPTR);
+     if (error != noErr)
+         return;
+ 
+-    // deprecated (use CFURLCopyResourcePropertiesForKeys for 10.7 and higher)
+     HFSUniStr255 volumeName;
+     error = FSGetVolumeInfo(catalogInfo.volume,
+                             0,
+@@ -178,21 +126,15 @@
+ {
+     QList<QStorageInfo> volumes;
+ 
+-    QCFType<CFURLEnumeratorRef> enumerator;
+-    enumerator = CFURLEnumeratorCreateForMountedVolumes(Q_NULLPTR,
+-                                                        kCFURLEnumeratorSkipInvisibles,
+-                                                        Q_NULLPTR);
+-
+-    CFURLEnumeratorResult result = kCFURLEnumeratorSuccess;
+-    do {
+-        CFURLRef url;
+-        CFErrorRef error;
+-        result = CFURLEnumeratorGetNextURL(enumerator, &url, &error);
+-        if (result == kCFURLEnumeratorSuccess) {
+-            const QCFString urlString = CFURLCopyFileSystemPath(url, kCFURLPOSIXPathStyle);
+-            volumes.append(QStorageInfo(urlString));
+-        }
+-    } while (result != kCFURLEnumeratorEnd);
++    QT_STATFSBUF * mounts;
++    int mntCount = getmntinfo(&mounts, MNT_WAIT);
++    if (mntCount <= 0)
++        return volumes;
++
++    for (int i = 0; i < mntCount; i++) {
++        const QCFString mountPointString = QCFString(QString::fromUtf8(mounts[i].f_mntonname));
++        volumes.append(QStorageInfo(mountPointString));
++    }
+ 
+     return volumes;
+ }
+--- qt/src/corelib/io/qstorageinfo_p.h
++++ qt/src/corelib/io/qstorageinfo_p.h
+@@ -69,7 +69,7 @@
+     void retrieveDiskFreeSpace();
+ #elif defined(Q_OS_MAC)
+     void retrievePosixInfo();
+-    void retrieveUrlProperties(bool initRootPath = false);
++    void retrieveProperties();
+     void retrieveLabel();
+ #elif defined(Q_OS_UNIX)
+     void retrieveVolumeInfo();

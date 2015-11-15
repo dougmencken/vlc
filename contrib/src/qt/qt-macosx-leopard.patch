@@ -4,7 +4,7 @@
  include(../common/gcc-base-mac.conf)
  include(../common/g++-macx.conf)
  
--QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.6
+-QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7
 +QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.5
  
  QMAKE_CC                = gcc-4.2
@@ -175,18 +175,30 @@
              } else:ios {
 --- qt/src/corelib/io/qfilesystemwatcher.cpp
 +++ qt/src/corelib/io/qfilesystemwatcher.cpp
-@@ -60,10 +60,8 @@
+@@ -52,10 +52,8 @@
  #  include "qfilesystemwatcher_win_p.h"
  #elif defined(USE_INOTIFY)
  #  include "qfilesystemwatcher_inotify_p.h"
--#elif defined(Q_OS_FREEBSD) || defined(Q_OS_IOS) || (defined(Q_OS_OSX) && MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_7)
-+#elif defined(Q_OS_FREEBSD) || defined(Q_OS_IOS) || defined(Q_OS_OSX)
+-#elif defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_IOS)
++#elif defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_IOS) || defined(Q_OS_OSX)
  #  include "qfilesystemwatcher_kqueue_p.h"
--#elif defined(Q_OS_OSX) && MAC_OS_X_VERSION_MIN_REQUIRED > MAC_OS_X_VERSION_10_6
+-#elif defined(Q_OS_OSX)
 -#  include "qfilesystemwatcher_fsevents_p.h"
  #endif
  
  QT_BEGIN_NAMESPACE
+@@ -66,10 +66,8 @@
+     // there is a chance that inotify may fail on Linux pre-2.6.13 (August
+     // 2005), so we can't just new inotify directly.
+     return QInotifyFileSystemWatcherEngine::create(parent);
+-#elif defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_IOS)
++#elif defined(Q_OS_FREEBSD) || defined(Q_OS_NETBSD) || defined(Q_OS_OSX) || defined(Q_OS_IOS)
+     return QKqueueFileSystemWatcherEngine::create(parent);
+-#elif defined(Q_OS_OSX)
+-    return QFseventsFileSystemWatcherEngine::create(parent);
+ #else
+     Q_UNUSED(parent);
+     return 0;
 --- qt/src/corelib/thread/qthread_unix.cpp
 +++ qt/src/corelib/thread/qthread_unix.cpp
 @@ -289,7 +289,9 @@
@@ -214,7 +226,7 @@
              macNeedsActivate = false; // no need to release the assertion on exit.
 --- qt/src/platformsupport/fontdatabases/mac/qcoretextfontdatabase.mm
 +++ qt/src/platformsupport/fontdatabases/mac/qcoretextfontdatabase.mm
-@@ -181,7 +181,7 @@
+@@ -188,7 +188,7 @@
  static CFArrayRef availableFamilyNames()
  {
  #if defined(Q_OS_OSX)
@@ -223,7 +235,7 @@
  #elif defined(Q_OS_IOS)
      return (CFArrayRef) [[UIFont familyNames] retain];
  #endif
-@@ -193,6 +193,24 @@
+@@ -200,6 +200,24 @@
      // to make sure that any previously registered app fonts become invisible.
      removeApplicationFonts();
  
@@ -239,8 +251,8 @@
 +
 +    const int numFonts = CFArrayGetCount(fonts);
 +    for (int i = 0; i < numFonts; ++i) {
-+        CTFontDescriptorRef font = (CTFontDescriptorRef) CFArrayGetValueAtIndex(fonts, i);
-+        populateFromDescriptor(font);
++        CTFontDescriptorRef fontDesc = (CTFontDescriptorRef) CFArrayGetValueAtIndex(fonts, i);
++        populateFromDescriptor(fontDesc);
 +    }
 +
 +    [pool release];
@@ -248,14 +260,51 @@
      QCFType<CFArrayRef> familyNames = availableFamilyNames();
      const int numberOfFamilies = CFArrayGetCount(familyNames);
      for (int i = 0; i < numberOfFamilies; ++i) {
-@@ -204,6 +221,7 @@
+@@ -211,13 +229,8 @@
+             continue;
  
          QPlatformFontDatabase::registerFontFamily(familyName);
+-
+-#if defined(Q_OS_OSX)
+-        QString localizedFamilyName = QString::fromNSString([[NSFontManager sharedFontManager] localizedNameForFamily:(NSString*)familyNameRef face:nil]);
+-        if (familyName != localizedFamilyName)
+-            QPlatformFontDatabase::registerAliasToFontFamily(familyName, localizedFamilyName);
+-#endif
      }
 +#endif
+ 
+     // Force creating the theme fonts to get the descriptors in m_systemFontDescriptors
+     if (m_themeFonts.isEmpty())
+@@ -245,7 +258,7 @@
+         populateFromDescriptor(CTFontDescriptorRef(CFArrayGetValueAtIndex(matchingFonts, i)));
  }
  
- void QCoreTextFontDatabase::populateFamily(const QString &familyName)
+-struct FontDescription {
++typedef struct FontDescription {
+     QCFString familyName;
+     QCFString styleName;
+     QString foundryName;
+@@ -255,7 +268,7 @@
+     int pixelSize;
+     bool fixedPitch;
+     QSupportedWritingSystems writingSystems;
+-};
++} FontDescription;
+ 
+ static void getFontDescription(CTFontDescriptorRef font, FontDescription *fd)
+ {
+@@ -353,6 +366,11 @@
+     QPlatformFontDatabase::registerFont(fd.familyName, fd.styleName, fd.foundryName, fd.weight, fd.style, fd.stretch,
+             true /* antialiased */, true /* scalable */,
+             fd.pixelSize, fd.fixedPitch, fd.writingSystems, (void *) font);
++
++///    QString familyName = QCFString::toQString(&fd.familyName);
++///    QString localizedFamilyName = QString::fromNSString([[NSFontManager sharedFontManager] localizedNameForFamily:(NSString*)familyName face:nil]);
++///    if (familyName != localizedFamilyName)
++///        QPlatformFontDatabase::registerAliasToFontFamily(fd.familyName, localizedFamilyName);
+ }
+ 
+ void QCoreTextFontDatabase::releaseHandle(void *handle)
 --- qt/src/widgets/styles/qmacstyle_mac_p.h
 +++ qt/src/widgets/styles/qmacstyle_mac_p.h
 @@ -46,6 +46,20 @@

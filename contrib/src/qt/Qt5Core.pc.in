@@ -6,5 +6,5 @@ includedir=${prefix}/include/qt5/QtCore
 Name: Qt5core
 Description: Qt5core Library
 Version: @@VERSION@@
-Libs: -Wl,--subsystem,windows -mwindows -L${libdir} -lQt5Core -lrpcrt4 -loleaut32 -lole32 -luuid -lwinspool -lwinmm -lshell32 -lcomctl32 -ladvapi32 -lgdi32 -limm32 -lwsock32
+Libs: -L${libdir} -lQt5Core -framework Cocoa -framework Foundation -framework CoreFoundation -framework CoreServices -framework ApplicationServices -framework IOKit -framework DiskArbitration -lqtpcre -lm -lz
 Cflags:  -I${prefix}/include/qt5 -I${includedir}
