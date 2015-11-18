@@ -25,6 +25,8 @@ $(TARBALLS)/qt-$(QT_VERSION_WITH_SUB).tar.xz:
 qt: qt-$(QT_VERSION_WITH_SUB).tar.xz .sum-qt
 	$(UNPACK)
 	mv qtbase-opensource-src-$(QT_VERSION_WITH_SUB) qt-$(QT_VERSION_WITH_SUB)
+	$(APPLY) $(SRC)/qt/qtbase-507b6b3e.patch
+	$(APPLY) $(SRC)/qt/qtbase-printing-no-id.patch
 	$(APPLY) $(SRC)/qt/qt-macosx-leopard.patch
 	$(APPLY) $(SRC)/qt/qt-5.5-leopard.patch
 	$(APPLY) $(SRC)/qt/qt-qcocoawindow-5.5-leopard.patch

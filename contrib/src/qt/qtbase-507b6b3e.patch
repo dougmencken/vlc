@@ -1,0 +1,230 @@
+commit 507b6b3e4bcef3ef280944f3956b7f32ed86985b
+Author: Sérgio Martins <sergio.martins@kdab.com>
+Date:   Tue Jun 23 16:18:12 2015 +0100
+
+    Use QList::reserve(), reduces reallocations
+    
+    Change-Id: I9f218bdd65a97ad9c867b695f3ba27ab64a54d2a
+    Reviewed-by: Marc Mutz <marc.mutz@kdab.com>
+
+diff --git a/src/platformsupport/dbusmenu/qdbusmenutypes.cpp b/src/platformsupport/dbusmenu/qdbusmenutypes.cpp
+index 73957ea..94df0f5 100644
+--- a/src/platformsupport/dbusmenu/qdbusmenutypes.cpp
++++ b/src/platformsupport/dbusmenu/qdbusmenutypes.cpp
+@@ -208,6 +208,7 @@ QDBusMenuItemList QDBusMenuItem::items(const QList<int> &ids, const QStringList
+     Q_UNUSED(propertyNames)
+     QDBusMenuItemList ret;
+     QList<const QDBusPlatformMenuItem *> items = QDBusPlatformMenuItem::byIds(ids);
++    ret.reserve(items.size());
+     Q_FOREACH (const QDBusPlatformMenuItem *item, items)
+         ret << QDBusMenuItem(item);
+     return ret;
+diff --git a/src/platformsupport/linuxaccessibility/atspiadaptor.cpp b/src/platformsupport/linuxaccessibility/atspiadaptor.cpp
+index c040dab..47c37ba 100644
+--- a/src/platformsupport/linuxaccessibility/atspiadaptor.cpp
++++ b/src/platformsupport/linuxaccessibility/atspiadaptor.cpp
+@@ -1431,7 +1431,9 @@ bool AtSpiAdaptor::accessibleInterface(QAccessibleInterface *interface, const QS
+                       QSpiObjectReference(connection, QDBusObjectPath(QSPI_OBJECT_PATH_ROOT))));
+     } else if (function == QLatin1String("GetChildren")) {
+         QSpiObjectReferenceArray children;
+-        for (int i = 0; i < interface->childCount(); ++i) {
++        const int numChildren = interface->childCount();
++        children.reserve(numChildren);
++        for (int i = 0; i < numChildren; ++i) {
+             QString childPath = pathForInterface(interface->child(i));
+             QSpiObjectReference ref(connection, QDBusObjectPath(childPath));
+             children << ref;
+@@ -1747,7 +1749,9 @@ QSpiActionArray AtSpiAdaptor::getActions(QAccessibleInterface *interface) const
+ {
+     QAccessibleActionInterface *actionInterface = interface->actionInterface();
+     QSpiActionArray actions;
+-    Q_FOREACH (const QString &actionName, QAccessibleBridgeUtils::effectiveActionNames(interface)) {
++    const QStringList actionNames = QAccessibleBridgeUtils::effectiveActionNames(interface);
++    actions.reserve(actionNames.size());
++    Q_FOREACH (const QString &actionName, actionNames) {
+         QSpiAction action;
+         QStringList keyBindings;
+ 
+diff --git a/src/plugins/bearer/connman/qconnmanengine.cpp b/src/plugins/bearer/connman/qconnmanengine.cpp
+index 9054200..b7cc5f9 100644
+--- a/src/plugins/bearer/connman/qconnmanengine.cpp
++++ b/src/plugins/bearer/connman/qconnmanengine.cpp
+@@ -121,8 +121,10 @@ QList<QNetworkConfigurationPrivate *> QConnmanEngine::getConfigurations()
+     QMutexLocker locker(&mutex);
+     QList<QNetworkConfigurationPrivate *> fetchedConfigurations;
+     QNetworkConfigurationPrivate* cpPriv = 0;
++    const int numFoundConfigurations = foundConfigurations.count();
++    fetchedConfigurations.reserve(numFoundConfigurations);
+ 
+-    for (int i = 0; i < foundConfigurations.count(); ++i) {
++    for (int i = 0; i < numFoundConfigurations; ++i) {
+         QNetworkConfigurationPrivate *config = new QNetworkConfigurationPrivate;
+         cpPriv = foundConfigurations.at(i);
+ 
+diff --git a/src/plugins/generic/tuiotouch/qtuiohandler.cpp b/src/plugins/generic/tuiotouch/qtuiohandler.cpp
+index 5211ed8..dd16157 100644
+--- a/src/plugins/generic/tuiotouch/qtuiohandler.cpp
++++ b/src/plugins/generic/tuiotouch/qtuiohandler.cpp
+@@ -317,6 +317,7 @@ void QTuioHandler::process2DCurFseq(const QOscMessage &message)
+         return;
+ 
+     QList<QWindowSystemInterface::TouchPoint> tpl;
++    tpl.reserve(m_activeCursors.size() + m_deadCursors.size());
+ 
+     foreach (const QTuioCursor &tc, m_activeCursors) {
+         QWindowSystemInterface::TouchPoint tp = cursorToTouchPoint(tc, win);
+diff --git a/src/plugins/platforminputcontexts/ibus/qibustypes.cpp b/src/plugins/platforminputcontexts/ibus/qibustypes.cpp
+index d6be6cb..f88e5ca 100644
+--- a/src/plugins/platforminputcontexts/ibus/qibustypes.cpp
++++ b/src/plugins/platforminputcontexts/ibus/qibustypes.cpp
+@@ -225,9 +225,10 @@ const QDBusArgument &operator>>(const QDBusArgument &arg, QIBusAttributeList &at
+ QList<QInputMethodEvent::Attribute> QIBusAttributeList::imAttributes() const
+ {
+     QHash<QPair<int, int>, QTextCharFormat> rangeAttrs;
++    const int numAttributes = attributes.size();
+ 
+     // Merge text fomats for identical ranges into a single QTextFormat.
+-    for (int i = 0; i < attributes.size(); ++i) {
++    for (int i = 0; i < numAttributes; ++i) {
+         const QIBusAttribute &attr = attributes.at(i);
+         const QTextCharFormat &format = attr.format();
+ 
+@@ -239,8 +240,9 @@ QList<QInputMethodEvent::Attribute> QIBusAttributeList::imAttributes() const
+ 
+     // Assemble list in original attribute order.
+     QList<QInputMethodEvent::Attribute> imAttrs;
++    imAttrs.reserve(numAttributes);
+ 
+-    for (int i = 0; i < attributes.size(); ++i) {
++    for (int i = 0; i < numAttributes; ++i) {
+         const QIBusAttribute &attr = attributes.at(i);
+         const QTextFormat &format = attr.format();
+ 
+diff --git a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsdevice.cpp b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsdevice.cpp
+index 18a66e3..0fa191e 100644
+--- a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsdevice.cpp
++++ b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms/qeglfskmsdevice.cpp
+@@ -208,6 +208,7 @@ QEglFSKmsScreen *QEglFSKmsDevice::screenForConnector(drmModeResPtr resources, dr
+     }
+ 
+     QList<drmModeModeInfo> modes;
++    modes.reserve(connector->count_modes);
+     qCDebug(qLcEglfsKmsDebug) << connectorName << "mode count:" << connector->count_modes;
+     for (int i = 0; i < connector->count_modes; i++) {
+         const drmModeModeInfo &mode = connector->modes[i];
+diff --git a/src/plugins/platforms/xcb/qxcbsessionmanager.cpp b/src/plugins/platforms/xcb/qxcbsessionmanager.cpp
+index 328b722..c2101a7 100644
+--- a/src/plugins/platforms/xcb/qxcbsessionmanager.cpp
++++ b/src/plugins/platforms/xcb/qxcbsessionmanager.cpp
+@@ -134,6 +134,7 @@ static void sm_setProperty(const QString &name, const QStringList &value)
+     SmPropValue *prop = new SmPropValue[value.count()];
+     int count = 0;
+     QList<QByteArray> vl;
++    vl.reserve(value.size());
+     for (QStringList::ConstIterator it = value.begin(); it != value.end(); ++it) {
+       prop[count].length = (*it).length();
+       vl.append((*it).toUtf8());
+diff --git a/src/plugins/printsupport/cups/qcupsprintengine.cpp b/src/plugins/printsupport/cups/qcupsprintengine.cpp
+index b0c78c6..7ca8198 100644
+--- a/src/plugins/printsupport/cups/qcupsprintengine.cpp
++++ b/src/plugins/printsupport/cups/qcupsprintengine.cpp
+@@ -224,7 +224,9 @@ void QCupsPrintEnginePrivate::closePrintDevice()
+             it += 2;
+         }
+ 
+-        for (int c = 0; c < options.size(); ++c) {
++        const int numOptions = options.size();
++        cupsOptStruct.reserve(numOptions);
++        for (int c = 0; c < numOptions; ++c) {
+             cups_option_t opt;
+             opt.name = options[c].first.data();
+             opt.value = options[c].second.data();
+diff --git a/src/plugins/printsupport/cups/qcupsprintersupport.cpp b/src/plugins/printsupport/cups/qcupsprintersupport.cpp
+index da8f369..b257918 100644
+--- a/src/plugins/printsupport/cups/qcupsprintersupport.cpp
++++ b/src/plugins/printsupport/cups/qcupsprintersupport.cpp
+@@ -78,6 +78,7 @@ QStringList QCupsPrinterSupport::availablePrintDeviceIds() const
+     QStringList list;
+     cups_dest_t *dests;
+     int count = cupsGetDests(&dests);
++    list.reserve(count);
+     for (int i = 0; i < count; ++i) {
+         QString printerId = QString::fromLocal8Bit(dests[i].name);
+         if (dests[i].instance)
+diff --git a/src/printsupport/kernel/qpaintengine_alpha.cpp b/src/printsupport/kernel/qpaintengine_alpha.cpp
+index 010a628..7106914 100644
+--- a/src/printsupport/kernel/qpaintengine_alpha.cpp
++++ b/src/printsupport/kernel/qpaintengine_alpha.cpp
+@@ -178,7 +178,8 @@ void QAlphaPaintEngine::drawPolygon(const QPointF *points, int pointCount, Polyg
+     Q_D(QAlphaPaintEngine);
+ 
+     QPolygonF poly;
+-    for (int i=0; i<pointCount; ++i)
++    poly.reserve(pointCount);
++    for (int i = 0; i < pointCount; ++i)
+         poly.append(points[i]);
+ 
+     QPainterPath path;
+diff --git a/src/printsupport/kernel/qprinter.cpp b/src/printsupport/kernel/qprinter.cpp
+index 44d3384..d404877 100644
+--- a/src/printsupport/kernel/qprinter.cpp
++++ b/src/printsupport/kernel/qprinter.cpp
+@@ -1934,7 +1934,9 @@ QList<int> QPrinter::supportedResolutions() const
+     QList<QVariant> varlist
+         = d->printEngine->property(QPrintEngine::PPK_SupportedResolutions).toList();
+     QList<int> intlist;
+-    for (int i=0; i<varlist.size(); ++i)
++    const int numSupportedResolutions = varlist.size();
++    intlist.reserve(numSupportedResolutions);
++    for (int i = 0; i < numSupportedResolutions; ++i)
+         intlist << varlist.at(i).toInt();
+     return intlist;
+ }
+diff --git a/src/printsupport/kernel/qprinterinfo.cpp b/src/printsupport/kernel/qprinterinfo.cpp
+index ad488a1..1be5748 100644
+--- a/src/printsupport/kernel/qprinterinfo.cpp
++++ b/src/printsupport/kernel/qprinterinfo.cpp
+@@ -316,7 +316,9 @@ QList<QPrinter::PaperSize> QPrinterInfo::supportedPaperSizes() const
+ {
+     Q_D(const QPrinterInfo);
+     QList<QPrinter::PaperSize> list;
+-    foreach (const QPageSize &pageSize, d->m_printDevice.supportedPageSizes())
++    const QList<QPageSize> supportedPageSizes = d->m_printDevice.supportedPageSizes();
++    list.reserve(supportedPageSizes.size());
++    foreach (const QPageSize &pageSize, supportedPageSizes)
+         list.append(QPrinter::PaperSize(pageSize.id()));
+     return list;
+ }
+@@ -336,7 +338,9 @@ QList<QPair<QString, QSizeF> > QPrinterInfo::supportedSizesWithNames() const
+ {
+     Q_D(const QPrinterInfo);
+     QList<QPair<QString, QSizeF> > list;
+-    foreach (const QPageSize &pageSize, d->m_printDevice.supportedPageSizes())
++    const QList<QPageSize> supportedPageSizes = d->m_printDevice.supportedPageSizes();
++    list.reserve(supportedPageSizes.size());
++    foreach (const QPageSize &pageSize, supportedPageSizes)
+         list.append(qMakePair(pageSize.name(), pageSize.size(QPageSize::Millimeter)));
+     return list;
+ }
+@@ -376,7 +380,9 @@ QList<QPrinter::DuplexMode> QPrinterInfo::supportedDuplexModes() const
+ {
+     Q_D(const QPrinterInfo);
+     QList<QPrinter::DuplexMode> list;
+-    foreach (QPrint::DuplexMode mode, d->m_printDevice.supportedDuplexModes())
++    const QList<QPrint::DuplexMode> supportedDuplexModes = d->m_printDevice.supportedDuplexModes();
++    list.reserve(supportedDuplexModes.size());
++    foreach (QPrint::DuplexMode mode, supportedDuplexModes)
+         list << QPrinter::DuplexMode(mode);
+     return list;
+ }
+@@ -416,7 +422,9 @@ QList<QPrinterInfo> QPrinterInfo::availablePrinters()
+     QList<QPrinterInfo> list;
+     QPlatformPrinterSupport *ps = QPlatformPrinterSupportPlugin::get();
+     if (ps) {
+-        foreach (const QString &id, ps->availablePrintDeviceIds())
++        const QStringList availablePrintDeviceIds = ps->availablePrintDeviceIds();
++        list.reserve(availablePrintDeviceIds.size());
++        foreach (const QString &id, availablePrintDeviceIds)
+             list.append(QPrinterInfo(id));
+     }
+     return list;

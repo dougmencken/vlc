@@ -1,0 +1,273 @@
+commit 1e7f487294363f3c4a5eff102046d14e23288200
+Author: Douglas Mencken <dougmencken@gmail.com>
+Date:   Wed Nov 18 00:33:07 2015 -0500
+
+    printing: avoid using the `id' keyword as names
+
+diff --git a/src/gui/painting/qpagedpaintdevice.cpp b/src/gui/painting/qpagedpaintdevice.cpp
+index 547cedf..f10e836 100644
+--- a/src/gui/painting/qpagedpaintdevice.cpp
++++ b/src/gui/painting/qpagedpaintdevice.cpp
+@@ -253,7 +253,7 @@ void QPagedPaintDevice::setPageSize(PageSize size)
+   */
+ QPagedPaintDevice::PageSize QPagedPaintDevice::pageSize() const
+ {
+-    return PageSize(d->m_pageLayout.pageSize().id());
++    return PageSize(d->m_pageLayout.pageSize().getId());
+ }
+ 
+ /*!
+diff --git a/src/gui/painting/qpagesize.cpp b/src/gui/painting/qpagesize.cpp
+index c0aae60..8636f39 100644
+--- a/src/gui/painting/qpagesize.cpp
++++ b/src/gui/painting/qpagesize.cpp
+@@ -1333,7 +1333,7 @@ QString QPageSize::name() const
+     If the QPageSize is invalid then the ID will be QPageSize::Custom.
+ */
+ 
+-QPageSize::PageSizeId QPageSize::id() const
++QPageSize::PageSizeId QPageSize::getId() const
+ {
+     return isValid() ? d->m_id : Custom;
+ }
+@@ -1349,11 +1349,11 @@ QPageSize::PageSizeId QPageSize::id() const
+     \sa id()
+ */
+ 
+-int QPageSize::windowsId() const
++int QPageSize::getWindowsId() const
+ {
+     if (!isValid())
+         return 0;
+-    return d->m_windowsId > 0 ? d->m_windowsId : windowsId(d->m_id);
++    return d->m_windowsId > 0 ? d->m_windowsId : idToWindowsId(d->m_id);
+ }
+ 
+ /*!
+@@ -1747,7 +1747,7 @@ QString QPageSize::name(PageSizeId pageSizeId)
+     point size of the PageSizeId before using it in any calculations.
+ */
+ 
+-QPageSize::PageSizeId QPageSize::id(const QSize &pointSize, SizeMatchPolicy matchPolicy)
++QPageSize::PageSizeId QPageSize::makeId(const QSize &pointSize, SizeMatchPolicy matchPolicy)
+ {
+     return qt_idForPointSize(pointSize, matchPolicy, 0);
+ }
+@@ -1762,8 +1762,7 @@ QPageSize::PageSizeId QPageSize::id(const QSize &pointSize, SizeMatchPolicy matc
+     unit size of the PageSizeId before using it in any calculations.
+ */
+ 
+-QPageSize::PageSizeId QPageSize::id(const QSizeF &size, Unit units,
+-                                    SizeMatchPolicy matchPolicy)
++QPageSize::PageSizeId QPageSize::makeId(const QSizeF &size, Unit units, SizeMatchPolicy matchPolicy)
+ {
+     return qt_idForSize(size, units, matchPolicy, 0);
+ }
+@@ -1774,7 +1773,7 @@ QPageSize::PageSizeId QPageSize::id(const QSizeF &size, Unit units,
+     If there is no matching PageSizeId then QPageSize::Custom is returned.
+ */
+ 
+-QPageSize::PageSizeId QPageSize::id(int windowsId)
++QPageSize::PageSizeId QPageSize::idFromWindowsId(int windowsId)
+ {
+     return qt_idForWindowsID(windowsId);
+ }
+@@ -1786,7 +1785,7 @@ QPageSize::PageSizeId QPageSize::id(int windowsId)
+     will be returned.
+ */
+ 
+-int QPageSize::windowsId(PageSizeId pageSizeId)
++int QPageSize::idToWindowsId(PageSizeId pageSizeId)
+ {
+     return qt_pageSizes[pageSizeId].windowsId;
+ }
+@@ -1861,7 +1860,7 @@ QDebug operator<<(QDebug dbg, const QPageSize &pageSize)
+                        .arg(pageSize.key())
+                        .arg(pageSize.sizePoints().width())
+                        .arg(pageSize.sizePoints().height())
+-                       .arg(pageSize.id());
++                       .arg(pageSize.getId());
+         dbg.nospace() << output;
+     } else {
+         dbg.nospace() << "QPageSize()";
+diff --git a/src/gui/painting/qpagesize.h b/src/gui/painting/qpagesize.h
+index 9119a58..c778b9c 100644
+--- a/src/gui/painting/qpagesize.h
++++ b/src/gui/painting/qpagesize.h
+@@ -246,9 +246,9 @@ public:
+     QString key() const;
+     QString name() const;
+ 
+-    PageSizeId id() const;
++    PageSizeId getId() const;
+ 
+-    int windowsId() const;
++    int getWindowsId() const;
+ 
+     QSizeF definitionSize() const;
+     Unit definitionUnits() const;
+@@ -264,13 +264,13 @@ public:
+     static QString key(PageSizeId pageSizeId);
+     static QString name(PageSizeId pageSizeId);
+ 
+-    static PageSizeId id(const QSize &pointSize,
+-                         SizeMatchPolicy matchPolicy = FuzzyMatch);
+-    static PageSizeId id(const QSizeF &size, Unit units,
+-                         SizeMatchPolicy matchPolicy = FuzzyMatch);
++    static PageSizeId makeId(const QSize &pointSize,
++                             SizeMatchPolicy matchPolicy = FuzzyMatch);
++    static PageSizeId makeId(const QSizeF &size, Unit units,
++                             SizeMatchPolicy matchPolicy = FuzzyMatch);
+ 
+-    static PageSizeId id(int windowsId);
+-    static int windowsId(PageSizeId pageSizeId);
++    static PageSizeId idFromWindowsId(int windowsId);
++    static int idToWindowsId(PageSizeId pageSizeId);
+ 
+     static QSizeF definitionSize(PageSizeId pageSizeId);
+     static Unit definitionUnits(PageSizeId pageSizeId);
+diff --git a/src/plugins/platforms/cocoa/qprintengine_mac.mm b/src/plugins/platforms/cocoa/qprintengine_mac.mm
+index edd1d65..1eb6b33 100644
+--- a/src/plugins/platforms/cocoa/qprintengine_mac.mm
++++ b/src/plugins/platforms/cocoa/qprintengine_mac.mm
+@@ -552,15 +552,15 @@ void QMacPrintEngine::setProperty(PrintEnginePropertyKey key, const QVariant &va
+         d->setPageSize(d->m_printDevice->supportedPageSize(value.toString()));
+         break;
+     case PPK_WindowsPageSize:
+-        d->setPageSize(QPageSize(QPageSize::id(value.toInt())));
++        d->setPageSize(QPageSize(QPageSize::idFromWindowsId(value.toInt())));
+         break;
+     case PPK_PrinterName: {
+-        QString id = value.toString();
+-        if (id.isEmpty())
+-            id = QCocoaPrinterSupport().defaultPrintDeviceId();
+-        else if (!QCocoaPrinterSupport().availablePrintDeviceIds().contains(id))
++        QString idStr = value.toString();
++        if (idStr.isEmpty())
++            idStr = QCocoaPrinterSupport().defaultPrintDeviceId();
++        else if (!QCocoaPrinterSupport().availablePrintDeviceIds().contains(idStr))
+             break;
+-        d->m_printDevice.reset(new QCocoaPrintDevice(id));
++        d->m_printDevice.reset(new QCocoaPrintDevice(idStr));
+         PMPrinter printer = d->m_printDevice->macPrinter();
+         PMRetain(printer);
+         PMSessionSetCurrentPMPrinter(d->session(), printer);
+@@ -704,13 +704,13 @@ QVariant QMacPrintEngine::property(PrintEnginePropertyKey key) const
+         ret = d->m_pageLayout.paintRectPixels(d->resolution.hRes);
+         break;
+     case PPK_PageSize:
+-        ret = d->m_pageLayout.pageSize().id();
++        ret = d->m_pageLayout.pageSize().getId();
+         break;
+     case PPK_PaperName:
+         ret = d->m_pageLayout.pageSize().name();
+         break;
+     case PPK_WindowsPageSize:
+-        ret = d->m_pageLayout.pageSize().windowsId();
++        ret = d->m_pageLayout.pageSize().getWindowsId();
+         break;
+     case PPK_PaperRect:
+         // PaperRect is returned in device pixels
+diff --git a/src/plugins/printsupport/cups/qcupsprintengine.cpp b/src/plugins/printsupport/cups/qcupsprintengine.cpp
+index 7ca8198..aa1ad09 100644
+--- a/src/plugins/printsupport/cups/qcupsprintengine.cpp
++++ b/src/plugins/printsupport/cups/qcupsprintengine.cpp
+@@ -72,7 +72,7 @@ void QCupsPrintEngine::setProperty(PrintEnginePropertyKey key, const QVariant &v
+         d->setPageSize(QPageSize(QPageSize::PageSizeId(value.toInt())));
+         break;
+     case PPK_WindowsPageSize:
+-        d->setPageSize(QPageSize(QPageSize::id(value.toInt())));
++        d->setPageSize(QPageSize(QPageSize::idFromWindowsId(value.toInt())));
+         break;
+     case PPK_CustomPaperSize:
+         d->setPageSize(QPageSize(value.toSizeF(), QPageSize::Point));
+diff --git a/src/printsupport/kernel/qplatformprintdevice.cpp b/src/printsupport/kernel/qplatformprintdevice.cpp
+index 6385f58..dbbaa95 100644
+--- a/src/printsupport/kernel/qplatformprintdevice.cpp
++++ b/src/printsupport/kernel/qplatformprintdevice.cpp
+@@ -167,17 +167,17 @@ QPageSize QPlatformPrintDevice::supportedPageSize(const QPageSize &pageSize) con
+     // First try match on name and id for case where printer defines same size twice with different names
+     // e.g. Windows defines DMPAPER_11X17 and DMPAPER_TABLOID with names "11x17" and "Tabloid", but both
+     // map to QPageSize::Tabloid / PPD Key "Tabloid" / ANSI B Tabloid
+-    if (pageSize.id() != QPageSize::Custom) {
++    if (pageSize.getId() != QPageSize::Custom) {
+         foreach (const QPageSize &ps, m_pageSizes) {
+-            if (ps.id() == pageSize.id() && ps.name() == pageSize.name())
++            if (ps.getId() == pageSize.getId() && ps.name() == pageSize.name())
+                 return ps;
+         }
+     }
+ 
+     // Next try match on id only if not custom
+-    if (pageSize.id() != QPageSize::Custom) {
++    if (pageSize.getId() != QPageSize::Custom) {
+         foreach (const QPageSize &ps, m_pageSizes) {
+-            if (ps.id() == pageSize.id())
++            if (ps.getId() == pageSize.getId())
+                 return ps;
+         }
+     }
+@@ -192,7 +192,7 @@ QPageSize QPlatformPrintDevice::supportedPageSize(QPageSize::PageSizeId pageSize
+         loadPageSizes();
+ 
+     foreach (const QPageSize &ps, m_pageSizes) {
+-        if (ps.id() == pageSizeId)
++        if (ps.getId() == pageSizeId)
+             return ps;
+     }
+ 
+diff --git a/src/printsupport/kernel/qprintengine_pdf.cpp b/src/printsupport/kernel/qprintengine_pdf.cpp
+index a4f3f49..79688e5 100644
+--- a/src/printsupport/kernel/qprintengine_pdf.cpp
++++ b/src/printsupport/kernel/qprintengine_pdf.cpp
+@@ -175,7 +175,7 @@ void QPdfPrintEngine::setProperty(PrintEnginePropertyKey key, const QVariant &va
+         break;
+     }
+     case PPK_WindowsPageSize:
+-        d->m_pageLayout.setPageSize(QPageSize(QPageSize::id(value.toInt())));
++        d->m_pageLayout.setPageSize(QPageSize(QPageSize::idFromWindowsId(value.toInt())));
+         break;
+     case PPK_PaperSource:
+         d->paperSource = QPrinter::PaperSource(value.toInt());
+@@ -279,13 +279,13 @@ QVariant QPdfPrintEngine::property(PrintEnginePropertyKey key) const
+         ret = d->pageOrder;
+         break;
+     case PPK_PageSize:
+-        ret = d->m_pageLayout.pageSize().id();
++        ret = d->m_pageLayout.pageSize().getId();
+         break;
+     case PPK_PaperName:
+         ret = d->m_pageLayout.pageSize().name();
+         break;
+     case PPK_WindowsPageSize:
+-        ret = d->m_pageLayout.pageSize().windowsId();
++        ret = d->m_pageLayout.pageSize().getWindowsId();
+         break;
+     case PPK_PaperSource:
+         ret = d->paperSource;
+diff --git a/src/printsupport/kernel/qprinter.cpp b/src/printsupport/kernel/qprinter.cpp
+index 2cecf61..6ab6171 100644
+--- a/src/printsupport/kernel/qprinter.cpp
++++ b/src/printsupport/kernel/qprinter.cpp
+@@ -1200,7 +1200,7 @@ void QPrinter::setPaperSize(PaperSize newPaperSize)
+ */
+ QPrinter::PageSize QPrinter::pageSize() const
+ {
+-    return QPrinter::PaperSize(pageLayout().pageSize().id());
++    return QPrinter::PaperSize(pageLayout().pageSize().getId());
+ }
+ 
+ 
+diff --git a/src/printsupport/kernel/qprinterinfo.cpp b/src/printsupport/kernel/qprinterinfo.cpp
+index 1be5748..5bd4258 100644
+--- a/src/printsupport/kernel/qprinterinfo.cpp
++++ b/src/printsupport/kernel/qprinterinfo.cpp
+@@ -319,7 +319,7 @@ QList<QPrinter::PaperSize> QPrinterInfo::supportedPaperSizes() const
+     const QList<QPageSize> supportedPageSizes = d->m_printDevice.supportedPageSizes();
+     list.reserve(supportedPageSizes.size());
+     foreach (const QPageSize &pageSize, supportedPageSizes)
+-        list.append(QPrinter::PaperSize(pageSize.id()));
++        list.append(QPrinter::PaperSize(pageSize.getId()));
+     return list;
+ }
+ 
