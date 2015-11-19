@@ -3738,11 +3738,11 @@ AC_ARG_ENABLE(qt, [
 AS_IF([test "${enable_qt}" != "no"], [
   PKG_CHECK_MODULES([QT], [Qt5Core >= 5.1.0 Qt5Widgets Qt5Gui], [
       PKG_CHECK_MODULES([QTX11], [Qt5X11Extras], [
-          VLC_ADD_LIBS([qt4],[${QTX11_LIBS}])
-          VLC_ADD_CXXFLAGS([qt4],[${QTX11_CFLAGS} -DQT5_HAS_X11])
+          VLC_ADD_LIBS([qt],[${QTX11_LIBS}])
+          VLC_ADD_CXXFLAGS([qt],[${QTX11_CFLAGS} -DQT5_HAS_X11])
           PKG_CHECK_MODULES([XI], [xi], [
-            VLC_ADD_LIBS([qt4], [${XI_LIBS}])
-            VLC_ADD_CXXFLAGS([qt4], [${XI_CFLAGS} -DHAVE_XI])
+            VLC_ADD_LIBS([qt], [${XI_LIBS}])
+            VLC_ADD_CXXFLAGS([qt], [${XI_CFLAGS} -DHAVE_XI])
           ], [
             PKG_CHECK_EXISTS([Qt5Gui >= 5.5], [
               AC_MSG_ERROR([${XI_PKG_ERRORS}.])
@@ -3755,9 +3755,9 @@ AS_IF([test "${enable_qt}" != "no"], [
       ])
       QT_PATH="$(eval $PKG_CONFIG --variable=exec_prefix Qt5Core)"
       QT_HOST_PATH="$(eval $PKG_CONFIG --variable=host_bins Qt5Core)"
-      AC_PATH_PROGS(MOC, [moc-qt5 moc], moc, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
-      AC_PATH_PROGS(RCC, [rcc-qt5 rcc], rcc, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
-      AC_PATH_PROGS(UIC, [uic-qt5 uic], uic, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
+      AC_PATH_PROGS(MOC, moc, moc, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
+      AC_PATH_PROGS(RCC, rcc, rcc, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
+      AC_PATH_PROGS(UIC, uic, uic, ["${QT_HOST_PATH}" "${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
     ], [
       PKG_CHECK_MODULES([QT], [QtCore QtGui >= 4.6.0],, [
         AS_IF([test -n "${enable_qt}"],[
@@ -3768,26 +3768,26 @@ AS_IF([test "${enable_qt}" != "no"], [
         enable_qt="no"
       ])
       QT_PATH="$(eval $PKG_CONFIG --variable=exec_prefix QtCore)"
-      AC_PATH_PROGS(MOC, [moc-qt4 moc], moc, ["${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
+      AC_PATH_PROGS(MOC, moc, moc, ["${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
       AC_PATH_PROG(RCC, rcc, rcc, [${QT_PATH}/bin ${CONTRIB_DIR}/bin])
-      AC_PATH_PROGS(UIC, [uic-qt4 uic], uic, ["${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
+      AC_PATH_PROGS(UIC, uic, uic, ["${QT_PATH}/bin" "${CONTRIB_DIR}/bin"])
     ])
 ])
 AS_IF([test "${enable_qt}" != "no"], [
-  VLC_ADD_PLUGIN([qt4])
+  VLC_ADD_PLUGIN([qt])
   ALIASES="${ALIASES} qvlc"
 ])
-AM_CONDITIONAL(ENABLE_QT4, [test "$enable_qt" != "no"])
+AM_CONDITIONAL(ENABLE_QT, [test "$enable_qt" != "no"])
 
 dnl
 dnl Simple test for skins2 dependency
 dnl
 AS_IF([test "$enable_qt" = "no"], [
   AS_IF([test "${enable_skins2}" = "yes"], [
-    AC_MSG_ERROR([The skins2 module depends on the Qt4 interface. Without it you will not be able to open any dialog box from the interface, which makes the skins2 interface rather useless. Install the Qt4 development package or alternatively you can also configure with: --disable-qt4 --disable-skins2.])
+    AC_MSG_ERROR([The skins2 module depends on the Qt interface. Without it you will not be able to open any dialog box from the interface, which makes the skins2 interface rather useless. Install the Qt development package or alternatively you can also configure with: --disable-qt --disable-skins2.])
   ], [
     enable_skins2="no"
-    AC_MSG_WARN([The skins2 module depends on the Qt4 interface, Qt4 is not built so skins2 is disabled.])
+    AC_MSG_WARN([The skins2 module depends on the Qt interface, Qt is not built so skins2 is disabled.])
   ])
 ])
 
@@ -4226,7 +4226,7 @@ AC_CONFIG_FILES([
   bin/Makefile
   test/Makefile
   modules/gui/macosx/Makefile
-  modules/gui/qt4/Makefile
+  modules/gui/qt/Makefile
   modules/gui/skins2/Makefile
   modules/hw/mmal/Makefile
 ])

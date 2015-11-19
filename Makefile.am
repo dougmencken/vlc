@@ -967,7 +967,7 @@ svlc: make-alias Makefile
 	$(AM_V_GEN)$(MKALIAS) skins2
 
 qvlc: make-alias Makefile
-	$(AM_V_GEN)$(MKALIAS) qt4
+	$(AM_V_GEN)$(MKALIAS) qt
 
 nvlc: make-alias Makefile
 	$(AM_V_GEN)$(MKALIAS) ncurses
